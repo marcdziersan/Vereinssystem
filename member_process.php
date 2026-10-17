@@ -6,6 +6,7 @@ require_once("inc/connect.inc.php");
 
 // Login-Status-Prüfung einbinden
 require_once("inc/checkuser.inc.php");
+require_once __DIR__."/inc/validation.php";
 
 function vs_password_matches(string $plain, string $stored): bool {
     return password_verify($plain, $stored)
@@ -208,7 +209,7 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
     // Prüfen, ob es eine gültige E-Mail-Adresse und nicht leer ist (kleine Fehler werden automatisch verbessert; leer wäre auch erlaubt)
     $errors[] = "E-Mail Adresse ungültig";
   }
-  if ($input['mitgliedschaft'] < 0 && $input['mitgliedschaft'] > 2){
+  if (!vs_valid_choice($input['mitgliedschaft'] ?? null, 0, 2)){
     // Mitgliedsart-Nummer ist außerhalb des gültigen Rahmens von 0 bis 2
     $errors[] = "Die ausgewählte Mitgliedsart ist ungültig";
   }
@@ -217,7 +218,7 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
     // Beitrittsdatum auf Gültigkeit prüfen (30. Februar z.B. zurückweisen) und auf plausibilität (in der Vergangenheit, nicht vor 1900 und nach dem Geburtstag)
     $errors[] = "Das eingegebene Beitrittsdatum ist ungültig";
   }
-  if ($input['abrechnung'] < 0 && $input['abrechnung'] > 1){
+  if (!vs_valid_choice($input['abrechnung'] ?? null, 0, 1)){
     // Abrechnungsart-Nummer ist außerhalb des gültigen Rahmens von 0 bis 1
     $errors[] = "Die ausgewählte Abrechnungsart ist ungültig";
   }
@@ -247,7 +248,7 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
     // Banknamen dürfen nur aus Buchstaben, Bindestrichen und Leerzeichen bestehen und müssen mindestens 5 Zeichen lang sein
     $errors[] = "Die eingegebene Bankname ist ungültig";
   }
-  if (isset($input['rights']) && $input['rights'] < 0 && $input['rights'] > 5){
+  if (isset($input['rights']) && !vs_valid_choice($input['rights'], 0, 5)){
     // Abrechnungsart-Nummer ist außerhalb des gültigen Rahmens von 0 bis 5
     $errors[] = "Das ausgewählte Rechtelevel ist ungültig";
   }

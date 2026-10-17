@@ -1,24 +1,16 @@
 # Änderungsprotokoll
 
-## 2.0.0 – PHP 8 / PDO, 17.10.2026
+## 2.0.1 – 18.10.2026
+- Fehlende PDO-Kerndateien, sichere Session-Verwaltung, SQL-Schema und lokales jQuery im GitHub-Repository ergänzt.
+- Alte MySQL-Verbindung durch PDO-Konfiguration ersetzt.
+- Wertebereichsprüfung für Mitgliedsart, Abrechnung und Rechte korrigiert.
+- Neue separate Ganzzahlvalidierung.
+- Versionsstand und Dokumentation aktualisiert.
+- `inc/config.php` in .gitignore ausgeschlossen.
+- Keine Änderungen an bestehenden Tabellen oder gespeicherten Vereinsdaten.
+- Live-Integration mit MySQL/MariaDB noch nicht nachgewiesen.
 
-**Neu**
-- `install.php`: geführte Installation mit Datenbankverbindung, acht Tabellen, Grundeinstellungen und initialem Admin.
-- `inc/database.php`: native PDO-Verbindung mit vorbereiteten Abfragen und gepuffertem Ergebnisadapter für Altabfragen.
-- `inc/session.php`: einheitlicher Session-Start.
-- CSRF-Prüfung bei den vorhandenen POST-Formularen und POST-Aktionen für Dienste.
+## 2.0.0 – 17.10.2026
+- PHP 8 und PDO-Kern; Installationsassistent, Passwortmigration, Session- und CSRF-Schutz.
 
-**Geändert**
-- Komplettmigration der entfernten `mysql_*`-Aufrufe auf `db_*`/PDO.
-- Neuanmeldungen / Passwortänderungen verwenden `password_hash`; MD5-Bestandskonten migrieren beim Login.
-- Deutsche Datumsformatierung ohne `strftime`; Textbereinigung ohne `FILTER_SANITIZE_STRING`.
-- UTF-8-Dateien, utf8mb4-Datenbankanbindung, lokal eingebundenes jQuery 3.6.1.
-- Login, Session-Fixation-Schutz, Captcha und Admin-Zugang für Browser-Cronjob.
-
-**Entfernt**
-- Veraltete Blowfish-Klasse, fest eingetragene MySQL-Root-Zugangsdaten, alte Captcha-Testseite.
-
-**Bekannte Grenzen**
-- Historische Query-Builder zum Teil weiterhin stringbasiert mit PDO-Quoting; keine vollständige parameterisierte Neufassung aller 190+ SQL-Aufrufe.
-- Keine Prüfung aller Abläufe gegen eine echte MySQL-Datenbank in dieser Umgebung.
-- Die historische Oberfläche und Datenschemata wurden im Wesentlichen erhalten.
+**Hinweis:** Soll-/Ist-Kassenbuch und Zahlungsbuchungen sind nicht Bestandteil von 2.0.1.

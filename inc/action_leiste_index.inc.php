@@ -13,8 +13,8 @@ if ($user['rights'] >= 4){
               HAVING days_to_birthday < 30
               ORDER BY days_to_birthday ASC
               LIMIT 0 , 15";
-    $upcoming = mysql_query($sql);
-    while ($member = mysql_fetch_assoc($upcoming)){
+    $upcoming = db_query($sql);
+    while ($member = db_fetch_assoc($upcoming)){
       echo "<li>";
       switch ($member['days_to_birthday']) {
         case 0:
@@ -37,8 +37,8 @@ if ($user['rights'] >= 4){
             LEFT JOIN `dienste` ON `dienste`.`person` = `mitglieder`.`mitglieder_id`
             WHERE `status` = 1 AND `startzeit` > ".mktime(0,0,0,1,1,date("Y"))." AND `startzeit` < ".mktime(23,59,59,12,31,date("Y"))." AND `mitglieder_id` = '".$user['mitglieder_id']."'
             GROUP BY `mitglieder_id`";
-          $dienste_result = mysql_query($sql_dienste);
-          $dienst_daten = mysql_fetch_assoc($dienste_result);
+          $dienste_result = db_query($sql_dienste);
+          $dienst_daten = db_fetch_assoc($dienste_result);
           $geleisteter_dienst = intval($dienst_daten['standdienste']);
           if ($dienst_daten['kuchenzahl'] > 0){
             // Um Probleme mit der MySQL Rückgabe NULL zu vermeiden
@@ -73,8 +73,8 @@ if ($user['rights'] >= 4){
             LEFT JOIN `dienste` ON `dienste`.`person` = `mitglieder`.`mitglieder_id`
             WHERE `status` = 1 AND `mitglieder_id` = '".$user['mitglieder_id']."'
             GROUP BY `mitglieder_id`";
-          $dienste_result = mysql_query($sql_dienste);
-          $dienst_daten = mysql_fetch_assoc($dienste_result);
+          $dienste_result = db_query($sql_dienste);
+          $dienst_daten = db_fetch_assoc($dienste_result);
           $geleisteter_dienst = intval($dienst_daten['standdienste']);
           if ($dienst_daten['kuchenzahl'] > 0){
             // Um Probleme mit der MySQL Rückgabe NULL zu vermeiden
@@ -145,13 +145,13 @@ if ($user['rights'] >= 4){
         $sql = "SELECT `aktivenumlage` FROM `abteilungszugehoerigkeit`
                 JOIN `abteilungen` ON `abteilungszugehoerigkeit`.`abteilung` = `abteilungen`.`abteilungs_id`
                 WHERE `mitglied` = '".$user['mitglieder_id']."' AND `aktiv` = 1";
-        $result = mysql_query($sql);
-        if (mysql_num_rows($result) == 0){
+        $result = db_query($sql);
+        if (db_num_rows($result) == 0){
           // Mitglied ist in keiner Abteilung
           echo "0.00 €";
         }else{
           $abteilungen_gesamt = 0;
-          while ($eintrag = mysql_fetch_assoc($result)){
+          while ($eintrag = db_fetch_assoc($result)){
             $abteilungen_gesamt += $eintrag['aktivenumlage'];
           }
           $gesamt += $abteilungen_gesamt;
@@ -171,11 +171,11 @@ if ($user['rights'] >= 4){
     $sql_lastdienste = "SELECT `veranstaltungen`.`veranstaltungsname`,`veranstaltungen`.`veranstaltungs_id`,`dienste`.`startzeit`,`dienste`.`endzeit`, `dienste`.`dienstart`,`mitglieder`.`vorname`,`mitglieder`.`nachname`,`mitglieder`.`mitglieder_id`
                 FROM `dienste` LEFT JOIN `veranstaltungen` ON `veranstaltungen`.`veranstaltungs_id` = `dienste`.`event` LEFT JOIN `mitglieder` ON `dienste`.`person` = `mitglieder`.`mitglieder_id` ORDER BY  `dienste`.`erstellt` DESC LIMIT 0,2";
                 // GROUP BY `person` sollte verhindern, dass nur Einträge einer Person angezeigt werden, dann geht aber aufgrund einer MySQL Bugs die Sortierung nach `erstellt` verloren
-    $lastdienste_result = mysql_query($sql_lastdienste);
-    echo mysql_error();
-    if (mysql_num_rows($lastdienste_result) > 0){
+    $lastdienste_result = db_query($sql_lastdienste);
+    echo db_error();
+    if (db_num_rows($lastdienste_result) > 0){
       echo "<h2>Letzte Eintragungen</h2>\n<ul>";
-      while ($lastdienst = mysql_fetch_assoc($lastdienste_result)){
+      while ($lastdienst = db_fetch_assoc($lastdienste_result)){
         echo "<li>";
         if ($user['rights'] >= 4){
           echo "<a href=\"member_show.php?id=".$lastdienst['mitglieder_id']."\" title=\"Mitgliederprofil anzeigen\">".htmlspecialchars($lastdienst['vorname']." ".$lastdienst['nachname'])."</a>";

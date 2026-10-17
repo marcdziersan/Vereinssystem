@@ -1,4 +1,4 @@
-# Vereinssystem 2.0 – PHP 8 / PDO
+# Vereinssystem 2.0.1 – PHP 8 / PDO
 
 Aktualisierung des ursprünglichen **Vereinssystems (2013)** von Nicolas Jourdan und Sebastian Fuss. Die ursprünglichen Verwaltungsmasken und Module sind enthalten: Mitglieder, Abteilungen und Zugehörigkeiten, Anschriften/Orte, Veranstaltungen, Dienste, Nachrichten, Einstellungen, Rechte und Erinnerungs-E-Mails.
 
@@ -15,7 +15,7 @@ Aktualisierung des ursprünglichen **Vereinssystems (2013)** von Nicolas Jourdan
 
 ## Neue Installation
 
-1. ZIP entpacken; den **Inhalt** des Ordners `Vereinssystem-PHP8-PDO-2.0.0/` auf den Webspace laden.
+1. ZIP entpacken; den **Inhalt** des Ordners `Vereinssystem-PHP8-PDO-2.0.1/` auf den Webspace laden.
 2. In Hosting-Verwaltung eine **leere MySQL/MariaDB-Datenbank** samt Datenbanknutzer anlegen.
 3. Im Browser `https://Ihre-Adresse/vereinssystem/install.php` öffnen.
 4. Datenbankhost, Port, Datenbankname, Benutzer und Passwort angeben. Anschließend Vereinsname und Admin-Konto anlegen (mit tatsächlichem Geburtsdatum, Passwort mindestens 12 Zeichen).
@@ -80,3 +80,7 @@ Die umfangreichen alten Masken sind funktional übernommen, aber nicht zu einer 
 - `assets/js/` – lokal mitgeliefertes jQuery
 - `*_process.php` – vorhandene Speichermodule
 - `css/`, `images/` – originale Darstellung
+
+## Update 2.0.1
+
+Repositoryreparatur für PDO-Dateien, PHP-8-Session und lokale JavaScript-Datei. Vor dem Aktualisieren Datenbank und Webspace sichern. Die bestehende `inc/config.php` bewahren. Änderungen an Mitgliedsart, Abrechnung und Rechten werden strikt geprüft. Siehe `UPGRADE-2.0.1.md`. Die Beitragsbuchhaltung ist noch nicht Bestandteil dieser Version.

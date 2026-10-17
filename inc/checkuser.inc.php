@@ -1,30 +1,13 @@
 <?php
-//Prüft, ob ein Nutzer angemeldet und somit zum Besuchen der Seite berechtigt ist und leitet gegebenenfalls zum Login-Formular weiter
-
-session_set_cookie_params(0,"/",session_save_path(),false,true);
-session_start();
-
-if (!isset ($_SESSION["uid"])){ //Keine Session-ID vorhanden?
-    // Dann ist keine gültiger Login vorhanden, eventuelle Session-Daten zerstören
-    @session_destroy();
-    // Weiterleiten zum Login-Formular
-    header ("Location: login.php?after=".base64_encode($_SERVER["REQUEST_URI"]));
-    exit(); //Ausführung des Scripts abbrechen, rein zur Sicherheit
+require_once __DIR__.'/connect.inc.php';
+vs_session_start();
+if (empty($_SESSION['uid'])) { header('Location: login.php?after='.urlencode(base64_encode($_SERVER['REQUEST_URI'] ?? 'index.php'))); exit; }
+$r = db_query('SELECT * FROM mitglieder WHERE mitglieder_id = ? LIMIT 1',[(int)$_SESSION['uid']]);
+$user = db_fetch_assoc($r);
+if (!$user || (int)$user['status'] !== 1 || (int)$user['rights'] === 0) {
+ $_SESSION=[]; session_destroy(); header('Location: login.php?forbidden'); exit;
 }
-
-$user_data = mysql_query("SELECT * FROM `mitglieder` WHERE `mitglieder_id` = '".$_SESSION['uid']."' AND `currentloginip` = '".$_SESSION["loginip"]."'");
-if (mysql_num_rows($user_data) != 1){
-    // Kein gültiges Mitglied vorhanden. Entweder gefälschte Session-ID oder IP hat sich geändert
-    @session_destroy();
-    header ("Location: login.php?old&after=".base64_encode($_SERVER["REQUEST_URI"]));
-    exit();
-}else{
-  $user = mysql_fetch_assoc($user_data);
-  if ($user['status'] != 1 || $user['rights'] == 0){
-    // Der Nutzer ist gesperrt (entweder keine Recht (rights=0) und/oder der Status ist nicht 1 (vll. Nutzer gelöscht, was Status auf 2 setzt)
-    @session_destroy();
-    header ("Location: login.php?forbidden");
-    exit();
-  }
+if (empty($_SESSION['vs_csrf'])) $_SESSION['vs_csrf']=bin2hex(random_bytes(32));
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && !hash_equals((string)$_SESSION['vs_csrf'],(string)($_POST['vs_csrf'] ?? ''))) {
+ http_response_code(403); exit('Sicherheitsprüfung fehlgeschlagen. Bitte Formular neu laden.');
 }
-?>

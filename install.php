@@ -71,7 +71,7 @@ if (!$installed && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'vereinsanschrift'=>'0', 'beitrag_kinder'=>'0', 'beitrag_erwachsener'=>'0',
                 'usecaptchalogin'=>'0', 'annualwork'=>'0', 'cakeworkcount'=>'0',
                 'webmastermail'=>$form['adminemail'], 'leitermail'=>$form['adminemail'],
-                'lastcronrun'=>'0', 'lastcronoutput'=>'', 'last_diensteabrechnung'=>'0', 'version'=>'2.0.0',
+                'lastcronrun'=>'0', 'lastcronoutput'=>'', 'last_diensteabrechnung'=>'0', 'version'=>'2.0.1',
             ];
             $insertSetting = $pdo->prepare('INSERT INTO `einstellungen` (`name`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `name`=`name`');
             foreach ($defaults as $key=>$value) $insertSetting->execute([$key, $value]);

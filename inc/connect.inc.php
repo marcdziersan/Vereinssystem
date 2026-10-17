@@ -1,41 +1,26 @@
 <?php
-// Zum Testbetrieb: Alle Fehler ausgeben
-//error_reporting(E_ALL);
-// Zum Nutzbetrieb: Keine Fehler ausgeben
-error_reporting(0);
-
-// Header manuell senden, um UTF-8-Kodierung zu erreichen, falls der Server dies nicht automatisch als Standard hat
-@header("Content-Type: text/html; charset=utf-8");
-
-// Stellt Verbindung mit dem Datenbankserver her und liest seitenweit geltende, allgemeine Einstellungen aus
-if (!@mysql_connect("localhost","root","root")){
-  // Verbindung ist fehlgeschlagen, Ausführung abbrechen
-  die('Keine Verbindung zu Datenbank möglich: ' . mysql_error());
+if (!defined('VS_INTERNAL')) define('VS_INTERNAL',true);
+ini_set('display_errors','0'); error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+if (!headers_sent()) header('Content-Type: text/html; charset=utf-8');
+if (function_exists('mb_internal_encoding')) mb_internal_encoding('UTF-8');
+date_default_timezone_set('Europe/Berlin');
+require_once __DIR__.'/database.php';
+require_once __DIR__.'/session.php';
+if (!is_file(__DIR__.'/config.php')) {
+ if (PHP_SAPI !== 'cli') { header('Location: install.php'); exit; }
+ throw new RuntimeException('Bitte install.php im Browser aufrufen.');
 }
-
-// PHP mitteilen, dass die Verbindung mit der Datenbank UTF-8-kodiert ist
-mysql_query("SET NAMES 'utf8'");
-mysql_query("SET CHARACTER SET utf8");
-
-// Weitere Kodierungseinstellungen, um eventuell unpassende Standardwerte zu überschreiben
-mb_internal_encoding("UTF-8");
-
-// Lokalität setzen, um etwa Monatsnamen auf Deutsch auszugeben
-//setlocale(LC_ALL, 'de_DE@euro.UTF8', 'de_DE.UTF8', 'de.UTF8', 'deu.UTF8', 'deu_deu.UTF8', 'ge.UTF8');
-setlocale(LC_ALL, 'deu_deu');
-
-// Tabelle auswählen
-if (!@mysql_select_db("vereinssystem")){
-  // Tabelle konnte nicht ausgewählt werden, Ausführung abbrechen
-  die('Benötigte Tabelle nicht gefunden: ' . mysql_error());
+try {
+ $settings=['vereinsname'=>'Mein Verein','vereinsname_lang'=>'Mein Verein','vereinsanschrift'=>'0',
+ 'usecaptchalogin'=>'0','beitrag_kinder'=>'0','beitrag_erwachsener'=>'0',
+ 'annualwork'=>'0','cakeworkcount'=>'0','lastcronrun'=>'0',
+ 'last_diensteabrechnung'=>'0','lastcronoutput'=>'','webmastermail'=>'',
+ 'leitermail'=>'','version'=>'2.0.1'];
+ $r=db_query('SELECT name,value FROM einstellungen');
+ if ($r === false) throw new RuntimeException('Tabelle einstellungen fehlt');
+ while ($row=db_fetch_assoc($r)) $settings[$row['name']]=$row['value'];
+ $settings['version']='2.0.1';
+} catch(Throwable $e) {
+ error_log('[Vereinssystem] '.$e->getMessage());
+ http_response_code(503);exit('Datenbank nicht erreichbar oder unvollständig. Bitte Konfiguration prüfen.');
 }
-
-// Einstellungen auslesen
-$settings_result = mysql_query("SELECT * FROM `einstellungen`");
-if (mysql_num_rows($settings_result) > 0){
-  // Einstellungen in einer Array $settings lesen
-  while ($settings_entry = mysql_fetch_assoc($settings_result)){
-    $settings[$settings_entry['name']] = $settings_entry['value'];
-  }
-}
-?>
