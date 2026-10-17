@@ -68,12 +68,6 @@ Dies ist eine **umfangreiche Migration einer alten Anwendung**, keine neu entwic
 
 Die umfangreichen alten Masken sind funktional übernommen, aber nicht zu einer neuen responsiven Oberfläche umgebaut. Historische Google Static Maps können wegen geänderter API-Anforderungen keine Karte mehr anzeigen. **Nicht ohne Abnahme auf einem öffentlich erreichbaren Produktivsystem einsetzen.**
 
-### Prüfung dieser Ausgabe
-
-- PHP-Syntaxprüfung aller PHP-Dateien unter **PHP 8.4.24**.
-- Installer und Erstaufruf über PHP-internen Webserver: `install.php` liefert HTTP 200; Startseite leitet bei fehlender Konfiguration dorthin.
-- **Kein Live-MySQL-Test möglich**, weil der Testcontainer weder einen MySQL-Server noch den PHP-Treiber `pdo_mysql` bereitstellt. Installation, Query-Ergebnisse, sämtliche Workflows und E-Mail-Lauf müssen am Zielserver praktisch durchgespielt werden.
-
 ## Verzeichnisübersicht
 
 - `install.php` – Installation
