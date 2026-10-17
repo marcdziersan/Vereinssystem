@@ -14,9 +14,9 @@ require_once("inc/head.inc.php");
               <?php
               if (isset($_GET['id']) && $user['rights'] >= 4){
                 // Wurde eine ID übergeben und man hat die nötigen Rechte, dann die Finanzen eines anderen Mitglieds anzeigen
-                $member_data = mysql_query("SELECT * FROM `mitglieder` WHERE `mitglieder_id` = '".intval($_GET['id'])."' AND `status` = 1");
-                if (mysql_num_rows($member_data) == 1){
-                  $member = mysql_fetch_assoc($member_data);
+                $member_data = db_query("SELECT * FROM `mitglieder` WHERE `mitglieder_id` = '".intval($_GET['id'])."' AND `status` = 1");
+                if (db_num_rows($member_data) == 1){
+                  $member = db_fetch_assoc($member_data);
                   echo "<h2>Finanzen von \"".htmlspecialchars($member['vorname']." ".$member['nachname'])."\"</h2>";
                 }else{
                   // Es wurde kein Mitglied gefunden
@@ -59,8 +59,8 @@ require_once("inc/head.inc.php");
               $sql = "SELECT `aktivenumlage`,`name`,`abteilungs_id` FROM `abteilungszugehoerigkeit`
                       LEFT JOIN `abteilungen` ON `abteilungszugehoerigkeit`.`abteilung` = `abteilungen`.`abteilungs_id`
                       WHERE `mitglied` = '".$member['mitglieder_id']."' AND `aktiv` = 1";
-              $result = mysql_query($sql);
-              if (mysql_num_rows($result) == 0){
+              $result = db_query($sql);
+              if (db_num_rows($result) == 0){
                 // Mitglied ist in keiner Abteilung
                 echo "<tr>
                   <td class=\"firstcolumn\">Aktivenumlagen</td>
@@ -68,7 +68,7 @@ require_once("inc/head.inc.php");
                 </tr>";
               }else{
                 $abteilungen_gesamt = 0;
-                while ($eintrag = mysql_fetch_assoc($result)){
+                while ($eintrag = db_fetch_assoc($result)){
                   $abteilungen_gesamt += $eintrag['aktivenumlage'];
                   echo "<tr>
                     <td class=\"firstcolumn\">Aktivenumlage <a href=\"abteilung_show.php?id=".$eintrag['abteilungs_id']."\" title=\"Abeilung anzeigen\">".$eintrag['name']."</a></td>
@@ -87,8 +87,8 @@ require_once("inc/head.inc.php");
               <?php
                   // Die Geburtsdaten aller Kinder dieses Mitglieds abrufen
                   $sql = "SELECT `geburtstag` FROM `mitglieder` WHERE (`parent1` = '".$member['mitglieder_id']."' OR `parent2` = '".$member['mitglieder_id']."') AND `status` = 1";
-                  $result = mysql_query($sql);
-                  if (mysql_num_rows($result) == 0){
+                  $result = db_query($sql);
+                  if (db_num_rows($result) == 0){
                         // Keine Kinder gefunden
                         // echo "<div class=\"message information\"><p>Es sind keine Kinder mit Ihrer Mitgliedschaft verknüpft.</p></div>";
                   }else{
@@ -108,7 +108,7 @@ require_once("inc/head.inc.php");
                     $kinder_gesamt = 0;
                     $count_minderjahrig = 0;
                     $count_volljahrig = 0;
-                    while ($eintrag = mysql_fetch_assoc($result)){
+                    while ($eintrag = db_fetch_assoc($result)){
                       if (time()-strtotime($eintrag['geburtstag']) < 568024668){
                         $count_minderjahrig++;
                         $kinder_gesamt += $settings['beitrag_kinder'];
@@ -129,8 +129,8 @@ require_once("inc/head.inc.php");
                       LEFT JOIN `abteilungen` ON `abteilungszugehoerigkeit`.`abteilung` = `abteilungen`.`abteilungs_id`
                       LEFT JOIN `mitglieder` ON `abteilungszugehoerigkeit`.`mitglied` = `mitglieder`.`mitglieder_id`
                       WHERE (`mitglieder`.`parent1` = '".$member['mitglieder_id']."' OR `mitglieder`.`parent2` = '".$member['mitglieder_id']."') AND `mitglieder`.`status` = 1";
-              $result = mysql_query($sql);
-              if (mysql_num_rows($result) == 0){
+              $result = db_query($sql);
+              if (db_num_rows($result) == 0){
                 // Mitglied ist in keiner Abteilung
                 echo "<tr>
                   <td class=\"firstcolumn\">Aktivenumlagen</td>
@@ -138,7 +138,7 @@ require_once("inc/head.inc.php");
                 </tr>";
               }else{
                 $abteilungen_kinder_gesamt = 0;
-                while ($eintrag = mysql_fetch_assoc($result)){
+                while ($eintrag = db_fetch_assoc($result)){
                   if ($eintrag['aktiv'] == 1){
                       $abteilungen_kinder_gesamt += $eintrag['aktivenumlage'];
                       echo "<tr>

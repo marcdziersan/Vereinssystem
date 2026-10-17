@@ -1,34 +1,15 @@
-<?
-header("Content-type: image/png");
-
-$bild = imagecreatetruecolor(220, 50);
-
-$weiss = imagecolorallocate($bild, 255, 255, 255);
-$rot = imagecolorallocate($bild, 255, 0, 0);
-$gruen = imagecolorallocate($bild, 0, 204, 0);
-$blau = imagecolorallocate($bild, 0, 102, 204);
-$orange = imagecolorallocate($bild, 255, 128, 0);
-
-imagefilledrectangle($bild, 10, 10, 210, 20, $weiss);
-imagefilledrectangle($bild, 10, 30, 210, 40, $weiss);
-
-// Blowfish Klasse einbingen
-include("inc/blowfish.class.php");
-$blowfish = new Blowfish("schluessel");
-
-// Per GET wurde der anzuzeigende Text verschlüsselt übergeben
-$encoded_catpcha = base64_decode($_GET['s']);
-$captcha = $blowfish -> Decrypt($encoded_catpcha);
-
-$winkel1 = rand(-25, 25);
-$winkel2 = rand(-25, 25);
-$winkel3 = rand(-25, 25);
-$winkel4 = rand(-25, 25);
-
-ImageTTFText($bild, 30, $winkel1, 20, 40, $rot, "inc/ARIAL.TTF", $captcha[0]);
-ImageTTFText($bild, 30, $winkel2, 60, 40, $gruen, "inc/ARIAL.TTF", $captcha[1]);
-ImageTTFText($bild, 30, $winkel3, 130, 40, $blau, "inc/ARIAL.TTF", $captcha[2]);
-ImageTTFText($bild, 30, $winkel4, 180, 40, $orange, "inc/ARIAL.TTF", $captcha[3]);
-
-imagepng($bild);
-?>
+<?php
+require_once __DIR__.'/inc/session.php';
+vs_session_start();
+header('Content-Type: image/png');
+header('Cache-Control: no-store, no-cache, must-revalidate');
+if (!extension_loaded('gd')) { http_response_code(503); exit; }
+if (!isset($_SESSION['vs_captcha'])) $_SESSION['vs_captcha'] = strtoupper(substr(bin2hex(random_bytes(4)), 0, 4));
+$code = (string)$_SESSION['vs_captcha'];
+$im = imagecreatetruecolor(180, 58);
+$bg = imagecolorallocate($im, 246, 248, 252);
+$fg = imagecolorallocate($im, 27, 41, 64);
+imagefill($im,0,0,$bg);
+imagestring($im, 5, 53, 20, $code, $fg);
+imagepng($im);
+imagedestroy($im);

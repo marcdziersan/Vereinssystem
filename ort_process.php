@@ -27,11 +27,11 @@ function verify_ortsdaten($input){
   }elseif($input['ort'] == ""){
     // PLZ ist gültig und Ortsname ist nicht vorhanden
     // Versuchen, falls kein Ortsname angegeben ist, anhand der bekannten Orte den Ortsnamen mittels PLZ herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".mysql_real_escape_string($input['plz'])."' GROUP BY `ort`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".db_escape($input['plz'])."' GROUP BY `ort`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur einen Ortsnamen, der zu dieser PLZ gefunden wurde (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['ort'] = $sql_test_data['ort'];
     }
   }
@@ -41,11 +41,11 @@ function verify_ortsdaten($input){
   }elseif($input['plz'] == ""){
     // Ortsname ist gültig und PLZ ist nicht vorhanden
     // Versuchen, falls kein PLZ angegeben ist, anhand der bekannten Orte die PLZ mittels Ortsnamen herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".mysql_real_escape_string($input['ort'])."' GROUP BY `plz`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".db_escape($input['ort'])."' GROUP BY `plz`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur eine PLZ zu diesem Ortsnamen (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['plz'] = $sql_test_data['plz'];
       // Da die fehlende PLZ eine Fehlermeldung erzeugt hat und dieses Problem nun gelöst wurde, muss die Fehlermeldung wieder aus dem $errors-Array entfernt werden
       // (Entfernt den letzten Eintrag des Arrays)
@@ -87,13 +87,13 @@ if (isset($_POST['saveort'])){
       // Gab es keine Fehler, dann SQL-Befehl erstellen
       $sql =
           "UPDATE `orte` SET
-           `name`        = '".mysql_real_escape_string(filter_var($input['name'],FILTER_SANITIZE_STRING))."',
-           `strasse`     = '".mysql_real_escape_string(filter_var($input['strasse'],FILTER_SANITIZE_STRING))."',
-           `hausnummer`  = '".mysql_real_escape_string(filter_var($input['hausnummer'],FILTER_SANITIZE_STRING))."',
-           `plz`         = '".mysql_real_escape_string(filter_var($input['plz'],FILTER_SANITIZE_STRING))."',
-           `ort`         = '".mysql_real_escape_string(filter_var($input['ort'],FILTER_SANITIZE_STRING))."',";
+           `name`        = '".db_escape(vs_sanitize_text($input['name']))."',
+           `strasse`     = '".db_escape(vs_sanitize_text($input['strasse']))."',
+           `hausnummer`  = '".db_escape(vs_sanitize_text($input['hausnummer']))."',
+           `plz`         = '".db_escape(vs_sanitize_text($input['plz']))."',
+           `ort`         = '".db_escape(vs_sanitize_text($input['ort']))."',";
            if ($input['telvorwahl'] > 0 && $input['telvorwahl'] > 0){
-             $sql .= "`telefon`     = '".mysql_real_escape_string(filter_var($input['telvorwahl'],FILTER_SANITIZE_STRING))."/".mysql_real_escape_string(filter_var($input['telnr'],FILTER_SANITIZE_STRING))."',";
+             $sql .= "`telefon`     = '".db_escape(vs_sanitize_text($input['telvorwahl']))."/".db_escape(vs_sanitize_text($input['telnr']))."',";
            }else{
              $sql .= "`telefon`     = '',";
            }
@@ -101,13 +101,13 @@ if (isset($_POST['saveort'])){
          WHERE
            `orte`.`orts_id` = '".intval($input['orts_id'])."'";
          // MySQL Code ausführen (und somit Änderungen speichern)
-         if (mysql_query($sql)){
+         if (db_query($sql)){
             // Bei Erfolg entsprechendes als GET-Parameter übergeben
             header('Location: ort_edit.php?id='.intval($input['orts_id'])."&save=success");
             exit();
          }else{
             // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-            header('Location: ort_edit.php?id='.intval($input['orts_id'])."&save=fail&why=".mysql_errno());
+            header('Location: ort_edit.php?id='.intval($input['orts_id'])."&save=fail&why=".db_errno());
             exit();
          }
   }else{
@@ -134,13 +134,13 @@ if (isset($_POST['saveort'])){
     // Es gab keine Fehler bei der Prüfung der Eingaben
       $sql =
           "INSERT INTO `orte` SET
-           `name`        = '".mysql_real_escape_string(filter_var($input['name'],FILTER_SANITIZE_STRING))."',
-           `strasse`     = '".mysql_real_escape_string(filter_var($input['strasse'],FILTER_SANITIZE_STRING))."',
-           `hausnummer`  = '".mysql_real_escape_string(filter_var($input['hausnummer'],FILTER_SANITIZE_STRING))."',
-           `plz`         = '".mysql_real_escape_string(filter_var($input['plz'],FILTER_SANITIZE_STRING))."',
-           `ort`         = '".mysql_real_escape_string(filter_var($input['ort'],FILTER_SANITIZE_STRING))."',";
+           `name`        = '".db_escape(vs_sanitize_text($input['name']))."',
+           `strasse`     = '".db_escape(vs_sanitize_text($input['strasse']))."',
+           `hausnummer`  = '".db_escape(vs_sanitize_text($input['hausnummer']))."',
+           `plz`         = '".db_escape(vs_sanitize_text($input['plz']))."',
+           `ort`         = '".db_escape(vs_sanitize_text($input['ort']))."',";
            if ($input['telvorwahl'] > 0 && $input['telvorwahl'] > 0){
-             $sql .= "`telefon`     = '".mysql_real_escape_string(filter_var($input['telvorwahl'],FILTER_SANITIZE_STRING))."/".mysql_real_escape_string(filter_var($input['telnr'],FILTER_SANITIZE_STRING))."',";
+             $sql .= "`telefon`     = '".db_escape(vs_sanitize_text($input['telvorwahl']))."/".db_escape(vs_sanitize_text($input['telnr']))."',";
            }else{
              $sql .= "`telefon`     = '',";
            }
@@ -148,13 +148,13 @@ if (isset($_POST['saveort'])){
            `createdby`         = '".(intval($user['mitglieder_id']))."'
            ";
          // MySQL Code ausführen (und somit Änderungen speichern)
-         if (mysql_query($sql)){
+         if (db_query($sql)){
             // Bei Erfolg entsprechendes als GET-Parameter übergeben
-            header('Location: ort_show.php?id='.mysql_insert_id()."&created");
+            header('Location: ort_show.php?id='.db_insert_id()."&created");
             exit();
          }else{
             // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-            header('Location: ort_add.php?created=fail&why='.mysql_errno()."&data=".base64_encode(json_encode($input)));
+            header('Location: ort_add.php?created=fail&why='.db_errno()."&data=".base64_encode(json_encode($input)));
             exit();
          }
   }else{
@@ -177,10 +177,10 @@ if (isset($_POST['saveort'])){
   }
   if ($_POST['sure'] == 2){
     // Prüfen, ob der Ort nicht noch irgendwo eingebunden ist
-    $sql_test1 = mysql_query("SELECT COUNT(*) as count FROM `mitglieder` WHERE `anschrift` = ".intval($_POST['orts_id']));
-    $sql_result1 = mysql_fetch_assoc($sql_test1);
-    $sql_test2 = mysql_query("SELECT COUNT(*) as count FROM `veranstaltungen` WHERE `ort` = ".intval($_POST['orts_id']));
-    $sql_result2 = mysql_fetch_assoc($sql_test2);
+    $sql_test1 = db_query("SELECT COUNT(*) as count FROM `mitglieder` WHERE `anschrift` = ".intval($_POST['orts_id']));
+    $sql_result1 = db_fetch_assoc($sql_test1);
+    $sql_test2 = db_query("SELECT COUNT(*) as count FROM `veranstaltungen` WHERE `ort` = ".intval($_POST['orts_id']));
+    $sql_result2 = db_fetch_assoc($sql_test2);
     if ($sql_result1['count'] == 0 && $sql_result2['count'] == 0){
         // Ort nicht mehr in Verwendung
         if ($_POST['dbdelete'] == 2 && $user['rights'] >= 5){
@@ -188,13 +188,13 @@ if (isset($_POST['saveort'])){
           $sql = "DELETE FROM `orte`
                 WHERE
                `orte`.`orts_id` = '".intval($_POST['orts_id'])."' AND `orte`.`status` = 1";
-          if (mysql_query($sql)){
+          if (db_query($sql)){
              // Bei Erfolg entsprechendes als GET-Parameter übergeben
              header('Location: orte.php?deletion=success&who='.intval($_POST['orts_id']));
              exit();
           }else{
              // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-             header('Location: ort_delete.php?id='.intval($_POST['orts_id']).'&deletion=fail&why='.mysql_errno());
+             header('Location: ort_delete.php?id='.intval($_POST['orts_id']).'&deletion=fail&why='.db_errno());
              exit();
           }
         }else{
@@ -203,13 +203,13 @@ if (isset($_POST['saveort'])){
                `status`        = '2'
              WHERE
                `orte`.`orts_id` = '".intval($_POST['orts_id'])."' AND `orte`.`status` = 1";
-          if (mysql_query($sql)){
+          if (db_query($sql)){
              // Bei Erfolg entsprechendes als GET-Parameter übergeben
              header('Location: orte.php?removal=success&who='.intval($_POST['orts_id']));
              exit();
           }else{
              // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-             header('Location: ort_delete.php?id='.intval($_POST['orts_id']).'&removal=fail&why='.mysql_errno());
+             header('Location: ort_delete.php?id='.intval($_POST['orts_id']).'&removal=fail&why='.db_errno());
              exit();
           }
         }

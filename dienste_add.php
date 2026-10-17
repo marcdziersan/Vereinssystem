@@ -41,10 +41,10 @@ require_once ("inc/head.inc.php");
 			<h1>Neuer Dienst</h1>
 					<?php
 					$sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($input['event']);
-					$veranstaltung_result = mysql_query($sql);
-  				    echo mysql_error();
-  				    if (mysql_num_rows($veranstaltung_result) == 1){
-    				    $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+					$veranstaltung_result = db_query($sql);
+  				    echo db_error();
+  				    if (db_num_rows($veranstaltung_result) == 1){
+    				    $veranstaltung = db_fetch_assoc($veranstaltung_result);
 						 ?>
   				    	<p><img src="images/arrow_left.png" alt="" title="Anzeigen" /> <a href="dienste_show.php?id=<?php echo $veranstaltung['veranstaltungs_id']; ?>" title="Die Dienstdetails von <?php echo htmlspecialchars($veranstaltung['veranstaltungsname'])?> anzeigen">Dienstdetails anzeigen</a></p>
     				   <?php
@@ -53,7 +53,7 @@ require_once ("inc/head.inc.php");
 								echo "<div class=\"message error\">Beim Versuch, die Veranstaltung zu speichern, sind leider Fehler aufgetreten.";
 								if (is_array($errors) && count($errors) > 0) {
 									//Fehlerarray anzeigen
-									echo "<br />Folgende inhaltliche Fehler sind festgestellt worden:<br /><b>" . utf8_encode(implode("<br />", $errors)) . "</b></div>";
+									echo "<br />Folgende inhaltliche Fehler sind festgestellt worden:<br /><b>" . (implode("<br />", $errors)) . "</b></div>";
 									//Falls bereits eingegebene Daten vorhanden sind, werden diese decodiert
 									if (isset($input['data'])) {
 										$data = json_decode(base64_decode($input['data']), TRUE);
@@ -64,7 +64,8 @@ require_once ("inc/head.inc.php");
 								}
 							}
 						}?>
-					<form id="addform" class="formular" method="get" action="dienste_process.php" accept-charset="utf-8">
+					<form id="addform" class="formular" method="post" action="dienste_process.php" accept-charset="utf-8">
+                    <input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'],ENT_QUOTES); ?>" />
 					<p>
 					<label for="selber">Person</label>
 				    <input type="radio" name="person" value="self" id="selber" <?php if((isset($data['person']) and $data['person'] == "self") or !isset($data['person'])){echo "checked=\"checked\"";}?> /> Ich (<?php echo $user['vorname']. " ".$user['nachname'];?>)<br />
@@ -84,11 +85,11 @@ require_once ("inc/head.inc.php");
 						<?php
 					} else {
 						//Ansonsten alle Personen mit dem gleichen Namen suchen und mit deren Daten verknüpfen
-						$sql_personen = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `vorname` = '" . mysql_real_escape_string(filter_var($data['vorname'], FILTER_SANITIZE_STRING)) . "' AND `nachname` = '" . mysql_real_escape_string(filter_var($data['nachname'], FILTER_SANITIZE_STRING)) . "'";
-						$personen_result = mysql_query($sql_personen);
+						$sql_personen = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `vorname` = '" . db_escape(vs_sanitize_text($data['vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($data['nachname'])) . "'";
+						$personen_result = db_query($sql_personen);
 						//Verfügbare Personen mit Wohnort in Selectbox schreiben
 						echo '<select size="1" name="ansprechpartner_id" id="ansprechpartner_id" class="xlarge">';
-						while ($person = mysql_fetch_assoc($personen_result)) {
+						while ($person = db_fetch_assoc($personen_result)) {
 							echo "<option value=\"" . $person['mitglieder_id'] . "\">" . $person['vorname'] . " " . $person['nachname'] . "  (" . $person['plz'] . " " . $person['ort'] . ")" . "</option>";
 						}
 						echo "</select>";
@@ -133,10 +134,10 @@ require_once ("inc/head.inc.php");
 			<h2>Kuchenliste</h2>
 			<?php
 				$sql_dienste = "SELECT * FROM `dienste` LEFT JOIN `mitglieder` ON `dienste`.`person` = `mitglieder`.`mitglieder_id` WHERE `dienstart` > 0 AND `event` = " . intval($_GET['event']);
-				$dienste_result = mysql_query($sql_dienste); ?>
+				$dienste_result = db_query($sql_dienste); ?>
 				<table>
                   <?php
-                  if(mysql_num_rows($dienste_result) != 0){
+                  if(db_num_rows($dienste_result) != 0){
                   ?>
                   <thead>                  
                     <tr>
@@ -147,8 +148,8 @@ require_once ("inc/head.inc.php");
                   </thead>
                   <tbody>
                   <?php
-                   while ($dienst = mysql_fetch_assoc($dienste_result)) {
-                   		echo "<tr><td>".$dienst['vorname']." ".$dienst['nachname']."</td><td>".$dienst['dienstart']."</td><td>".'<img src="images/trash_can.png" alt="" title="Löschen" /> <a href="dienste_process.php?action=remove&amp;dienst_id='.$dienst['dienst_id'].'&amp;event='.$dienst['event'].'" title="Dienst löschen">Dienst löschen</a></td></tr>';
+                   while ($dienst = db_fetch_assoc($dienste_result)) {
+                   		echo '<tr><td>'.htmlspecialchars($dienst['vorname'].' '.$dienst['nachname']).'</td><td>'.(int)$dienst['dienstart'].'</td><td>'.vs_action_form(['action'=>'remove','dienst_id'=>$dienst['dienst_id'],'event'=>$dienst['event']], 'Dienst löschen').'</td></tr>';
 				   }
 				  }else{
 				  	echo "<tbody><tr><td>Keine Kuchendienste zu dieser Veranstaltung eingetragen.</td></tr>";

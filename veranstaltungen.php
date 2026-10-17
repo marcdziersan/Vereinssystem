@@ -110,7 +110,7 @@ require_once ("inc/head.inc.php");
 	//Suchoptionen
 	//Suche nach Veranstaltungsnamen
 	if (!empty($_GET['for'])) {
-		$sql .= " WHERE `veranstaltungsname` LIKE '%" . mysql_real_escape_string(str_replace(" ", "%", $_GET['for'])) . "%'";
+		$sql .= " WHERE `veranstaltungsname` LIKE '%" . db_escape(str_replace(" ", "%", $_GET['for'])) . "%'";
 	}
 	//Filter für Veranstaltungszeit
 	if (isset($_GET['time']) and $_GET['time'] != "all") {
@@ -142,11 +142,11 @@ require_once ("inc/head.inc.php");
 			//Suchender User hat Dienste
 			//Abfrage aller Events wo der aktuelle User Dienste hat
 			$sql_dienste = "SELECT DISTINCT `event` FROM `dienste` WHERE `person` = '" . $user['mitglieder_id'] . "'";
-			$veranstaltungen_dienste = mysql_query($sql_dienste);
+			$veranstaltungen_dienste = db_query($sql_dienste);
 
 			$i = 0;
 			// SQL Array mit diesen Diensten füllen
-			while ($veranstaltung_dienst = mysql_fetch_assoc($veranstaltungen_dienste)) {
+			while ($veranstaltung_dienst = db_fetch_assoc($veranstaltungen_dienste)) {
 				if ($i == 0) {
 					$veranstaltungen_dienste_liste = "('" . $veranstaltung_dienst['event'] . "'";
 				} else {
@@ -171,11 +171,11 @@ require_once ("inc/head.inc.php");
 	//Datenbankergebniss nach Veranstaltungsstartzeit ändern um später sortieren zu können
 	$sql .= " ORDER BY `startzeit` DESC";
 	//Veranstaltungen abfragen
-	$veranstaltungen = mysql_query($sql);
+	$veranstaltungen = db_query($sql);
 
 	// Gesamtanzahl aller Orte ermitteln
 	if($veranstaltungen != FALSE){
-		$anzahl = mysql_num_rows($veranstaltungen);
+		$anzahl = db_num_rows($veranstaltungen);
 	}else{
 		$anzahl = 0;
 	}
@@ -191,10 +191,10 @@ require_once ("inc/head.inc.php");
 	}
 	// Ergebnismenge limitieren, evtl. entsprechend der Seitenzahl bereits nur hintere Ergebnisse ausgeben
 	$sql .= " LIMIT " . (abs($page - 1) * $proseite) . ",$proseite";
-	$veranstaltungen = mysql_query($sql);
+	$veranstaltungen = db_query($sql);
 
 	//Wenn es einen SQL Fehler gibt oder keine Veranstaltung gefunden wurde das ausgeben
-	if ($veranstaltungen == FALSE or mysql_num_rows($veranstaltungen) == 0) {
+	if ($veranstaltungen == FALSE or db_num_rows($veranstaltungen) == 0) {
 		echo "<table><tr><td colspan=\"5\" class=\"tcenter\">Es wurden keine Veranstaltungen gefunden!</td></tr></table>";
 	} else {
 		//Ansonsten Liste mit Veranstaltungen generieren
@@ -203,7 +203,7 @@ require_once ("inc/head.inc.php");
 		//Variable die angibt ob die aktuelle Veranstaltung bevorstehend oder bereits vergangen ist
 		$new = TRUE;
 		//Tabelle generieren
-		while ($veranstaltung = mysql_fetch_assoc($veranstaltungen)) {
+		while ($veranstaltung = db_fetch_assoc($veranstaltungen)) {
 
 			//Datumsanzeige unterscheidet zwischen einzel- und mehrtägigen Veranstaltungen
 			if (date("d.n.Y", $veranstaltung["startzeit"]) == date("d.n.Y", $veranstaltung["endzeit"])) {

@@ -147,14 +147,14 @@ require_once("inc/head.inc.php");
               // Gesamtanzahl aller Orte ermitteln
               $anzahl_sql = "SELECT count(*) as count FROM `orte` WHERE status = '1'";
               if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                $anzahl_sql .= " AND (`strasse` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `plz` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `ort` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                $anzahl_sql .= " AND (`strasse` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `plz` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `ort` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
               }
               if ($user['rights'] < 3){
                 // Geringeres Rechtelevel als 3 (darf nur Veranstaltungsorte sehen)
                 $anzahl_sql .= " AND (`typ` = 2 OR `orts_id` IN (".$user['anschrift'].",".$settings['vereinsanschrift']."))";
               }
-              $anzahl_result = mysql_query($anzahl_sql);
-              $anzahl = mysql_fetch_assoc($anzahl_result);
+              $anzahl_result = db_query($anzahl_sql);
+              $anzahl = db_fetch_assoc($anzahl_result);
               // Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
               $proseite = 10;
               if (!isset($_GET['page'])){
@@ -171,7 +171,7 @@ require_once("inc/head.inc.php");
               $sql = "SELECT * FROM `orte` WHERE status = 1";
               if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
                 // Haben wir eine Suche? Dann das Suchwort in die Abfrage einbauen (eigentliche Filterung findet damit statt)
-                $sql .= " AND (`strasse` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `plz` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `ort` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                $sql .= " AND (`strasse` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `plz` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `ort` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
               }
               if ($user['rights'] < 3){
                 // Geringeres Rechtelevel als 3 (darf nur Veranstaltungsorte + eigenen Ort sehen)
@@ -187,11 +187,11 @@ require_once("inc/head.inc.php");
               // Ergebnismenge limitieren, evtl. entsprechend der Seitenzahl bereits nur hintere Ergebnisse ausgeben
               $sql .= " LIMIT ".(abs($page-1)*$proseite).",$proseite";
               //echo "<tr><td colspan=\"6\">$sql</td></tr>";
-              $orte = mysql_query($sql);
-              if (mysql_num_rows($orte) == 0){
+              $orte = db_query($sql);
+              if (db_num_rows($orte) == 0){
                 echo "<tr><td colspan=\"6\" class=\"tcenter\">Es wurden keine Orte oder Anschriften gefunden!</td></tr>";
               }else{
-                while ($ort = mysql_fetch_assoc($orte)){
+                while ($ort = db_fetch_assoc($orte)){
                   echo "<tr>
                           <td>";
                   if ($settings['vereinsanschrift'] == $ort['orts_id']){

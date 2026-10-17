@@ -33,10 +33,10 @@ require_once("inc/head.inc.php");
                     LEFT JOIN `mitglieder` ON `abteilungszugehoerigkeit`.`mitglied` = `mitglieder`.`mitglieder_id`
                     LEFT JOIN `abteilungen` ON `abteilungszugehoerigkeit`.`abteilung` = `abteilungen`.`abteilungs_id`
             WHERE `abteilungszugehoerigkeit`.`abteilung` = ".intval($_GET['id'])." AND `abteilungszugehoerigkeit`.`mitglied` = ".intval($_GET['who'])." AND `abteilungen`.`status` = '1' AND `mitglieder`.`status` = 1";
-            $abteilungs_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($abteilungs_result) == 1){
-                $abteilung = mysql_fetch_assoc($abteilungs_result);
+            $abteilungs_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($abteilungs_result) == 1){
+                $abteilung = db_fetch_assoc($abteilungs_result);
                 if ($abteilung['abteilungsleiter'] == $user['mitglieder_id'] || $user['rights'] >= 4){
                 ?>
             		<div class="boxsystem33">
@@ -89,7 +89,7 @@ require_once("inc/head.inc.php");
                                 <td class="firstcolumn">Beitrittsdatum</td>
                                 <td>
                                     <?php
-                                    echo strftime("%d. %B %Y",strtotime($abteilung['beitrittdate']))
+                                    echo vs_strftime("%d. %B %Y",strtotime($abteilung['beitrittdate']))
                                     ?></td>
                             </tr>
                           </tbody>

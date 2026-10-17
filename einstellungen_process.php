@@ -80,11 +80,11 @@ function verify_einstellungen($input){
   }elseif($input['ort'] == ""){
     // PLZ ist gültig und Ortsname ist nicht vorhanden
     // Versuchen, falls kein Ortsname angegeben ist, anhand der bekannten Orte den Ortsnamen mittels PLZ herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".mysql_real_escape_string($input['plz'])."' GROUP BY `ort`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".db_escape($input['plz'])."' GROUP BY `ort`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur einen Ortsnamen, der zu dieser PLZ gefunden wurde (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['ort'] = $sql_test_data['ort'];
     }
   }
@@ -94,11 +94,11 @@ function verify_einstellungen($input){
   }elseif($input['plz'] == ""){
     // Ortsname ist gültig und PLZ ist nicht vorhanden
     // Versuchen, falls kein PLZ angegeben ist, anhand der bekannten Orte die PLZ mittels Ortsnamen herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".mysql_real_escape_string($input['ort'])."' GROUP BY `plz`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".db_escape($input['ort'])."' GROUP BY `plz`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur eine PLZ zu diesem Ortsnamen (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['plz'] = $sql_test_data['plz'];
       // Da die fehlende PLZ eine Fehlermeldung erzeugt hat und dieses Problem nun gelöst wurde, muss die Fehlermeldung wieder aus dem $errors-Array entfernt werden
       // (Entfernt den letzten Eintrag des Arrays)
@@ -128,31 +128,31 @@ if (count($errors) == 0){
        }else{
          $searchtelefon = "";
        }
-       $sql_ort = "SELECT orts_id FROM `orte` WHERE `strasse` = '".mysql_real_escape_string($input['strasse'])."' AND `hausnummer` = '".mysql_real_escape_string($input['hausnummer'])."' AND `plz` = '".mysql_real_escape_string($input['plz'])."' AND `ort` = '".mysql_real_escape_string($input['ort'])."' AND `telefon` = '".mysql_real_escape_string($searchtelefon)."' AND `status` = 1";
-       $orte = mysql_query($sql_ort);
-       if (mysql_num_rows($orte) == 1){
+       $sql_ort = "SELECT orts_id FROM `orte` WHERE `strasse` = '".db_escape($input['strasse'])."' AND `hausnummer` = '".db_escape($input['hausnummer'])."' AND `plz` = '".db_escape($input['plz'])."' AND `ort` = '".db_escape($input['ort'])."' AND `telefon` = '".db_escape($searchtelefon)."' AND `status` = 1";
+       $orte = db_query($sql_ort);
+       if (db_num_rows($orte) == 1){
          // Es wurde ein Ort gefunden, der den Angaben entspricht
          // Werte dieses Eintrags in $ort einlesen (ist hier nur die orts_id)
-         $ort = mysql_fetch_assoc($orte);
+         $ort = db_fetch_assoc($orte);
          $input['orts_id'] = $ort['orts_id'];
-       }elseif(mysql_num_rows($orte) == 0){
+       }elseif(db_num_rows($orte) == 0){
          // Der Ort ist neu, bzw es gibt ihn noch nicht in der Datenbank = Ort neu Anlegen
          $sql_ort = "INSERT INTO `orte` SET
-            `strasse`       = '".mysql_real_escape_string(filter_var($input['strasse'],FILTER_SANITIZE_STRING))."',
-            `hausnummer`    = '".mysql_real_escape_string(filter_var($input['hausnummer'],FILTER_SANITIZE_STRING))."',
-            `plz`           = '".mysql_real_escape_string(filter_var($input['plz'],FILTER_SANITIZE_STRING))."',
-            `ort`           = '".mysql_real_escape_string(filter_var($input['ort'],FILTER_SANITIZE_STRING))."',";
+            `strasse`       = '".db_escape(vs_sanitize_text($input['strasse']))."',
+            `hausnummer`    = '".db_escape(vs_sanitize_text($input['hausnummer']))."',
+            `plz`           = '".db_escape(vs_sanitize_text($input['plz']))."',
+            `ort`           = '".db_escape(vs_sanitize_text($input['ort']))."',";
              if ($input['telvorwahl'] > 0 && $input['telnr'] > 0){
-                $sql_ort .= "`telefon`      = '".mysql_real_escape_string(filter_var($input['telvorwahl']."/".$input['telnr'],FILTER_SANITIZE_STRING))."',";
+                $sql_ort .= "`telefon`      = '".db_escape(vs_sanitize_text($input['telvorwahl']."/".$input['telnr']))."',";
              }else{
                 $sql_ort .= "`telefon`      = '',";
              }
              $sql_ort .= "`typ`        = '1',
              `status`       = '1'";
-             if (mysql_query($sql_ort)){
+             if (db_query($sql_ort)){
                // Neuer Ort wurde erfolgreich in der Datenbank angelegt
                // ID des letzten Insert-Vorgangs (anlegen der neuen Anschrift in der Orts-Tabelle) erhalten
-               $input['orts_id'] = mysql_insert_id();
+               $input['orts_id'] = db_insert_id();
              }else{
                $errors[] = "Adressänderung konnte nicht übernommen werden.";
              }
@@ -179,22 +179,22 @@ if (isset($_POST['savesettings'])){
       // Gab es keine Fehler, SQL Befehle ausführen
       //
       $sqls = array(
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['orts_id'])."' WHERE `einstellungen`.`name` = 'vereinsanschrift'",
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['vereinsname_lang'])."' WHERE `einstellungen`.`name` = 'vereinsname_lang'",
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['vereinsname'])."' WHERE `einstellungen`.`name` = 'vereinsname'",
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['orts_id'])."' WHERE `einstellungen`.`name` = 'vereinsanschrift'",
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['vereinsname_lang'])."' WHERE `einstellungen`.`name` = 'vereinsname_lang'",
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['vereinsname'])."' WHERE `einstellungen`.`name` = 'vereinsname'",
       "UPDATE `einstellungen` SET `value` = '".intval(($input['beitrag_kindereuro']*100 + $input['beitrag_kindercent']))."' WHERE `einstellungen`.`name` = 'beitrag_kinder'",
       "UPDATE `einstellungen` SET `value` = '".intval(($input['beitrag_erwachsenereuro']*100 + $input['beitrag_erwachsenercent']))."' WHERE `einstellungen`.`name` = 'beitrag_erwachsener'",
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['webmastermail'])."' WHERE `einstellungen`.`name` = 'webmastermail'",
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['leitermail'])."' WHERE `einstellungen`.`name` = 'leitermail'",
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['usecaptchalogin'])."' WHERE `einstellungen`.`name` = 'usecaptchalogin'",
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['annualwork'])."' WHERE `einstellungen`.`name` = 'annualwork'",
-      "UPDATE `einstellungen` SET `value` = '".mysql_real_escape_string($input['cakeworkcount'])."' WHERE `einstellungen`.`name` = 'cakeworkcount'"
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['webmastermail'])."' WHERE `einstellungen`.`name` = 'webmastermail'",
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['leitermail'])."' WHERE `einstellungen`.`name` = 'leitermail'",
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['usecaptchalogin'])."' WHERE `einstellungen`.`name` = 'usecaptchalogin'",
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['annualwork'])."' WHERE `einstellungen`.`name` = 'annualwork'",
+      "UPDATE `einstellungen` SET `value` = '".db_escape($input['cakeworkcount'])."' WHERE `einstellungen`.`name` = 'cakeworkcount'"
       );
       $befehle = count($sqls);
       for ($i=1; $i<=$befehle; $i++)  {
-         if (!mysql_query($sqls[$i-1])){
+         if (!db_query($sqls[$i-1])){
             // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-            header("Location: einstellungen.php?save=fail&when=$i&why=".mysql_errno());
+            header("Location: einstellungen.php?save=fail&when=$i&why=".db_errno());
             exit();
          }
       }

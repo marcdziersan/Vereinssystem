@@ -15,20 +15,20 @@ require_once ("inc/head.inc.php");
 <?php
 if (isset($_GET['id'])){
 $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_GET['id']);
-	$veranstaltung_result = mysql_query($sql);
-    echo mysql_error();
-    if (mysql_num_rows($veranstaltung_result) == 1){
-        $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+	$veranstaltung_result = db_query($sql);
+    echo db_error();
+    if (db_num_rows($veranstaltung_result) == 1){
+        $veranstaltung = db_fetch_assoc($veranstaltung_result);
         echo "<h1>Dienstplan von \"".htmlspecialchars($veranstaltung['veranstaltungsname'])."\"</h1>";
 		$sql_dienste = "SELECT * FROM `dienste` LEFT JOIN `mitglieder` ON `dienste`.`person` = `mitglieder`.`mitglieder_id` WHERE `event` = ".intval($_GET['id']);
-		$dienste_result = mysql_query($sql_dienste);
+		$dienste_result = db_query($sql_dienste);
 		
 		function belegt($startzeit,$endzeit,$stand){
 			global $dienste_result;
-			if(mysql_num_rows($dienste_result) != 0){
-				mysql_data_seek($dienste_result,0);
+			if(db_num_rows($dienste_result) != 0){
+				db_data_seek($dienste_result,0);
 			}
-			while ($dienst = mysql_fetch_assoc($dienste_result)) {
+			while ($dienst = db_fetch_assoc($dienste_result)) {
 				//echo $dienst['startzeit'].$startzeit;
 				//echo "<br />". $dienst['endzeit'].$endzeit;
 				//echo "<br />". $dienst['stand'].$stand;
@@ -64,11 +64,11 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
                                     //Wenn geforderte Zeitdienste in der DB eingetragen sind, diese auslesen und anzeigen
                                     if($veranstaltung['mindienste'] > 0){
     	                                $sql_dienste_stand = "SELECT * FROM `dienste` WHERE `dienstart` = 0 AND `event` = ".intval($_GET['id']);
-    									$dienste_stand_result = mysql_query($sql_dienste_stand);
+    									$dienste_stand_result = db_query($sql_dienste_stand);
     									$diensteprozent = (($veranstaltung['endzeit']-$veranstaltung['startzeit'])/60/30)*$veranstaltung['mindienste']/100;
     									if($dienste_stand_result != FALSE){
     										//Prozentanzeige der erfüllten Zeitdienste einer Veranstlatung
-    	   									$eingetragen = round(mysql_num_rows($dienste_stand_result)/$diensteprozent);
+    	   									$eingetragen = round(db_num_rows($dienste_stand_result)/$diensteprozent);
     	   									if($eingetragen > 100){
     	   										$eingetragen = 100;
     	   									}
@@ -80,10 +80,10 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
     								}
     								//Kuchen werden abgerufen auch wenn keine benötigten Kuchen eingetragen waren
     								$sql_kuchen = "SELECT * FROM `dienste` LEFT JOIN `mitglieder` ON `dienste`.`person` = `mitglieder`.`mitglieder_id` WHERE `dienstart` > 0 AND `event` = ".intval($_GET['id']);
-    								$kuchen_result = mysql_query($sql_kuchen);
+    								$kuchen_result = db_query($sql_kuchen);
     								$kuchen = 0;
-    								if($kuchen_result != FALSE and mysql_num_rows($kuchen_result) != 0){
-    									while($kuchendienst = mysql_fetch_assoc($kuchen_result)){
+    								if($kuchen_result != FALSE and db_num_rows($kuchen_result) != 0){
+    									while($kuchendienst = db_fetch_assoc($kuchen_result)){
     										$kuchen += $kuchendienst['dienstart'];
     									}
     								}
@@ -101,9 +101,9 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
     								//Falls Kuchen eingetragen waren, eine Liste derer Ausgeben, die diese mitbringen
     								if($kuchen > 0){
     									echo "<p><b>Kuchenliste:</b></p><p>";
-    									mysql_data_seek($kuchen_result,0);
+    									db_data_seek($kuchen_result,0);
     									$i = 0;
-    									while($kuchendienst = mysql_fetch_assoc($kuchen_result)){
+    									while($kuchendienst = db_fetch_assoc($kuchen_result)){
     										if($i != 0){
     											echo ", ";
     										}
@@ -120,15 +120,16 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
     			  <?php if($user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 259200) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']){
     						echo '<p><img src="images/edit.png" alt="" title="Kuchendienst" class=\"imageinline\" /> <a href="dienste_add.php?kuchen&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=add" >Jemanden für Kuchen eintragen</a></p>';
     					}else{?>
-    				  <form id="kuchenform" class="formular" accept-charset="utf-8" method="get" action="dienste_process.php" enctype="">
+    				  <form id="kuchenform" class="formular" accept-charset="utf-8" method="post" action="dienste_process.php" enctype="">
+                  <input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'],ENT_QUOTES); ?>" />
 
     				  <p><label for="kuchen" style="width:auto;float:none;"><img src="images/edit.png" alt="" title="Kuchendienst" /> Ich bringe</label>
     				  <input type="text" name="kuchen" id="kuchen" value="<?php
     				  	//Zeiger im MYSQL Ergebnis wieder auf 0 setzen
-    				  	//mysql_data_seek($dienste_result,0);
+    				  	//db_data_seek($dienste_result,0);
     					$kuchen = FALSE;
     					//Schon vorhandenen Kuchendienst suchen und eventuelle Anzahl in Input Feld schreiben
-    					while ($dienst = mysql_fetch_assoc($dienste_result)) {
+    					while ($dienst = db_fetch_assoc($dienste_result)) {
     						if($dienst['dienstart'] != 0 and $dienst['person'] == $user['mitglieder_id'] ){
     							echo $dienst['dienstart'];
     							$kuchen = TRUE;
@@ -232,11 +233,11 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
     						if($user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 86400) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']){
     							echo '<td><a href="dienste_add.php?stand=' . $a . '&amp;anfang=' . $anfang_lang . '&amp;ende=' . $anfang . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=add" >Eintragen</a></td>';
     						}else{
-    							echo '<td><a href="dienste_process.php?stand=' . $a . '&amp;anfang=' . $anfang_lang . '&amp;ende=' . $anfang . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=add" >Eintragen</a></td>';
+    							echo '<td>'.vs_action_form(['stand'=>$a,'anfang'=>$anfang_lang,'ende'=>$anfang,'event'=>$veranstaltung['veranstaltungs_id'],'action'=>'add'], 'Eintragen').'</td>';
     						}
     					} else {
     						if ($belegt['mitglieder_id'] == $user['mitglieder_id'] or $user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 86400) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']) {
-    							echo '<td>' . $belegt['vorname'] . " " . $belegt['nachname'] . ' <a href="dienste_process.php?dienst_id=' . $belegt['dienst_id'] . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=remove"><img src="images/cross.png" alt="Austragen" title="Austragen" class="imageinline" /></a></td>';
+    							echo '<td>'.htmlspecialchars($belegt['vorname'].' '.$belegt['nachname']).' '.vs_action_form(['action'=>'remove','dienst_id'=>$belegt['dienst_id'],'event'=>$veranstaltung['veranstaltungs_id']], 'Austragen').'</td>';
     						} else {
     							echo '<td class="graubg">' . $belegt['vorname'] . " " . $belegt['nachname'] . '</td>';
     						}
@@ -272,11 +273,11 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
     						if($user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 86400) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']){
     							echo '<td><a href="dienste_add.php?stand=' . $a . '&amp;anfang=' . $now . '&amp;ende=' . $then . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=add" >Eintragen</a></td>';
     						}else{
-    							echo '<td><a href="dienste_process.php?stand=' . $a . '&amp;anfang=' . $now . '&amp;ende=' . $then . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=add" >Eintragen</a></td>';
+    							echo '<td>'.vs_action_form(['stand'=>$a,'anfang'=>$now,'ende'=>$then,'event'=>$veranstaltung['veranstaltungs_id'],'action'=>'add'], 'Eintragen').'</td>';
     						}
     					} else {
     						if ($belegt['mitglieder_id'] == $user['mitglieder_id'] or $user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 86400) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']) {
-    							echo '<td>' . $belegt['vorname'] . " " . $belegt['nachname'] . ' <a href="dienste_process.php?dienst_id=' . $belegt['dienst_id'] . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=remove"><img src="images/cross.png" alt="Austragen" title="Austragen" class="imageinline" /></a></td>';
+    							echo '<td>'.htmlspecialchars($belegt['vorname'].' '.$belegt['nachname']).' '.vs_action_form(['action'=>'remove','dienst_id'=>$belegt['dienst_id'],'event'=>$veranstaltung['veranstaltungs_id']], 'Austragen').'</td>';
     						} else {
     							echo '<td class="graubg">' . $belegt['vorname'] . " " . $belegt['nachname'] . '</td>';
     						}
@@ -295,11 +296,11 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
     						if($user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 86400) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']){
     							echo '<td><a href="dienste_add.php?stand=' . $a . '&amp;anfang=' . $ende . '&amp;ende=' . $ende_lang . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=add" >Eintragen</a></td>';
     						}else{
-    							echo '<td><a href="dienste_process.php?stand=' . $a . '&amp;anfang=' . $ende . '&amp;ende=' . $ende_lang . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=add" >Eintragen</a></td>';
+    							echo '<td>'.vs_action_form(['stand'=>$a,'anfang'=>$ende,'ende'=>$ende_lang,'event'=>$veranstaltung['veranstaltungs_id'],'action'=>'add'], 'Eintragen').'</td>';
     						}
     					} else {
     						if ($belegt['mitglieder_id'] == $user['mitglieder_id'] or $user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 86400) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']) {
-    							echo '<td>' . $belegt['vorname'] . " " . $belegt['nachname'] . ' <a href="dienste_process.php?dienst_id=' . $belegt['dienst_id'] . '&amp;event=' . $veranstaltung['veranstaltungs_id'] . '&amp;action=remove">><img src="images/cross.png" alt="Austragen" title="Austragen" class="imageinline" /></a></td>';
+    							echo '<td>'.htmlspecialchars($belegt['vorname'].' '.$belegt['nachname']).' '.vs_action_form(['action'=>'remove','dienst_id'=>$belegt['dienst_id'],'event'=>$veranstaltung['veranstaltungs_id']], 'Austragen').'</td>';
     						} else {
     							echo '<td class="graubg">' . $belegt['vorname'] . " " . $belegt['nachname'] . '</td>';
     						}

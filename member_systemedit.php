@@ -45,10 +45,10 @@ require_once("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `mitglieder` WHERE `mitglieder`.`mitglieder_id` = ".intval($_GET['id'])." AND `mitglieder`.`status` = '1' ";
-            $member_result = mysql_query($sql);
-            echo mysql_error();
-            if (mysql_num_rows($member_result) == 1){
-                $member = mysql_fetch_assoc($member_result);
+            $member_result = db_query($sql);
+            echo db_error();
+            if (db_num_rows($member_result) == 1){
+                $member = db_fetch_assoc($member_result);
                 if ($member['rights'] == 5 && $user['rights'] == 4){
                   echo "<h2>Mitglieds-Systemeinstellungen bearbeiten</h2>
                     <div class=\"message error\">Für diese Aktion haben Sie nicht die erforderlichen Rechte. Nur andere Administratoren können die Systemeinstellungen von Administrator-Accounts bearbeiten.
@@ -93,6 +93,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                           <form id="editform" class="formular" method="post" action="member_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   <label for="usernamechange">Username</label>
                                   <input type="text" autocomplete="off" value="<?php

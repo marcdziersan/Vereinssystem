@@ -43,8 +43,8 @@ if (isset($_POST['savenews'])){
   if ($user['rights'] < 4){
     // Man hat schonmal ein Rechtelevel von kleiner 4 (darf also nicht automatisch alles bearbeiten)
     $sql_test_premission = "SELECT `author` FROM `news` WHERE `news`.`news_id` = ".intval($_POST['news_id'])."";
-    $test_premission = mysql_query($sql_test_premission);
-    $test_premission_result = mysql_fetch_assoc($test_premission);
+    $test_premission = db_query($sql_test_premission);
+    $test_premission_result = db_fetch_assoc($test_premission);
     // Autor-ID auslesen und mit der aktuellen Nutzer-ID vergleichen
     if ($test_premission_result['author'] != $user['mitglieder_id']){
         // Der aktuelle Nutzer ist auch nicht der Autor der Nachricht = Keine Erlaubnis
@@ -70,23 +70,23 @@ if (isset($_POST['savenews'])){
       // Gab es keine Fehler, dann SQL-Befehl erstellen
       $sql =
           "UPDATE `news` SET
-           `title`        = '".mysql_real_escape_string(filter_var(stripslashes($input['title']),FILTER_SANITIZE_STRING))."',
-           `content`      = '".mysql_real_escape_string((stripslashes($input['content'])))."',";
+           `title`        = '".db_escape(vs_sanitize_text(stripslashes($input['title'])))."',
+           `content`      = '".db_escape((stripslashes($input['content'])))."',";
           if (!isset($input['silentchange']) || (isset($input['silentchange']) && $input['silentchange'] == 1 && $user['rights'] >= 5)){
             // Möglichkeit bieten für Nutzer mit Rechtelevel 5 oder höher, einen Nachrichtenbeitrag zu ändern ohne "lastchange" zu verändern
-              $sql .= "`lastchange`   = '".mysql_real_escape_string(time())."',";
+              $sql .= "`lastchange`   = '".db_escape(time())."',";
           }
-           $sql .= "`minright`     = '".mysql_real_escape_string(intval($input['minright']))."'
+           $sql .= "`minright`     = '".db_escape(intval($input['minright']))."'
          WHERE
            `news`.`news_id` = '".intval($input['news_id'])."'";
          // MySQL Code ausführen (und somit Änderungen speichern)
-         if (mysql_query($sql)){
+         if (db_query($sql)){
             // Bei Erfolg entsprechendes als GET-Parameter übergeben
             header('Location: news_edit.php?id='.intval($input['news_id'])."&save=success");
             exit();
          }else{
             // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-            header('Location: news_edit.php?id='.intval($input['news_id'])."&save=fail&why=".mysql_errno());
+            header('Location: news_edit.php?id='.intval($input['news_id'])."&save=fail&why=".db_errno());
             exit();
          }
   }else{
@@ -113,22 +113,22 @@ if (isset($_POST['savenews'])){
     // Es gab keine Fehler bei der Prüfung der Eingaben
       $sql =
           "INSERT INTO `news` SET
-           `title`        = '".mysql_real_escape_string(filter_var($input['title'],FILTER_SANITIZE_STRING))."',
-           `content`      = '".mysql_real_escape_string(nl2br($input['content']))."',
-           `minright`     = '".mysql_real_escape_string(intval($input['minright']))."',
-           `author`       = '".mysql_real_escape_string($user['mitglieder_id'])."',
-           `created`      = '".mysql_real_escape_string(time())."',
-           `lastchange`   = '".mysql_real_escape_string(time())."',
+           `title`        = '".db_escape(vs_sanitize_text($input['title']))."',
+           `content`      = '".db_escape(nl2br($input['content']))."',
+           `minright`     = '".db_escape(intval($input['minright']))."',
+           `author`       = '".db_escape($user['mitglieder_id'])."',
+           `created`      = '".db_escape(time())."',
+           `lastchange`   = '".db_escape(time())."',
            `status`       = '1'
            ";
          // MySQL Code ausführen (und somit Änderungen speichern)
-         if (mysql_query($sql)){
+         if (db_query($sql)){
             // Bei Erfolg entsprechendes als GET-Parameter übergeben
-            header('Location: news_show.php?id='.mysql_insert_id()."&created");
+            header('Location: news_show.php?id='.db_insert_id()."&created");
             exit();
          }else{
             // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-            header('Location: news_add.php?created=fail&why='.mysql_errno()."&data=".base64_encode(json_encode($input)));
+            header('Location: news_add.php?created=fail&why='.db_errno()."&data=".base64_encode(json_encode($input)));
             exit();
          }
   }else{
@@ -142,8 +142,8 @@ if (isset($_POST['savenews'])){
   if ($user['rights'] < 4){
     // Man hat schonmal ein Rechtelevel von kleiner 4 (darf also nicht automatisch alles bearbeiten)
     $sql_test_premission = "SELECT `author` FROM `news` WHERE `news`.`news_id` = ".intval($_POST['news_id'])."";
-    $test_premission = mysql_query($sql_test_premission);
-    $test_premission_result = mysql_fetch_assoc($test_premission);
+    $test_premission = db_query($sql_test_premission);
+    $test_premission_result = db_fetch_assoc($test_premission);
     // Autor-ID auslesen und mit der aktuellen Nutzer-ID vergleichen
     if ($test_premission_result['author'] != $user['mitglieder_id']){
         // Der aktuelle Nutzer ist auch nicht der Autor der Nachricht = Keine Erlaubnis
@@ -163,13 +163,13 @@ if (isset($_POST['savenews'])){
       $sql = "DELETE FROM `news`
             WHERE
            `news`.`news_id` = '".intval($_POST['news_id'])."' AND `news`.`status` = 1";
-      if (mysql_query($sql)){
+      if (db_query($sql)){
          // Bei Erfolg entsprechendes als GET-Parameter übergeben
          header('Location: news.php?deletion=success&who='.intval($_POST['news_id']));
          exit();
       }else{
          // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-         header('Location: news_delete.php?id='.intval($_POST['news_id']).'&deletion=fail&why='.mysql_errno());
+         header('Location: news_delete.php?id='.intval($_POST['news_id']).'&deletion=fail&why='.db_errno());
          exit();
       }
     }else{
@@ -178,13 +178,13 @@ if (isset($_POST['savenews'])){
            `status`        = '2'
          WHERE
            `news`.`news_id` = '".intval($_POST['news_id'])."' AND `news`.`status` = 1";
-      if (mysql_query($sql)){
+      if (db_query($sql)){
          // Bei Erfolg entsprechendes als GET-Parameter übergeben
          header('Location: news.php?removal=success&who='.intval($_POST['news_id']));
          exit();
       }else{
          // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-         header('Location: news_delete.php?id='.intval($_POST['news_id']).'&removal=fail&why='.mysql_errno());
+         header('Location: news_delete.php?id='.intval($_POST['news_id']).'&removal=fail&why='.db_errno());
          exit();
       }
     }

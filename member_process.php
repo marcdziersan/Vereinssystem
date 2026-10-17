@@ -7,6 +7,11 @@ require_once("inc/connect.inc.php");
 // Login-Status-Prüfung einbinden
 require_once("inc/checkuser.inc.php");
 
+function vs_password_matches(string $plain, string $stored): bool {
+    return password_verify($plain, $stored)
+        || (preg_match('/^[0-9a-f]{32}$/i', $stored) && hash_equals(strtolower($stored), md5($plain)));
+}
+
 function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_id"=>0)){
   // Prüft die übergebenen Mitgliedsaten auf Fehler und Plausibilität
   // Gibt eine Array bestehend aus einem array errors mit den Fehlern sowie die verbesserten input Daten zurück (mehrdimensionales Array)
@@ -19,7 +24,7 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
     // Nachnamen dürfen nur aus Buchstaben, Bindestrichen, Leerzeichen und Punkten bestehen und müssen mindestens 2 Zeichen lang sein
     $errors[] = "Der eingegebene Nachname ist ungültig";
   }
-  if ($input['geschlecht'] < 0 && $input['geschlecht'] > 2){
+  if ($input['geschlecht'] < 0 || $input['geschlecht'] > 2){
     // Geschlechts-Nummer ist außerhalb des gültigen Rahmens von 0 bis 2
     $errors[] = "Das ausgewählte Geschlecht ist ungültig";
   }
@@ -34,12 +39,12 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
       if (isset($input['mutterdrop']) && $input['mutterdrop'] != "new" && empty($input['mutter'])){
         // Dem Nutzer wurde ein Auswahlfeld angezeigt und das Textfeld ist leer (= Keine Eingabe über "Anderer Nutzer", es wurde also jemand aus der Liste gewählt)
         // Prüfung: Ist der Nutzer vorhanden und aktiv?
-        $mutter_test = mysql_query("SELECT * FROM `mitglieder` WHERE `mitglieder_id` = ".intval($input['mutterdrop'])." AND `status` = 1");
-        if (mysql_num_rows($mutter_test) == 0){
+        $mutter_test = db_query("SELECT * FROM `mitglieder` WHERE `mitglieder_id` = ".intval($input['mutterdrop'])." AND `status` = 1");
+        if (db_num_rows($mutter_test) == 0){
           $errors[] = "Es wurde kein Mitglied mit dem angegebenen Namen der Mutter gefunden";
         }else{
           // Es ist ein Mitglied vorhanden
-          $mutter_daten = mysql_fetch_assoc($mutter_test);
+          $mutter_daten = db_fetch_assoc($mutter_test);
           $input['parent1'] = $mutter_daten['mitglieder_id'];
         }
       }elseif(!empty($input['mutter'])){
@@ -47,15 +52,15 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
         $namensteile = explode(" ",$input['mutter']);
         $suchteile = array(); // Suchteile Array erstellen, welches alle Suchkriterien (Textteile des Namens) enthält
         foreach ($namensteile as &$suchteil) {
-          $suchteile[] = "(`nachname` LIKE '%".$suchteil."%' OR `vorname` LIKE '%".$suchteil."%')";
+          $suchteile[] = "(`nachname` LIKE '%".db_escape($suchteil)."%' OR `vorname` LIKE '%".db_escape($suchteil)."%')";
         }
         $suchteile[] = "`status` = 1"; // Nur aktive Mitglieder verwenden
-        $mutter_test = mysql_query("SELECT * FROM `mitglieder` WHERE ".implode(" AND ",$suchteile));
-        if (mysql_num_rows($mutter_test) == 1){
+        $mutter_test = db_query("SELECT * FROM `mitglieder` WHERE ".implode(" AND ",$suchteile));
+        if (db_num_rows($mutter_test) == 1){
             // Es gibt genau einen Nutzer mit dem Namen
-            $mutter_daten = mysql_fetch_assoc($mutter_test);
+            $mutter_daten = db_fetch_assoc($mutter_test);
             $input['parent1'] = $mutter_daten['mitglieder_id'];
-        }elseif (mysql_num_rows($mutter_test) == 0){
+        }elseif (db_num_rows($mutter_test) == 0){
           $errors[] = "Es wurde kein Mitglied mit dem angegebenen Namen der Mutter gefunden";
         }else{
           $errors[] = "Es wurden mehrere Mitglieder mit dem angegebenen Namen der Mutter gefunden";
@@ -89,12 +94,12 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
       if (isset($input['vaterdrop']) && $input['vaterdrop'] != "new" && empty($input['vaterdrop'])){
         // Dem Nutzer wurde ein Auswahlfeld angezeigt und das Textfeld ist leer (= Keine Eingabe über "Anderer Nutzer", es wurde also jemand aus der Liste gewählt)
         // Prüfung: Ist der Nutzer vorhanden und aktiv?
-        $vater_test = mysql_query("SELECT * FROM `mitglieder` WHERE `mitglieder_id` = ".intval($input['vaterdrop'])." AND `status` = 1");
-        if (mysql_num_rows($vater_test) == 0){
+        $vater_test = db_query("SELECT * FROM `mitglieder` WHERE `mitglieder_id` = ".intval($input['vaterdrop'])." AND `status` = 1");
+        if (db_num_rows($vater_test) == 0){
           $errors[] = "Es wurde kein Mitglied mit dem angegebenen Namen des Vaters gefunden";
         }else{
           // Es ist ein Mitglied vorhanden
-          $vater_daten = mysql_fetch_assoc($vater_test);
+          $vater_daten = db_fetch_assoc($vater_test);
           $input['parent2'] = $vater_daten['mitglieder_id'];
         }
       }elseif(!empty($input['vater'])){
@@ -102,15 +107,15 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
         $namensteile = explode(" ",$input['vater']);
         $suchteile = array(); // Suchteile Array erstellen, welches alle Suchkriterien (Textteile des Namens) enthält
         foreach ($namensteile as &$suchteil) {
-          $suchteile[] = "(`nachname` LIKE '%".$suchteil."%' OR `vorname` LIKE '%".$suchteil."%')";
+          $suchteile[] = "(`nachname` LIKE '%".db_escape($suchteil)."%' OR `vorname` LIKE '%".db_escape($suchteil)."%')";
         }
         $suchteile[] = "`status` = 1"; // Nur aktive Mitglieder verwenden
-        $vater_test = mysql_query("SELECT * FROM `mitglieder` WHERE ".implode(" AND ",$suchteile));
-        if (mysql_num_rows($vater_test) == 1){
+        $vater_test = db_query("SELECT * FROM `mitglieder` WHERE ".implode(" AND ",$suchteile));
+        if (db_num_rows($vater_test) == 1){
             // Es gibt genau einen Nutzer mit dem Namen
-            $vater_daten = mysql_fetch_assoc($vater_test);
+            $vater_daten = db_fetch_assoc($vater_test);
             $input['parent2'] = $vater_daten['mitglieder_id'];
-        }elseif (mysql_num_rows($vater_test) == 0){
+        }elseif (db_num_rows($vater_test) == 0){
           $errors[] = "Es wurde kein Mitglied mit dem angegebenen Namen des Vaters gefunden";
         }else{
           $errors[] = "Es wurden mehrere Mitglieder mit dem angegebenen Namen des Vaters gefunden";
@@ -157,11 +162,11 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
   }elseif($input['ort'] == ""){
     // PLZ ist gültig und Ortsname ist nicht vorhanden
     // Versuchen, falls kein Ortsname angegeben ist, anhand der bekannten Orte den Ortsnamen mittels PLZ herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".mysql_real_escape_string($input['plz'])."' GROUP BY `ort`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".db_escape($input['plz'])."' GROUP BY `ort`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur einen Ortsnamen, der zu dieser PLZ gefunden wurde (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['ort'] = $sql_test_data['ort'];
     }
   }
@@ -171,11 +176,11 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
   }elseif($input['plz'] == ""){
     // Ortsname ist gültig und PLZ ist nicht vorhanden
     // Versuchen, falls kein PLZ angegeben ist, anhand der bekannten Orte die PLZ mittels Ortsnamen herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".mysql_real_escape_string($input['ort'])."' GROUP BY `plz`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".db_escape($input['ort'])."' GROUP BY `plz`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur eine PLZ zu diesem Ortsnamen (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['plz'] = $sql_test_data['plz'];
       // Da die fehlende PLZ eine Fehlermeldung erzeugt hat und dieses Problem nun gelöst wurde, muss die Fehlermeldung wieder aus dem $errors-Array entfernt werden
       // (Entfernt den letzten Eintrag des Arrays)
@@ -230,11 +235,11 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
   }elseif($input['bankname'] == "" && $input['abrechnung'] == 0){
     // BLZ ist gültig und Bankname ist nicht vorhanden
     // Versuchen, falls kein Bankname angegeben ist, anhand der bekannten Kontoverbindungen den Banknamen mittels BLZ herauszufinden
-    $sql_test = "SELECT `blz`,`bankname` FROM `mitglieder` WHERE `blz` = '".mysql_real_escape_string($input['blz'])."' GROUP BY `bankname`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `blz`,`bankname` FROM `mitglieder` WHERE `blz` = '".db_escape($input['blz'])."' GROUP BY `bankname`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur einen Ortsnamen, der zu dieser PLZ gefunden wurde (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['bankname'] = $sql_test_data['bankname'];
     }
   }
@@ -251,8 +256,8 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
     // Username. Mindestens 4 Zeichen lang und aus buchstaben, zahlen, punkten und binde- und unterstrichen
     $errors[] = "Der eingegebene Username ist ungültig";
   }else{
-    $sql_username_test = mysql_query("SELECT mitglieder_id FROM `mitglieder` WHERE `username` = '".$input['username']."'");
-    if (mysql_num_rows($sql_username_test) != 0){
+    $sql_username_test = db_query("SELECT mitglieder_id FROM `mitglieder` WHERE `username` = '".$input['username']."'");
+    if (db_num_rows($sql_username_test) != 0){
       // Nutzername wird bereits verwendet
       $errors[] = "Der eingegebene Username wird bereits verwendet";
     }
@@ -266,12 +271,12 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
            // Ortsänderung gilt für dieses Mitglied und alle Mitglieder, die ebenfalls dort wohnten = Orts-Eintrag verändern (+ entsprechende Rechte des Nutzers)
               $sql_ort =
                 "UPDATE `orte` SET
-                 `strasse`        = '".mysql_real_escape_string(filter_var($input['strasse'],FILTER_SANITIZE_STRING))."',
-                 `hausnummer`      = '".mysql_real_escape_string(filter_var($input['hausnummer'],FILTER_SANITIZE_STRING))."',
-                 `plz`      = '".mysql_real_escape_string(filter_var($input['plz'],FILTER_SANITIZE_STRING))."',
-                 `ort`      = '".mysql_real_escape_string(filter_var($input['ort'],FILTER_SANITIZE_STRING))."',";
+                 `strasse`        = '".db_escape(vs_sanitize_text($input['strasse']))."',
+                 `hausnummer`      = '".db_escape(vs_sanitize_text($input['hausnummer']))."',
+                 `plz`      = '".db_escape(vs_sanitize_text($input['plz']))."',
+                 `ort`      = '".db_escape(vs_sanitize_text($input['ort']))."',";
                  if ($input['telvorwahl'] > 0 && $input['telnr'] > 0){
-                    $sql_ort .= "`telefon`      = '".mysql_real_escape_string(filter_var($input['telvorwahl']."/".$input['telnr'],FILTER_SANITIZE_STRING))."',";
+                    $sql_ort .= "`telefon`      = '".db_escape(vs_sanitize_text($input['telvorwahl']."/".$input['telnr']))."',";
                  }else{
                     $sql_ort .= "`telefon`      = '',";
                  }
@@ -279,7 +284,7 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
                 `typ`        = '1'
               WHERE
                `orte`.`orts_id` = '".intval($input['orts_id'])."'";
-              if (mysql_query($sql_ort)){
+              if (db_query($sql_ort)){
                 // Orts-Eintrag erfolgreich geändert, am Eintrag in der Mitglieder-Tabelle muss nichts geändert werden, da die ID die gleiche bleibt
               }else{
                 $errors[] = "Adressänderung konnte nicht übernommen werden";
@@ -292,36 +297,36 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
          }else{
            $searchtelefon = "";
          }
-         $sql_ort = "SELECT `orts_id`,`status` FROM `orte` WHERE `strasse` = '".mysql_real_escape_string($input['strasse'])."' AND `hausnummer` = '".mysql_real_escape_string($input['hausnummer'])."' AND `plz` = '".mysql_real_escape_string($input['plz'])."' AND `ort` = '".mysql_real_escape_string($input['ort'])."' AND `telefon` = '".mysql_real_escape_string($searchtelefon)."'";
-         $orte = mysql_query($sql_ort);
-         if (mysql_num_rows($orte) == 1){
+         $sql_ort = "SELECT `orts_id`,`status` FROM `orte` WHERE `strasse` = '".db_escape($input['strasse'])."' AND `hausnummer` = '".db_escape($input['hausnummer'])."' AND `plz` = '".db_escape($input['plz'])."' AND `ort` = '".db_escape($input['ort'])."' AND `telefon` = '".db_escape($searchtelefon)."'";
+         $orte = db_query($sql_ort);
+         if (db_num_rows($orte) == 1){
            // Es wurde ein Ort gefunden, der den Angaben entspricht
            // Werte dieses Eintrags in $ort einlesen (ist hier nur die orts_id)
-           $ort = mysql_fetch_assoc($orte);
+           $ort = db_fetch_assoc($orte);
            if ($ort['status'] == 2){
                 // Ist der Ort aus dem System entfernt worden, ihn wieder aktivieren und "createdby" neu setzen
-                mysql_query("UPDATE `orte` SET `status` = '1', `createdby`='".$user['mitglieder_id']."' WHERE `orte`.`orts_id` = ".$ort['orts_id']);
+                db_query("UPDATE `orte` SET `status` = '1', `createdby`='".$user['mitglieder_id']."' WHERE `orte`.`orts_id` = ".$ort['orts_id']);
            }
            $input['orts_id'] = $ort['orts_id'];
-         }elseif(mysql_num_rows($orte) == 0){
+         }elseif(db_num_rows($orte) == 0){
            // Der Ort ist neu, bzw es gibt ihn noch nicht in der Datenbank = Ort neu Anlegen
            $sql_ort = "INSERT INTO `orte` SET
-              `strasse`       = '".mysql_real_escape_string(filter_var($input['strasse'],FILTER_SANITIZE_STRING))."',
-              `hausnummer`    = '".mysql_real_escape_string(filter_var($input['hausnummer'],FILTER_SANITIZE_STRING))."',
-              `plz`           = '".mysql_real_escape_string(filter_var($input['plz'],FILTER_SANITIZE_STRING))."',
-              `ort`           = '".mysql_real_escape_string(filter_var($input['ort'],FILTER_SANITIZE_STRING))."',";
+              `strasse`       = '".db_escape(vs_sanitize_text($input['strasse']))."',
+              `hausnummer`    = '".db_escape(vs_sanitize_text($input['hausnummer']))."',
+              `plz`           = '".db_escape(vs_sanitize_text($input['plz']))."',
+              `ort`           = '".db_escape(vs_sanitize_text($input['ort']))."',";
                if ($input['telvorwahl'] > 0 && $input['telnr'] > 0){
-                  $sql_ort .= "`telefon`      = '".mysql_real_escape_string(filter_var($input['telvorwahl']."/".$input['telnr'],FILTER_SANITIZE_STRING))."',";
+                  $sql_ort .= "`telefon`      = '".db_escape(vs_sanitize_text($input['telvorwahl']."/".$input['telnr']))."',";
                }else{
                   $sql_ort .= "`telefon`      = '',";
                }
                $sql_ort .= "`typ`        = '1',
                `createdby`    = '".intval($user['mitglieder_id'])."',
                `status`       = '1'";
-               if (mysql_query($sql_ort)){
+               if (db_query($sql_ort)){
                  // Neuer Ort wurde erfolgreich in der Datenbank angelegt
                  // ID des letzten Insert-Vorgangs (anlegen der neuen Anschrift in der Orts-Tabelle) erhalten
-                 $input['orts_id'] = mysql_insert_id();
+                 $input['orts_id'] = db_insert_id();
                }else{
                  $errors[] = "Adressänderung konnte nicht übernommen werden.";
                }
@@ -334,13 +339,13 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
          // Die Änderung der Anschrift für das aktuelle bearbeitet-werdende Mitglied erfolgt unten. Hier eventuelle zusätzliche Mitglieder bearbeiten
          if ($input['locationchange'] == 1 && $user['rights'] >= 4){
            // Fall: "Ortsänderung gilt für dieses Mitglied + Eltern" (+ entsprechende Rechte des Nutzers)
-           $sql_changeloc = mysql_query("UPDATE `mitglieder` SET
+           $sql_changeloc = db_query("UPDATE `mitglieder` SET
                        `anschrift` = '".$input['orts_id']."'
                      WHERE
                        `mitglieder`.`mitglieder_id` = '".$input['parent1']."' OR `mitglieder`.`mitglieder_id` = '".$input['parent2']."'");
            if (!$sql_changeloc){
              // Ist die MySQL Änderung fehlgeschlagen, eine Fehlermeldung ausgeben
-             $errors[] = "Die Adressänderung konnte für die Eltern nicht übernommen werden (Error #".mysql_errno().")";
+             $errors[] = "Die Adressänderung konnte für die Eltern nicht übernommen werden (Error #".db_errno().")";
            }
          }elseif ($input['locationchange'] == 2){
            // Fall: "Ortsänderung gilt für dieses Mitglied + Kinder"
@@ -352,20 +357,20 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
              // Hat der aktuelle Nutzer ein Rechtelevel von kleiner als 4 = dann nur bei Kindern, die noch nicht 18 sind ändern!
              $sql_changeloc .= " AND `mitglieder`.`geburtstag` > '".date("Y-m-d",time()-568024668)."'";
            }
-           $sql_changeloc = mysql_query($sql_changeloc);
+           $sql_changeloc = db_query($sql_changeloc);
            if (!$sql_changeloc){
              // Ist die MySQL Änderung fehlgeschlagen, eine Fehlermeldung ausgeben
-             $errors[] = "Die Adressänderung konnte für die Kinder nicht übernommen werden (Error #".mysql_errno().")";
+             $errors[] = "Die Adressänderung konnte für die Kinder nicht übernommen werden (Error #".db_errno().")";
            }
          }elseif ($input['locationchange'] == 3 && $user['rights'] >= 4){
            // Fall: "Ortsänderung gilt für dieses Mitglied + Kinder + Eltern" (+ entsprechende Rechte des Nutzers)
-           $sql_changeloc = mysql_query("UPDATE `mitglieder` SET
+           $sql_changeloc = db_query("UPDATE `mitglieder` SET
                        `anschrift` = '".$input['orts_id']."'
                      WHERE
                        `mitglieder`.`parent1` = '".$input['mitglieder_id']."' OR `mitglieder`.`parent2` = '".$input['mitglieder_id']."' OR `mitglieder`.`mitglieder_id` = '".$input['parent1']."' OR `mitglieder`.`mitglieder_id` = '".$input['parent2']."'");
            if (!$sql_changeloc){
              // Ist die MySQL Änderung fehlgeschlagen, eine Fehlermeldung ausgeben
-             $errors[] = "Die Adressänderung konnte für die Kinder und Eltern nicht übernommen werden (Error #".mysql_errno().")";
+             $errors[] = "Die Adressänderung konnte für die Kinder und Eltern nicht übernommen werden (Error #".db_errno().")";
            }
          }else{
            // Fall: "Ortsänderung gilt nur für dieses Mitglied" und bei ungültigen Werten für locationchange
@@ -390,9 +395,9 @@ if (isset($_POST['savemember'])){
                     `mitglieder`.`mitglieder_id` = ".intval($_POST['mitglieder_id'])."
                     AND (`parent1` = ".$user['mitglieder_id']." OR `parent2` = ".$user['mitglieder_id'].")
                     AND `geburtstag` > '".date("Y-m-d",time()-568024668)."'";
-      $test_premission = mysql_query($sql_test_premission);
+      $test_premission = db_query($sql_test_premission);
       // Alle Nutzer auslesen, die die bestimmte Mitglieder_id haben, deren einer Elternteil der aktuelle Nutzer ist und die jünger als 18 sind
-      if (mysql_num_rows($test_premission) != 1){
+      if (db_num_rows($test_premission) != 1){
           // Der aktuelle Nutzer ist auch nicht der Vater oder die Mutter eines unter 18-jährigen = Keine Erlaubnis
           if (isset($_SERVER["HTTP_REFERER"])){
             $referer = "?before=".base64_encode($_SERVER["HTTP_REFERER"]);
@@ -415,15 +420,15 @@ if (isset($_POST['savemember'])){
         // Gab es keine Fehler, dann SQL-Befehl erstellen
         $bdaytimestamp = mktime(0,0,0,intval($input['geburtstagmonth']),intval($input['geburtstagday']),intval($input['geburtstagyear']));
         // Bisheriges Geburtsdatum aus der DB lesen
-        $bdaychange_test = mysql_query("SELECT `geburtstag`,`mitgliedsnummer` FROM `mitglieder` WHERE `mitglieder_id` != '".intval($input['mitglieder_id'])."'");
-        $bdaychange_data = mysql_fetch_assoc($bdaychange_test);
+        $bdaychange_test = db_query("SELECT `geburtstag`,`mitgliedsnummer` FROM `mitglieder` WHERE `mitglieder_id` != '".intval($input['mitglieder_id'])."'");
+        $bdaychange_data = db_fetch_assoc($bdaychange_test);
         // Prüfen, ob der Geburtstag geändert wurde, falls ja die Mitgliedsnummer neu berechnen
         if (strtotime($bdaychange_data['geburtstag']) != $bdaytimestamp){
             // Das aktuell übermittelte Geburtsdatum weicht vom bisherigen in der Datenbank ab = Mitgliedsnummer neu berechnen
             // dafür zählen, wie viele Personen am selben Tag Geburtstag haben, um die fortlaufende Nummer ermitteln zu können
             $sql_mtglnr = "SELECT count(*) as count FROM `mitglieder` WHERE `geburtstag` = '".date("Y-m-d",$bdaytimestamp)."'";
-            $sql_mtglnr_data = mysql_query($sql_mtglnr);
-            $sql_mtglnr_count = mysql_fetch_assoc($sql_mtglnr_data);
+            $sql_mtglnr_data = db_query($sql_mtglnr);
+            $sql_mtglnr_count = db_fetch_assoc($sql_mtglnr_data);
             $mitgliedsnummer = date("dmy",$bdaytimestamp).str_pad(intval($sql_mtglnr_count['count'])+1, 3, "0", STR_PAD_LEFT);
         }else{
             // Geburtsdatum wurde nicht geändert, Mitgliedsnummer nicht ändern (bisherigen Wert mit gleichem "überschreiben")
@@ -432,11 +437,11 @@ if (isset($_POST['savemember'])){
 
         $sql =
             "UPDATE `mitglieder` SET
-            `vorname`           = '".mysql_real_escape_string(filter_var(stripslashes($input['vorname']),FILTER_SANITIZE_STRING))."',
-            `nachname`          = '".mysql_real_escape_string(filter_var(stripslashes($input['nachname']),FILTER_SANITIZE_STRING))."',
-            `geschlecht`        = '".mysql_real_escape_string(intval($input['geschlecht']))."',
-            `geburtstag`        = '".mysql_real_escape_string(date('Y-m-d',$bdaytimestamp))."',
-            `mitgliedsnummer`   = '".mysql_real_escape_string($mitgliedsnummer)."',";
+            `vorname`           = '".db_escape(vs_sanitize_text(stripslashes($input['vorname'])))."',
+            `nachname`          = '".db_escape(vs_sanitize_text(stripslashes($input['nachname'])))."',
+            `geschlecht`        = '".db_escape(intval($input['geschlecht']))."',
+            `geburtstag`        = '".db_escape(date('Y-m-d',$bdaytimestamp))."',
+            `mitgliedsnummer`   = '".db_escape($mitgliedsnummer)."',";
             if (isset($input['parent1']) && intval($input['parent1']) >= 0 && $user['rights'] >= 4){
               // Es wurde eine Mutter definiert, sie ist nicht kleiner null und der aktuelle Nutzer hat die nötigen Rechte
               $sql .= "`parent1`  = '".intval($input['parent1'])."',";
@@ -450,31 +455,31 @@ if (isset($_POST['savemember'])){
               $sql .= "`anschrift`  = '".intval($input['orts_id'])."',";
             }
         $sql .= "
-            `handy`             = '".mysql_real_escape_string($input['handynummer'])."',
-            `email`             = '".mysql_real_escape_string($input['email'])."',";
+            `handy`             = '".db_escape($input['handynummer'])."',
+            `email`             = '".db_escape($input['email'])."',";
         if (isset($input['mitgliedschaft']) && $user['rights'] >= 4){
             // Wert für Mitgliedschaft wurde mitgesendet und der Nutzer hat das Recht, diese Eigenschaft zu bearbeiten
-            $sql .= "`mitgliedschaft`    = '".mysql_real_escape_string(intval($input['mitgliedschaft']))."',";
+            $sql .= "`mitgliedschaft`    = '".db_escape(intval($input['mitgliedschaft']))."',";
         }
         if (isset($input['beitrittmonth']) && isset($input['beitrittday']) &&  isset($input['beitrittyear']) && $user['rights'] >= 4){
             // Wert für Beitrittstag wurde mitgesendet und der Nutzer hat das Recht, diese Eigenschaft zu bearbeiten
-            $sql .= "`beitritt`          = '".mysql_real_escape_string(date('Y-m-d',mktime(0,0,0,intval($input['beitrittmonth']),intval($input['beitrittday']),intval($input['beitrittyear']))))."',";
+            $sql .= "`beitritt`          = '".db_escape(date('Y-m-d',mktime(0,0,0,intval($input['beitrittmonth']),intval($input['beitrittday']),intval($input['beitrittyear']))))."',";
         }
         $sql .= "`abrechnung`        = '".intval($input['abrechnung'])."',
-            `kontoinhaber`      = '".mysql_real_escape_string(filter_var(stripslashes($input['kontoinhaber']),FILTER_SANITIZE_STRING))."',
-            `kontonummer`       = '".mysql_real_escape_string(filter_var($input['kontonummer'],FILTER_SANITIZE_STRING))."',
-            `bankname`          = '".mysql_real_escape_string(filter_var($input['bankname'],FILTER_SANITIZE_STRING))."',
-            `blz`               = '".mysql_real_escape_string(filter_var($input['blz'],FILTER_SANITIZE_STRING))."'
+            `kontoinhaber`      = '".db_escape(vs_sanitize_text(stripslashes($input['kontoinhaber'])))."',
+            `kontonummer`       = '".db_escape(vs_sanitize_text($input['kontonummer']))."',
+            `bankname`          = '".db_escape(vs_sanitize_text($input['bankname']))."',
+            `blz`               = '".db_escape(vs_sanitize_text($input['blz']))."'
             WHERE
             `mitglieder`.`mitglieder_id` = '".intval($input['mitglieder_id'])."'";
             // MySQL Code ausführen (und somit Änderungen speichern)
-            if (mysql_query($sql)){
+            if (db_query($sql)){
                 // Bei Erfolg entsprechendes als GET-Parameter übergeben
                 header("Location: member_edit.php?id=".intval($input['mitglieder_id'])."&save=success");
                 exit();
             }else{
                 // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-                $goto = 'member_edit.php?id='.intval($input['mitglieder_id'])."&save=fail&why=".mysql_errno();
+                $goto = 'member_edit.php?id='.intval($input['mitglieder_id'])."&save=fail&why=".db_errno();
                 if (count($errors) > 0){
                     // Gibt es im $errors-Array Einträge? Nur wenn ja, anhängen
                     $goto .= "&errors=".base64_encode(json_encode($errors));
@@ -515,12 +520,12 @@ if (isset($_POST['savemember'])){
         $pword = false;
         $sql =
             "UPDATE `mitglieder` SET
-            `username`            = '".mysql_real_escape_string(filter_var($_POST['usernamechange'],FILTER_SANITIZE_STRING))."',";
+            `username`            = '".db_escape(vs_sanitize_text($_POST['usernamechange']))."',";
             if ($_POST['passwortchange'] != ""){
-              $sql .= "`passwort` = '".mysql_real_escape_string(md5($_POST['passwortchange']))."',";
+              $sql .= "`passwort` = '".db_escape(password_hash((string)$_POST['passwortchange'], PASSWORD_DEFAULT))."',";
               $pword = true;
             }
-            $sql .= "`notizen`    = '".mysql_real_escape_string(filter_var(stripslashes($_POST['notizen']),FILTER_SANITIZE_STRING))."' ";
+            $sql .= "`notizen`    = '".db_escape(vs_sanitize_text(stripslashes($_POST['notizen'])))."' ";
             if ($user['rights'] >= 5 || ($user['rights'] == 4 && intval($_POST['rights']) <= 4)){
               // Nur Admins dürfen die Rechtelevel von Nutzern ändern
               // oder der Nutzer hat level 4 und vergibt auch maximal dieses Rechtelevel
@@ -534,13 +539,13 @@ if (isset($_POST['savemember'])){
             }
 
             // MySQL Code ausführen (und somit Änderungen speichern)
-            if (mysql_query($sql)){
+            if (db_query($sql)){
                 // Bei Erfolg entsprechendes als GET-Parameter übergeben
                 header("Location: member_systemedit.php?id=".intval($_POST['mitglieder_id'])."&save=success&pword=".strval($pword));
                 exit();
             }else{
                 // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-                $goto = 'member_systemedit.php?id='.intval($_POST['mitglieder_id'])."&save=fail&why=".mysql_errno();
+                $goto = 'member_systemedit.php?id='.intval($_POST['mitglieder_id'])."&save=fail&why=".db_errno();
                 if (count($errors) > 0){
                     // Gibt es im $errors-Array Einträge? Nur wenn ja, anhängen
                     $goto .= "&errors=".base64_encode(json_encode($errors));
@@ -581,18 +586,18 @@ if (isset($_POST['savemember'])){
         // Mitgliedsnummer erzeugen. Dazu zählen, wie viele Leute bereits an diesem Tag Geburtstag haben, um die fortlaufende Nummer zu erhalten (Status ist irrelevant!!!)
         $bdaytimestamp = mktime(0,0,0,intval($input['geburtstagmonth']),intval($input['geburtstagday']),intval($input['geburtstagyear']));
         $sql_mtglnr = "SELECT count(*) as count FROM `mitglieder` WHERE `geburtstag` = '".date("Y-m-d",$bdaytimestamp)."'";
-        $sql_mtglnr_data = mysql_query($sql_mtglnr);
-        $sql_mtglnr_count = mysql_fetch_assoc($sql_mtglnr_data);
+        $sql_mtglnr_data = db_query($sql_mtglnr);
+        $sql_mtglnr_count = db_fetch_assoc($sql_mtglnr_data);
         $mitgliedsnummer = date("dmy",$bdaytimestamp).str_pad(intval($sql_mtglnr_count['count'])+1, 3, "0", STR_PAD_LEFT);
 
 
         $sql =
             "INSERT INTO `mitglieder` SET
             `mitgliedsnummer`   = '$mitgliedsnummer',
-            `vorname`           = '".mysql_real_escape_string(filter_var(stripslashes($input['vorname']),FILTER_SANITIZE_STRING))."',
-            `nachname`          = '".mysql_real_escape_string(filter_var(stripslashes($input['nachname']),FILTER_SANITIZE_STRING))."',
-            `geschlecht`        = '".mysql_real_escape_string(intval($input['geschlecht']))."',
-            `geburtstag`        = '".mysql_real_escape_string(date('Y-m-d',$bdaytimestamp))."',";
+            `vorname`           = '".db_escape(vs_sanitize_text(stripslashes($input['vorname'])))."',
+            `nachname`          = '".db_escape(vs_sanitize_text(stripslashes($input['nachname'])))."',
+            `geschlecht`        = '".db_escape(intval($input['geschlecht']))."',
+            `geburtstag`        = '".db_escape(date('Y-m-d',$bdaytimestamp))."',";
             if (intval($input['parent1']) >= 0){
               $sql .= "`parent1`  = '".intval($input['parent1'])."',";
             }
@@ -604,26 +609,26 @@ if (isset($_POST['savemember'])){
               $sql .= "`anschrift`  = '".intval($input['orts_id'])."',";
             }
         $sql .= "
-            `handy`             = '".mysql_real_escape_string($input['handynummer'])."',
-            `email`             = '".mysql_real_escape_string($input['email'])."',
-            `mitgliedschaft`    = '".mysql_real_escape_string(intval($input['mitgliedschaft']))."',
-            `beitritt`          = '".mysql_real_escape_string(date('Y-m-d',mktime(0,0,0,intval($input['beitrittmonth']),intval($input['beitrittday']),intval($input['beitrittyear']))))."',
+            `handy`             = '".db_escape($input['handynummer'])."',
+            `email`             = '".db_escape($input['email'])."',
+            `mitgliedschaft`    = '".db_escape(intval($input['mitgliedschaft']))."',
+            `beitritt`          = '".db_escape(date('Y-m-d',mktime(0,0,0,intval($input['beitrittmonth']),intval($input['beitrittday']),intval($input['beitrittyear']))))."',
             `abrechnung`        = '".intval($input['abrechnung'])."',
-            `kontoinhaber`      = '".mysql_real_escape_string(filter_var($input['kontoinhaber'],FILTER_SANITIZE_STRING))."',
-            `kontonummer`       = '".mysql_real_escape_string(filter_var($input['kontonummer'],FILTER_SANITIZE_STRING))."',
-            `bankname`          = '".mysql_real_escape_string(filter_var(stripslashes($input['bankname']),FILTER_SANITIZE_STRING))."',
-            `blz`               = '".mysql_real_escape_string(filter_var($input['blz'],FILTER_SANITIZE_STRING))."',
-            `username`          = '".mysql_real_escape_string(filter_var(stripslashes($input['username']),FILTER_SANITIZE_STRING))."',
+            `kontoinhaber`      = '".db_escape(vs_sanitize_text($input['kontoinhaber']))."',
+            `kontonummer`       = '".db_escape(vs_sanitize_text($input['kontonummer']))."',
+            `bankname`          = '".db_escape(vs_sanitize_text(stripslashes($input['bankname'])))."',
+            `blz`               = '".db_escape(vs_sanitize_text($input['blz']))."',
+            `username`          = '".db_escape(vs_sanitize_text(stripslashes($input['username'])))."',
             `rights`            = '0'
             ";
             // MySQL Code ausführen (und somit Änderungen speichern)
-            if (mysql_query($sql)){
+            if (db_query($sql)){
                 // Bei Erfolg entsprechendes als GET-Parameter übergeben
-                header("Location: member_show.php?id=".intval(mysql_insert_id())."&created");
+                header("Location: member_show.php?id=".intval(db_insert_id())."&created");
                 exit();
             }else{
                 // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-                $goto = "member_add.php?created=fail&why=".mysql_errno();
+                $goto = "member_add.php?created=fail&why=".db_errno();
                 if (count($errors) > 0){
                     // Gibt es im $errors-Array Einträge? Nur wenn ja, anhängen
                     $goto .= "&errors=".base64_encode(json_encode($errors));
@@ -643,7 +648,7 @@ if (isset($_POST['savemember'])){
     $input = $_POST;
     $errors = array();
     // Daten prüfen
-    if ($user['passwort'] != md5($_POST['oldpword'])){
+    if (!vs_password_matches((string)($_POST['oldpword'] ?? ''), (string)$user['passwort'])){
       $errors[] = "Das eingegebene bisheriges Passwort ist nicht korrekt";
     }
     if ($_POST['newpword'] != $_POST['newpword2']){
@@ -652,24 +657,24 @@ if (isset($_POST['savemember'])){
     if (strlen($_POST['newpword']) < 5){
       $errors[] = "Das neue Passwort ist zu kurz";
     }
-    if (md5($_POST['newpword']) == $user['passwort']){
+    if (vs_password_matches((string)($_POST['newpword'] ?? ''), (string)$user['passwort'])){
       $errors[] = "Das neue Passwort ist identisch zum bisherigen Passwort";
     }
     if (count($errors) == 0){
         // Gab es keine Fehler, dann SQL-Befehl erstellen
         $sql = "UPDATE `mitglieder` SET
-        `passwort`  = '".mysql_real_escape_string(md5($input['newpword']))."'
+        `passwort`  = '".db_escape(password_hash((string)$input['newpword'], PASSWORD_DEFAULT))."'
         WHERE
         `mitglieder`.`mitglieder_id` = '".$user['mitglieder_id']."'
         ";
         // MySQL Code ausführen (und somit Änderungen speichern)
-         if (mysql_query($sql)){
+         if (db_query($sql)){
              // Bei Erfolg entsprechendes als GET-Parameter übergeben
              header("Location: member_changepword.php?save=success");
              exit();
          }else{
              // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-             $goto = "member_changepword.php?save=fail&why=".mysql_errno();
+             $goto = "member_changepword.php?save=fail&why=".db_errno();
              if (count($errors) > 0){
                  // Gibt es im $errors-Array Einträge? Nur wenn ja, anhängen
                  $goto .= "&errors=".base64_encode(json_encode($errors));

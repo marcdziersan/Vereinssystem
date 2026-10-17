@@ -33,10 +33,10 @@ require_once("inc/head.inc.php");
                     LEFT JOIN `mitglieder` ON `abteilungszugehoerigkeit`.`mitglied` = `mitglieder`.`mitglieder_id`
                     LEFT JOIN `abteilungen` ON `abteilungszugehoerigkeit`.`abteilung` = `abteilungen`.`abteilungs_id`
             WHERE `abteilungszugehoerigkeit`.`abteilung` = ".intval($_GET['id'])." AND `abteilungszugehoerigkeit`.`mitglied` = ".intval($_GET['who'])." AND `abteilungen`.`status` = '1' AND `mitglieder`.`status` = 1";
-            $abteilungs_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($abteilungs_result) == 1){
-                $abteilung = mysql_fetch_assoc($abteilungs_result);
+            $abteilungs_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($abteilungs_result) == 1){
+                $abteilung = db_fetch_assoc($abteilungs_result);
                 if ($abteilung['abteilungsleiter'] == $user['mitglieder_id'] || $user['rights'] >= 4){
             ?>
             		<div class="boxsystem33">
@@ -56,6 +56,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                           <form id="addform" class="formular" method="post" action="abteilung_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   <label for="mitgliedsnummer">Mitgliedsnummer</label>
                                   <input type="text" value="<?php echo htmlspecialchars($abteilung['mitgliedsnummer']);?>" name="mitgliedsnummer" id="mitgliedsnummer" title="Mitgliedsnummer" class="large" readonly="readonly" />

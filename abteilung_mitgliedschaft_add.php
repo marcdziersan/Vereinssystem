@@ -36,10 +36,10 @@ require_once("inc/head.inc.php");
  <?php
         if (isset($_GET['id'])){
             $sql = "SELECT `abteilungen`.* FROM `abteilungen` WHERE `abteilungs_id` = ".intval($_GET['id'])." AND `abteilungen`.`status` = '1' ";
-            $abteilungs_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($abteilungs_result) == 1){
-                $abteilung = mysql_fetch_assoc($abteilungs_result);
+            $abteilungs_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($abteilungs_result) == 1){
+                $abteilung = db_fetch_assoc($abteilungs_result);
                 if ($abteilung['abteilungsleiter'] == $user['mitglieder_id'] || $user['rights'] >= 4){
                 ?>
             		<div class="boxsystem33">
@@ -76,6 +76,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                           <form id="addform" class="formular" method="post" action="abteilung_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   <label for="mitgliedsnummer">Mitgliedsnummer</label>
                                   <input type="text" value="<?php
@@ -94,46 +95,46 @@ require_once("inc/head.inc.php");
                                           $mitgliedsid = $prefill['mitgliedsnamedrop'];
                                         }
                                         // Wir haben also nur eine ID. WIr lesen den Namen des Mitglieds aus, um mithilfe des Namens den Suchstring zusammenbauen zu können
-                                        $pre_mitglied = mysql_query("SELECT `vorname`,`nachname` FROM `mitglieder` WHERE `mitglieder_id` = ".intval($mitgliedsid)."");
-                                        $pre_mitglied_data = mysql_fetch_assoc($pre_mitglied);
-                                        $mitglieds_sql = "SELECT `vorname`,`nachname` FROM `mitglieder` WHERE (`nachname` LIKE '%".$pre_mitglied_data['vorname']."%' OR `vorname` LIKE '%".$pre_mitglied_data['vorname']."%') AND (`nachname` LIKE '%".$pre_mitglied_data['nachname']."%' OR `vorname` LIKE '%".$pre_mitglied_data['nachname']."%')";
+                                        $pre_mitglied = db_query("SELECT `vorname`,`nachname` FROM `mitglieder` WHERE `mitglieder_id` = ".intval($mitgliedsid)."");
+                                        $pre_mitglied_data = db_fetch_assoc($pre_mitglied);
+                                        $mitglieds_sql = "SELECT `vorname`,`nachname` FROM `mitglieder` WHERE (`nachname` LIKE '%".db_escape($pre_mitglied_data['vorname'])."%' OR `vorname` LIKE '%".db_escape($pre_mitglied_data['vorname'])."%') AND (`nachname` LIKE '%".db_escape($pre_mitglied_data['nachname'])."%' OR `vorname` LIKE '%".db_escape($pre_mitglied_data['nachname'])."%')";
                                     }elseif(isset($prefill['mitgliedsname']) && is_string($prefill['mitgliedsname'])){
                                         // Das Prefill übergibt den Namen des Abteilungsleiters, diesen an Leerzeichen trennen und alle Personen suchen, die übereinstimmungen im Vor- und/oder Nachnamen haben
                                         $namensteile = explode(" ",$prefill['mitgliedsname']);
                                         $suchteile = array(); // Suchteile Array erstellen, welches alle Suchkriterien (Textteile des Namens) enthält
                                         foreach ($namensteile as &$suchteil) {
-                                          $suchteile[] = "(`nachname` LIKE '%".$suchteil."%' OR `vorname` LIKE '%".$suchteil."%')";
+                                          $suchteile[] = "(`nachname` LIKE '%".db_escape($suchteil)."%' OR `vorname` LIKE '%".db_escape($suchteil)."%')";
                                         }
                                         $suchteile[] = "`status` = 1"; // Nur aktive Mitglieder verwenden
                                         $mitglieds_sql = "SELECT `vorname`,`nachname` FROM `mitglieder` WHERE ".implode(" AND ",$suchteile);
                                     }
                                     // Ruft den Namen der Mitgliedsname und die Anzahl ab, wie oft diese Nameskombination vorkommt
 
-                                    $mitglied_count = mysql_query($mitglieds_sql);
-                                    if (mysql_num_rows($mitglied_count) == 0){
+                                    $mitglied_count = db_query($mitglieds_sql);
+                                    if (db_num_rows($mitglied_count) == 0){
                                         // Es gibt genau keinen Nutzer mit dem Namen = Textbox leer anzeigen
-                                        $mitglieds_data = mysql_fetch_assoc($mitglied_count);
+                                        $mitglieds_data = db_fetch_assoc($mitglied_count);
                                         echo "<input type=\"text\" value=\"\" name=\"mitgliedsname\" id=\"mitgliedsname\" title=\"Mitgliedsname\" class=\"large\" />";
-                                    }elseif (mysql_num_rows($mitglied_count) == 1){
+                                    }elseif (db_num_rows($mitglied_count) == 1){
                                         // Es gibt genau einen Nutzer mit dem Namen = Textbox mit dem anzeigen
-                                        $mitglieds_data = mysql_fetch_assoc($mitglied_count);
+                                        $mitglieds_data = db_fetch_assoc($mitglied_count);
                                         echo "<input type=\"text\" value=\"".htmlspecialchars($mitglieds_data['vorname']." ".$mitglieds_data['nachname'])."\" name=\"mitgliedsname\" id=\"mitgliedsname\" title=\"Mitgliedsname\" class=\"large\" />";
                                     }else{
                                         // Es gibt mehrere Nutzer mit identischem Namen = Selectbox mit weiteren Informationen zu diesen Nutzern anzeigen
                                         // Um eventuelle gleiche Kombinationen von Vorname-Nachname nicht mehrfach zu durchlaufen, gruppieren wir unsere Anfrage
-                                        $moegl_mitglieder = mysql_query($mitglieds_sql." GROUP BY `vorname`,`nachname`");
+                                        $moegl_mitglieder = db_query($mitglieds_sql." GROUP BY `vorname`,`nachname`");
                                         // Alle möglichen Nutzer auslesen
                                         echo "<select name=\"mitgliedsnamedrop\" size=\"1\" id=\"mitgliedsnamedrop\" class=\"xlarge\">";
-                                        while ($moegl_mitglied = mysql_fetch_row($moegl_mitglieder)){
+                                        while ($moegl_mitglied = db_fetch_row($moegl_mitglieder)){
                                           // Alle Möglichen Kombinationen von Vor- und Nachnamen, die mit der Eingabe übereinstimmen, durchlaufen
-                                          $mitglieder_mit_diesem_namen = mysql_query("SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `orte`.`orts_id` = `mitglieder`.`anschrift` WHERE `vorname` = '".$moegl_mitglied['0']."' AND `nachname` = '".$moegl_mitglied['1']."' AND `mitglieder`.`status` = 1");
-                                          while ($mitglied = mysql_fetch_assoc($mitglieder_mit_diesem_namen)){
+                                          $mitglieder_mit_diesem_namen = db_query("SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `orte`.`orts_id` = `mitglieder`.`anschrift` WHERE `vorname` = '".$moegl_mitglied['0']."' AND `nachname` = '".$moegl_mitglied['1']."' AND `mitglieder`.`status` = 1");
+                                          while ($mitglied = db_fetch_assoc($mitglieder_mit_diesem_namen)){
                                               echo "<option value=\"".$mitglied['mitglieder_id']."\"";
                                               if ((isset($prefill['mitgliedsnamedrop']) && intval($prefill['mitgliedsnamedrop']) == $mitglied['mitglieder_id'])){
                                                 // Ist der aktuelle Schleifendurchlauf der bisherige Mitgliedsname, diesen Eintrag vorselektieren
                                                 echo " selected=\"selected\" ";
                                               }
-                                              echo ">".htmlspecialchars($mitglied['vorname']." ".$mitglied['nachname'])." (".strftime("%d. %B %Y",strtotime($mitglied['geburtstag'])).", ".$mitglied['plz']." ".$mitglied['ort'].")</option>\n";
+                                              echo ">".htmlspecialchars($mitglied['vorname']." ".$mitglied['nachname'])." (".vs_strftime("%d. %B %Y",strtotime($mitglied['geburtstag'])).", ".$mitglied['plz']." ".$mitglied['ort'].")</option>\n";
                                           }
                                         }
                                         echo "<option value=\"new\">Andere Person</option>

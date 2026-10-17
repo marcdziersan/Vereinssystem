@@ -15,9 +15,9 @@ require_once("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `mitglieder_id` = ".intval($_GET['id'])." AND `mitglieder`.`status` = '1' ";
-            $member_result = mysql_query($sql);
-            if (mysql_num_rows($member_result) == 1){
-                $member = mysql_fetch_assoc($member_result);
+            $member_result = db_query($sql);
+            if (db_num_rows($member_result) == 1){
+                $member = db_fetch_assoc($member_result);
                 // Ansehen können Eltern das Profil ihrer Kinder auch nach deren 18. Lebensjahr noch
                 if ($member['parent2'] == $user['mitglieder_id']){
                     $isfather = true;
@@ -31,8 +31,8 @@ require_once("inc/head.inc.php");
                 }
                 // Ist das Mitglied vll. irgendwo Abteilungsleiter? (Dann soll auch das Profil eingeschränkt betrachtet werden können)
                 $test_sql_abteilungsleiter = "SELECT `abteilungs_id` FROM `abteilungen` WHERE `abteilungsleiter` = '".$member['mitglieder_id']."'";
-                $test_abteilungsleiter = mysql_query($test_sql_abteilungsleiter);
-                $abteilungsleiter = mysql_num_rows($test_abteilungsleiter);
+                $test_abteilungsleiter = db_query($test_sql_abteilungsleiter);
+                $abteilungsleiter = db_num_rows($test_abteilungsleiter);
                 if ($user['rights'] >= 4 || $member['mitglieder_id'] == $user['mitglieder_id'] || $isfather || $ismother || $abteilungsleiter > 0){
                   // Kann das aktuelle Profil nur angesehen werden, da das Mitglied Abteilungsleiter ist?
                   if ($user['rights'] < 4 && $member['mitglieder_id'] != $user['mitglieder_id'] && !$isfather && !$ismother && $abteilungsleiter > 0){
@@ -86,7 +86,7 @@ require_once("inc/head.inc.php");
                                 </tr>
                                 <tr>
                                     <td class="firstcolumn">Geburtstag</td>
-                                    <td><?php echo strftime("%d. %B %Y",strtotime($member['geburtstag']));
+                                    <td><?php echo vs_strftime("%d. %B %Y",strtotime($member['geburtstag']));
                                     echo " (".floor((time()-strtotime($member['geburtstag']))/31556926)." Jahre)";?></td>
                                 </tr>
                                 <tr>
@@ -94,11 +94,11 @@ require_once("inc/head.inc.php");
                                     <td>
                                     <?php
                                     $sql = "SELECT `mitglieder_id`,`vorname`,`nachname`,`geschlecht` FROM `mitglieder` WHERE `mitglieder_id` = '".$member['parent1']."' OR `mitglieder_id` = '".$member['parent2']."' OR `parent1` = '".$member['mitglieder_id']."' OR `parent2` = '".$member['mitglieder_id']."' ORDER BY `geburtstag`";
-                                    $relations = mysql_query($sql);
-                                    if (mysql_num_rows($relations) == 0){
+                                    $relations = db_query($sql);
+                                    if (db_num_rows($relations) == 0){
                                       echo "<i>Keine Beziehungen vorhanden</i>";
                                     }else{
-                                      while ($relation = mysql_fetch_assoc($relations)){
+                                      while ($relation = db_fetch_assoc($relations)){
                                         switch ($relation['mitglieder_id']) {
                                           case $member['parent1']:
                                             echo "Mutter: <a href=\"member_show.php?id=".$relation['mitglieder_id']."\" title=\"Mitgliedsprofil anzeigen\">".$relation['vorname']." ".$relation['nachname']."</a><br />";
@@ -189,7 +189,7 @@ require_once("inc/head.inc.php");
                                 </tr>
                                 <tr>
                                     <td class="firstcolumn">Beitrittsdatum</td>
-                                    <td><?php echo strftime("%d. %B %Y",strtotime($member['beitritt']));?></td>
+                                    <td><?php echo vs_strftime("%d. %B %Y",strtotime($member['beitritt']));?></td>
                                 </tr>
                                 <tr>
                                     <td class="firstcolumn">Mitgliedsnummer</td>
@@ -200,10 +200,10 @@ require_once("inc/head.inc.php");
                                     <td><?php
                                     // Ist das Mitglied ein Abteilungsleiter?
                                     $sql = "SELECT * FROM `abteilungen` WHERE `abteilungsleiter` = ".intval($member['mitglieder_id'])." AND `abteilungen`.`status` = 1";
-                                    $zugehoerigkeiten = mysql_query($sql);
-                                    $leitungen = mysql_num_rows($zugehoerigkeiten);
+                                    $zugehoerigkeiten = db_query($sql);
+                                    $leitungen = db_num_rows($zugehoerigkeiten);
                                     if ($leitungen > 0){
-                                      while ($zugehoerigkeit = mysql_fetch_assoc($zugehoerigkeiten)){
+                                      while ($zugehoerigkeit = db_fetch_assoc($zugehoerigkeiten)){
                                         echo "Abteilungsleiter";
                                         if ($member['geschlecht'] == 2){
                                           // Weiblichkeitsform
@@ -214,9 +214,9 @@ require_once("inc/head.inc.php");
                                     }
                                     // In welchen Abteilungen ist das Mitglied normales Mitglied
                                     $sql = "SELECT * FROM `abteilungszugehoerigkeit` LEFT JOIN `abteilungen` ON `abteilungszugehoerigkeit`.`abteilung` = `abteilungen`.`abteilungs_id` WHERE `mitglied` = ".intval($member['mitglieder_id'])." AND `abteilungen`.`status` = 1";
-                                    $zugehoerigkeiten = mysql_query($sql);
-                                    if (mysql_num_rows($zugehoerigkeiten) > 0){
-                                      while ($zugehoerigkeit = mysql_fetch_assoc($zugehoerigkeiten)){
+                                    $zugehoerigkeiten = db_query($sql);
+                                    if (db_num_rows($zugehoerigkeiten) > 0){
+                                      while ($zugehoerigkeit = db_fetch_assoc($zugehoerigkeiten)){
                                         echo "<a href=\"abteilung_show.php?id=".intval($zugehoerigkeit['abteilungs_id'])."\" title=\"Abteilung anzeigen\">".$zugehoerigkeit['name']."</a> (";
                                         if (($user['rights'] == 3 && $zugehoerigkeit['abteilungsleiter'] == $user['mitglieder_id']) || $user['rights'] >= 4){
                                           // Link nur anzeigen, wenn die Seite dahinter auch rechtemäßig angeshcaut werden darf (also Entweder man ist Abteilungsleiter mit Rechtelevel 3 oder hat Rechtelevel 4 oder höher)
@@ -249,8 +249,8 @@ require_once("inc/head.inc.php");
                                     LEFT JOIN `dienste` ON `dienste`.`person` = `mitglieder`.`mitglieder_id`
                                     WHERE `status` = 1 AND `startzeit` > ".mktime(0,0,0,1,1,date("Y"))." AND `startzeit` < ".mktime(23,59,59,12,31,date("Y"))." AND `mitglieder_id` = '".$member['mitglieder_id']."'
                                     GROUP BY `mitglieder_id`";
-                                  $dienste_result = mysql_query($sql_dienste);
-                                  $dienst_daten = mysql_fetch_assoc($dienste_result);
+                                  $dienste_result = db_query($sql_dienste);
+                                  $dienst_daten = db_fetch_assoc($dienste_result);
                                   $geleisteter_dienst = intval($dienst_daten['standdienste']);
                                   if ($dienst_daten['kuchenzahl'] > 0){
                                     // Um Probleme mit der MySQL Rückgabe NULL zu vermeiden
@@ -340,8 +340,8 @@ require_once("inc/head.inc.php");
                                   $sql = "SELECT `aktivenumlage`,`name`,`abteilungs_id` FROM `abteilungszugehoerigkeit`
                                           LEFT JOIN `abteilungen` ON `abteilungszugehoerigkeit`.`abteilung` = `abteilungen`.`abteilungs_id`
                                           WHERE `mitglied` = '".$member['mitglieder_id']."' AND `aktiv` = 1";
-                                  $result = mysql_query($sql);
-                                  if (mysql_num_rows($result) == 0){
+                                  $result = db_query($sql);
+                                  if (db_num_rows($result) == 0){
                                     // Mitglied ist in keiner Abteilung
                                     echo "<tr>
                                       <td class=\"firstcolumn\">Aktivenumlagen</td>
@@ -349,7 +349,7 @@ require_once("inc/head.inc.php");
                                     </tr>";
                                   }else{
                                     $abteilungen_gesamt = 0;
-                                    while ($eintrag = mysql_fetch_assoc($result)){
+                                    while ($eintrag = db_fetch_assoc($result)){
                                       $abteilungen_gesamt += $eintrag['aktivenumlage'];
                                       echo "<tr>
                                         <td class=\"firstcolumn\">Aktivenumlage <a href=\"abteilung_show.php?id=".$eintrag['abteilungs_id']."\" title=\"Abeilung anzeigen\">".$eintrag['name']."</a></td>
@@ -423,7 +423,7 @@ require_once("inc/head.inc.php");
                                         if ($member['currentlogintime'] == 0){
                                           echo "<i>Noch kein Login bisher</i>";
                                         }else{
-                                          echo strftime("%A, %d. %B %Y, %H:%M",$member['currentlogintime'])." Uhr";
+                                          echo vs_strftime("%A, %d. %B %Y, %H:%M",$member['currentlogintime'])." Uhr";
                                         }
                                             ?>
                                         </td>

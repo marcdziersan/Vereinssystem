@@ -58,6 +58,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                       <form id="addform" class="formular" method="post" action="ort_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                           <p id="namep"<?php
                               if ((isset($prefill['typ']) && $prefill['typ'] == 1) || !isset($prefill['typ'])){
                                 echo " class=\"nodisplay\"";

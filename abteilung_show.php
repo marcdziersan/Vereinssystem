@@ -18,10 +18,10 @@ require_once("inc/head.inc.php");
             $sql = "SELECT `abteilungen`.*, `mitglieder`.`vorname`, `mitglieder`.`nachname` FROM `abteilungen`
                         LEFT JOIN `mitglieder` ON `abteilungen`.`abteilungsleiter` = `mitglieder`.`mitglieder_id`
                         WHERE `abteilungs_id` = ".intval($_GET['id'])." AND `abteilungen`.`status` = '1' ";
-            $abteilungs_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($abteilungs_result) == 1){
-                $abteilung = mysql_fetch_assoc($abteilungs_result);
+            $abteilungs_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($abteilungs_result) == 1){
+                $abteilung = db_fetch_assoc($abteilungs_result);
                 ?>
             		<div class="boxsystem33">
             		  <div class="leftbox">
@@ -80,11 +80,11 @@ require_once("inc/head.inc.php");
                                 <td class="firstcolumn">Mitglieder</td>
                                 <td>
                                 <?php
-                                $sql_mitglieder = mysql_query("SELECT
+                                $sql_mitglieder = db_query("SELECT
                                     (SELECT COUNT(1) FROM `abteilungszugehoerigkeit` WHERE `aktiv` = 1 AND `abteilung` = ".intval($abteilung['abteilungs_id']).") AS aktive,
                                     (SELECT COUNT(1) FROM `abteilungszugehoerigkeit` WHERE `aktiv` = 0 AND`abteilung` = ".intval($abteilung['abteilungs_id']).") AS passive");
-                                mysql_error();
-                                $sql_mitglieder_data = mysql_fetch_assoc($sql_mitglieder);
+                                db_error();
+                                $sql_mitglieder_data = db_fetch_assoc($sql_mitglieder);
                                 echo "Aktive Mitglieder: ".intval($sql_mitglieder_data['aktive'])."<br />
                                      Passive Mitglieder: ".intval($sql_mitglieder_data['passive'])."<br />
                                      Mitglieder gesamt: ".(intval($sql_mitglieder_data['aktive'])+intval($sql_mitglieder_data['passive']))."<br />";

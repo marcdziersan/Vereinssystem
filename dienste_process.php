@@ -6,39 +6,43 @@ require_once ("inc/connect.inc.php");
 //echo "stop";
 // Login-Status-Pr�fung einbinden
 require_once ("inc/checkuser.inc.php");
-if (isset($_GET['action']) and isset($_GET['event'])) {
+if (isset($_POST['action']) and isset($_POST['event'])) {
 	//Error Counter auf False setzen
 	$errors = FALSE;
 	//Betroffene Veranstaltung aus der DB abrufen
-	$sql_veranstaltung = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = " . intval($_GET['event']);
-	$veranstaltung_result = mysql_query($sql_veranstaltung);
+	$sql_veranstaltung = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = " . intval($_POST['event']);
+	$veranstaltung_result = db_query($sql_veranstaltung);
 	//Nur fortfahren wenn es genau ein Ergebniss gibt
-	if (mysql_num_rows($veranstaltung_result) == 1) {
+	if (db_num_rows($veranstaltung_result) == 1) {
 
-		$veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+		$veranstaltung = db_fetch_assoc($veranstaltung_result);
 		//Soll eine Veranstaltung erstellt oder gelöscht werden?
-		if ($_GET['action'] == "add") {
+		if ($_POST['action'] == "add") {
+            $person = (int)$user['mitglieder_id']; // auch ohne explizite Person-Auswahl
+            if (isset($_POST['kuchen']) && (!ctype_digit((string)$_POST['kuchen']) || (int)$_POST['kuchen'] > 100)) {
+                header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event'])); exit();
+            }
 			
-											if(isset($_GET['person']) and $_GET['person'] == "other"){
-												if(empty($_GET['ansprechpartner_id'])){
+											if(isset($_POST['person']) and $_POST['person'] == "other"){
+												if(empty($_POST['ansprechpartner_id'])){
 												//Variable die angibt ob es mehrere Personen desselben Namens gibt
 												$more_persons = FALSE;
 
 										
 													//Textfelder für Ansprechpartner sind ausgefüllt
-													if (!empty($_GET['vorname']) and !empty($_GET['nachname'])) {
+													if (!empty($_POST['vorname']) and !empty($_POST['nachname'])) {
 														//Test ob Ansprechpartner in der DB vorhanden
 										
-														$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . mysql_real_escape_string(filter_var($_GET['vorname'], FILTER_SANITIZE_STRING)) . "' AND `nachname` = '" . mysql_real_escape_string(filter_var($_GET['nachname'], FILTER_SANITIZE_STRING)) . "'";
-															$test_person_result = mysql_query($sql_test_person);
+														$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . db_escape(vs_sanitize_text($_POST['vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($_POST['nachname'])) . "'";
+															$test_person_result = db_query($sql_test_person);
 															
-															$personen = mysql_fetch_assoc($test_person_result);
+															$personen = db_fetch_assoc($test_person_result);
 											
-															//echo mysql_error();
+															//echo db_error();
 															//Wenn es nur eine Person mit diesem Namen gibt oder diese Person bereits in der DB steht
-															if (mysql_num_rows($test_person_result) == 1) {
+															if (db_num_rows($test_person_result) == 1) {
 																$person = $personen['mitglieder_id'];
-															} elseif (mysql_num_rows($test_person_result) > 1) {
+															} elseif (db_num_rows($test_person_result) > 1) {
 																//Wenn es mehrere Personen gibt muss dies im nächsten Schritt ausgewählt werden
 																$more_persons = TRUE;
 																$errors[] = "Es wurden mehrere Personen mit diesem Namen gefunden, bitte w&auml;hlen sie die richtige aus!";
@@ -50,22 +54,22 @@ if (isset($_GET['action']) and isset($_GET['event'])) {
 														}
 											
 													if ($more_persons == TRUE) {
-														$data = $_GET;
+														$data = $_POST;
 														$data = array_merge($data, array("more_persons" => "true"));
 													}
-													if(isset($_GET['kuchen'])){
+													if(isset($_POST['kuchen'])){
 														$get = "";
 													}else{
 														
 													}
 													if($errors != FALSE){
-														header('Location: dienste_add.php?action=fail&event=' . intval($_GET['event']) . '&data=' . base64_encode(json_encode($data)) . '&errors=' . base64_encode(json_encode($errors)));
+														header('Location: dienste_add.php?action=fail&event=' . intval($_POST['event']) . '&data=' . base64_encode(json_encode($data)) . '&errors=' . base64_encode(json_encode($errors)));
 														exit();		
 													}
 												  }else{
-												  	$person = $_GET['ansprechpartner_id'];
+												  	$person = $_POST['ansprechpartner_id'];
 												  }
-												}elseif(isset($_GET['person']) and $_GET['person'] == "self"){
+												}elseif(isset($_POST['person']) and $_POST['person'] == "self"){
 													$person = $user['mitglieder_id'];
 												}
 
@@ -81,13 +85,13 @@ if (isset($_GET['action']) and isset($_GET['event'])) {
 				$admin = FALSE;
 			}
 			//Geht es um Kuchen
-			if (isset($_GET['kuchen'])) {
-				$sql_dienste = "SELECT * FROM `dienste` WHERE `dienstart` > 0 AND `event` = " . intval($_GET['event']);
-				$dienste_result = mysql_query($sql_dienste);
+			if (isset($_POST['kuchen'])) {
+				$sql_dienste = "SELECT * FROM `dienste` WHERE `dienstart` > 0 AND `event` = " . intval($_POST['event']);
+				$dienste_result = db_query($sql_dienste);
 
 				$belegt = FALSE;
 				//Überprüfen ob es bereits einen Kuchendienst für diese Person gibt
-				while ($dienst = mysql_fetch_assoc($dienste_result)) {
+				while ($dienst = db_fetch_assoc($dienste_result)) {
 					if ($dienst['person'] == $person) {
 						$belegt = $dienst['dienst_id'];
 						break;
@@ -95,104 +99,108 @@ if (isset($_GET['action']) and isset($_GET['event'])) {
 				}
 				if (($veranstaltung['startzeit'] - time()) > 259200 or $admin == TRUE) {
 					//Wurde die Kuchenanzahl auf 0 gesetzt?
-					if ($_GET['kuchen'] != 0) {
+					if ($_POST['kuchen'] != 0) {
 						if (!$belegt) {
 							//neuen Dienst erzeugen
 							$sql = "INSERT INTO `dienste` SET
-		        	 				`event` = '" . mysql_real_escape_string(filter_var($_GET['event'], FILTER_SANITIZE_STRING)) . "',
-		        	 				`dienstart` = '" . mysql_real_escape_string(filter_var($_GET['kuchen'], FILTER_SANITIZE_STRING)) . "',
-		        	 				`startzeit` = '" . mysql_real_escape_string(filter_var($veranstaltung['startzeit'], FILTER_SANITIZE_STRING)) . "',
+		        	 				`event` = '" . db_escape(vs_sanitize_text($_POST['event'])) . "',
+		        	 				`dienstart` = '" . db_escape(vs_sanitize_text($_POST['kuchen'])) . "',
+		        	 				`startzeit` = '" . db_escape(vs_sanitize_text($veranstaltung['startzeit'])) . "',
 		        	 				`person` = '" . $person . "'";
-						} elseif ($belegt != $_GET['kuchen']) {
+						} elseif ($belegt != $_POST['kuchen']) {
 							//Bereits bestehenden Dienst updaten
 							$sql = "UPDATE `dienste` SET
-		        	 				`dienstart` = '" . mysql_real_escape_string(filter_var($_GET['kuchen'], FILTER_SANITIZE_STRING)) . "'
+		        	 				`dienstart` = '" . db_escape(vs_sanitize_text($_POST['kuchen'])) . "'
 		        	 			     WHERE `dienst_id` = '" . intval($belegt) . "'";
 						}
-						if (isset($sql) and mysql_query($sql)) {
+						if (isset($sql) and db_query($sql)) {
 							// Bei Erfolg entsprechendes als GET-Parameter übergeben
-							header('Location: dienste_show.php?action=success&id=' . intval($_GET['event']));
+							header('Location: dienste_show.php?action=success&id=' . intval($_POST['event']));
 							exit();
 						} else {
 							// Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-							header('Location: dienste_show.php?action=fail&id=' . intval($_GET['event']));
+							header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event']));
 							exit();
 						}
 					} else {
 						//Wenn es 0 Kuchen geben soll, wird der entweder der vorhandene Dienst gelöscht oder gar keiner angelegt
 						if (!$belegt) {
 							//An Dienstseite ohne Aktion leiten
-							header('Location: dienste_show.php?id=' . intval($_GET['event']));
+							header('Location: dienste_show.php?id=' . intval($_POST['event']));
 							exit();
 						} else {
 							//An diese Seite leiten mit Löschparameter
-							header('Location: dienste_process.php?action=remove&dienst_id=' . intval($belegt) . '&event=' . intval($_GET['event']));
-							exit();
+							$permission = ($admin === TRUE) ? '' : ' AND `person` = '.intval($user['mitglieder_id']);
+                            db_query('DELETE FROM `dienste` WHERE `dienst_id` = '.intval($belegt).' AND `event` = '.intval($_POST['event']).$permission);
+                            header('Location: dienste_show.php?action=success&id='.intval($_POST['event']));
+                            exit();
 						}
 					}
 				} else {
-					header('Location: dienste_show.php?action=fail&id=' . intval($_GET['event']));
+					header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event']));
 					exit();
 				}
 			} else {
-				$sql_dienste = "SELECT * FROM `dienste` WHERE `event` = " . intval($_GET['event']);
-				$dienste_result = mysql_query($sql_dienste);
+				$sql_dienste = "SELECT * FROM `dienste` WHERE `event` = " . intval($_POST['event']);
+				$dienste_result = db_query($sql_dienste);
 
 				$belegt = FALSE;
-				while ($dienst = mysql_fetch_assoc($dienste_result)) {
-					if ($dienst['startzeit'] <= $_GET['anfang'] and $dienst['endzeit'] >= $_GET['ende'] and $dienst['person'] == $person and $dienst['dienstart'] == 0) {
+				while ($dienst = db_fetch_assoc($dienste_result)) {
+					if ($dienst['startzeit'] <= $_POST['anfang'] and $dienst['endzeit'] >= $_POST['ende'] and $dienst['person'] == $person and $dienst['dienstart'] == 0) {
 						$belegt = TRUE;
 						break;
 					}
 				}
 				//Dienstzeit muss innerhalb der Veranstaltung sein und nicht länger als 45 Minuten
-				if ((!$belegt and isset($_GET['stand']) and isset($_GET['anfang']) and isset($_GET['ende']) and $_GET['anfang'] < $_GET['ende'] and $_GET['anfang'] >= ($veranstaltung['startzeit'] - 30 * 60) and $_GET['ende'] <= ($veranstaltung['endzeit'] + 30 * 60) and ($_GET['ende'] - $_GET['anfang']) <= (45 * 60)) and (($veranstaltung['startzeit'] - time()) > 259200 or $admin == TRUE)) {
+				if ((!$belegt and isset($_POST['stand']) and isset($_POST['anfang']) and isset($_POST['ende']) and $_POST['anfang'] < $_POST['ende'] and $_POST['anfang'] >= ($veranstaltung['startzeit'] - 30 * 60) and $_POST['ende'] <= ($veranstaltung['endzeit'] + 30 * 60) and ($_POST['ende'] - $_POST['anfang']) <= (45 * 60)) and (($veranstaltung['startzeit'] - time()) > 259200 or $admin == TRUE)) {
 
 					$sql = "INSERT INTO `dienste` SET
-	        	 				`event` = '" . mysql_real_escape_string(filter_var($_GET['event'], FILTER_SANITIZE_STRING)) . "',
-	        	 				`startzeit` = '" . mysql_real_escape_string(filter_var($_GET['anfang'], FILTER_SANITIZE_STRING)) . "',
-	        	 				`endzeit` = '" . mysql_real_escape_string(filter_var($_GET['ende'], FILTER_SANITIZE_STRING)) . "',
-	        	 				`stand` = '" . mysql_real_escape_string(filter_var($_GET['stand'], FILTER_SANITIZE_STRING)) . "',
+	        	 				`event` = '" . db_escape(vs_sanitize_text($_POST['event'])) . "',
+	        	 				`startzeit` = '" . db_escape(vs_sanitize_text($_POST['anfang'])) . "',
+	        	 				`endzeit` = '" . db_escape(vs_sanitize_text($_POST['ende'])) . "',
+	        	 				`stand` = '" . db_escape(vs_sanitize_text($_POST['stand'])) . "',
 	        	 				`dienstart` = '0',
 	        	 				`person` = '" . $person . "'";
-					if (mysql_query($sql)) {
+					if (db_query($sql)) {
 						// Bei Erfolg entsprechendes als GET-Parameter übergeben
-						header('Location: dienste_show.php?action=success&id=' . intval($_GET['event']));
+						header('Location: dienste_show.php?action=success&id=' . intval($_POST['event']));
 						exit();
 					} else {
 						// Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-						header('Location: dienste_show.php?action=fail&id=' . intval($_GET['event']) . '&why=' . mysql_errno());
+						header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event']) . '&why=' . db_errno());
 						exit();
 					}
 
 				} else {
-					header('Location: dienste_show.php?action=fail&id=' . intval($_GET['event']));
+					header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event']));
 					exit();
 				}
 			}
 
-		} elseif ($_GET['action'] == "remove" and ($user['rights'] > 3 or ($user['rights'] <= 3 and ($veranstaltung['startzeit'] - time()) > 259200) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner'])) {
-			if (isset($_GET['dienst_id'])) {
-				$sql_dienste = "SELECT * FROM `dienste` WHERE `dienst_id` = " . intval($_GET['dienst_id']);
-				$dienste_result = mysql_query($sql_dienste);
-				$dienst = mysql_fetch_assoc($dienste_result);
+		} elseif ($_POST['action'] == "remove" and ($user['rights'] > 3 or ($user['rights'] <= 3 and ($veranstaltung['startzeit'] - time()) > 259200) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner'])) {
+			if (isset($_POST['dienst_id'])) {
+				$sql_dienste = "SELECT * FROM `dienste` WHERE `dienst_id` = " . intval($_POST['dienst_id']);
+				$dienste_result = db_query($sql_dienste);
+				$dienst = db_fetch_assoc($dienste_result);
 				
-					$sql = "DELETE FROM `dienste`
-					    WHERE
-					   `dienste`.`dienst_id` = '" . intval($_GET['dienst_id']) . "'";
-					if (mysql_query($sql)) {
+					// Ohne Verwaltungsrechte nur eigene Dienste löschen.
+                    if ((int)$user['rights'] < 4 && (int)$user['mitglieder_id'] !== (int)$veranstaltung['ansprechpartner'] && (int)($dienst['person'] ?? 0) !== (int)$user['mitglieder_id']) {
+                        http_response_code(403); exit('Keine Berechtigung.');
+                    }
+                    $sql = "DELETE FROM `dienste` WHERE `dienst_id` = '" . intval($_POST['dienst_id']) . "' AND `event` = '" . intval($_POST['event']) . "'";
+					if (db_query($sql)) {
 						// Bei Erfolg entsprechendes als GET-Parameter übergeben
-						header('Location: dienste_show.php?action=success&id=' . intval($_GET['event']));
+						header('Location: dienste_show.php?action=success&id=' . intval($_POST['event']));
 						exit();
 					} else {
 						// Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-						header('Location: dienste_show.php?action=fail&id=' . intval($_GET['event']) . '&why=' . mysql_errno());
+						header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event']) . '&why=' . db_errno());
 						exit();
 					}
 
 			}
 		} else {
-			header('Location: dienste_show.php?action=fail&id=' . intval($_GET['event']));
+			header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event']));
 			exit();
 		}
 	} else {

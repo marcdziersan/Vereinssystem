@@ -27,11 +27,11 @@ function verify_ortsdaten($input){
   }elseif($input['ort_ort'] == ""){
     // PLZ ist gültig und Ortsname ist nicht vorhanden
     // Versuchen, falls kein Ortsname angegeben ist, anhand der bekannten Orte den Ortsnamen mittels PLZ herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".mysql_real_escape_string($input['ort_plz'])."' GROUP BY `ort`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `plz` = '".db_escape($input['ort_plz'])."' GROUP BY `ort`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur einen Ortsnamen, der zu dieser PLZ gefunden wurde (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['ort_ort'] = $sql_test_data['ort'];
     }
   }
@@ -41,11 +41,11 @@ function verify_ortsdaten($input){
   }elseif($input['ort_plz'] == ""){
     // Ortsname ist gültig und PLZ ist nicht vorhanden
     // Versuchen, falls kein PLZ angegeben ist, anhand der bekannten Orte die PLZ mittels Ortsnamen herauszufinden
-    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".mysql_real_escape_string($input['ort_ort'])."' GROUP BY `plz`";
-    $sql_result = mysql_query($sql_test);
-    if (mysql_num_rows($sql_result) == 1){
+    $sql_test = "SELECT `plz`,`ort` FROM `orte` WHERE `ort` = '".db_escape($input['ort_ort'])."' GROUP BY `plz`";
+    $sql_result = db_query($sql_test);
+    if (db_num_rows($sql_result) == 1){
       // Es gibt nur eine PLZ zu diesem Ortsnamen (bei mehreren wird nichts übernommen, da es evtl. falsch sein könnte)
-      $sql_test_data = mysql_fetch_assoc($sql_result);
+      $sql_test_data = db_fetch_assoc($sql_result);
       $input['ort_plz'] = $sql_test_data['plz'];
       // Da die fehlende PLZ eine Fehlermeldung erzeugt hat und dieses Problem nun gelöst wurde, muss die Fehlermeldung wieder aus dem $errors-Array entfernt werden
       // (Entfernt den letzten Eintrag des Arrays)
@@ -76,12 +76,12 @@ if (isset($input['saveevent'])) {
 	//Per Post übergebene Veranstaltung aus Datenbank abrufen
 	$sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = " . intval($input['veranstaltungs_id']);
 
-	$veranstaltung_result = mysql_query($sql);
+	$veranstaltung_result = db_query($sql);
 
-	//echo mysql_error();
+	//echo db_error();
 	//Nur fortfahren wenn es genau ein Ergebniss gibt
-	if (mysql_num_rows($veranstaltung_result) == 1) {
-		$veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+	if (db_num_rows($veranstaltung_result) == 1) {
+		$veranstaltung = db_fetch_assoc($veranstaltung_result);
 		
 		//Dienstbeschreibung muss auf Form überprüft werden
 		 $dienstbeschreibung = explode("\n",$input['dienstbeschreibung']);
@@ -103,18 +103,18 @@ if (isset($input['saveevent'])) {
 		//Veranstaltungsname muss ausgefüllt sein
 		if (!empty($input['veranstaltungsname'])) {
 			$sql = "UPDATE `veranstaltungen` SET
-        	 `veranstaltungsname` = '" . mysql_real_escape_string(filter_var($input['veranstaltungsname'], FILTER_SANITIZE_STRING)) . "',
-        	 `beschreibung` = '" . mysql_real_escape_string(filter_var($input['beschreibung'], FILTER_SANITIZE_STRING)) . "',
-        	 `mindienste` = '" . mysql_real_escape_string(filter_var($input['mindienste'], FILTER_SANITIZE_STRING)) . "',
-        	 `dienstbeschreibung` = '" . mysql_real_escape_string(filter_var($dienstbeschreibung, FILTER_SANITIZE_STRING)) . "',";
+        	 `veranstaltungsname` = '" . db_escape(vs_sanitize_text($input['veranstaltungsname'])) . "',
+        	 `beschreibung` = '" . db_escape(vs_sanitize_text($input['beschreibung'])) . "',
+        	 `mindienste` = '" . db_escape(vs_sanitize_text($input['mindienste'])) . "',
+        	 `dienstbeschreibung` = '" . db_escape(vs_sanitize_text($dienstbeschreibung)) . "',";
 		} else {
 			//Ansonsten Error Array füllen
 			$errors[] = "Veranstaltungsname muss vorhanden sein";
 			$sql = "UPDATE `veranstaltungen` SET
-        	 `beschreibung` = '" . mysql_real_escape_string(filter_var($input['beschreibung'], FILTER_SANITIZE_STRING)) . "',";
+        	 `beschreibung` = '" . db_escape(vs_sanitize_text($input['beschreibung'])) . "',";
 		}
 	   if(is_numeric($input['minkuchen']) and $input['minkuchen'] >= 0){
-		 	$sql .= "`minkuchen` = '" . mysql_real_escape_string(filter_var($input['minkuchen'], FILTER_SANITIZE_STRING)) . "',";
+		 	$sql .= "`minkuchen` = '" . db_escape(vs_sanitize_text($input['minkuchen'])) . "',";
 		 }else{
 		   $errors[] = "Kuchenanzahl muss eine Zahl größer 0 sein";
 		}
@@ -125,25 +125,25 @@ if (isset($input['saveevent'])) {
 			//Wenn keine Fehler festgestellt wurden, fortfahren
 			if (empty($errors_ort)) {
 				$sql_new_ort = "INSERT INTO `orte` SET
-		       `name`        = '" . mysql_real_escape_string(filter_var($input['ort_name'], FILTER_SANITIZE_STRING)) . "',
-		       `strasse`     = '" . mysql_real_escape_string(filter_var($input['ort_strasse'], FILTER_SANITIZE_STRING)) . "',
-		       `hausnummer`  = '" . mysql_real_escape_string(filter_var($input['ort_hausnummer'], FILTER_SANITIZE_STRING)) . "',
-		       `plz`         = '" . mysql_real_escape_string(filter_var($input['ort_plz'], FILTER_SANITIZE_STRING)) . "',
-		       `ort`         = '" . mysql_real_escape_string(filter_var($input['ort_ort'], FILTER_SANITIZE_STRING)) . "',
-			   `telefon`    = '" . mysql_real_escape_string(filter_var($input['ort_telvorwahl'], FILTER_SANITIZE_STRING)) . "/" . mysql_real_escape_string(filter_var($input['ort_telnr'], FILTER_SANITIZE_STRING)) . "',
+		       `name`        = '" . db_escape(vs_sanitize_text($input['ort_name'])) . "',
+		       `strasse`     = '" . db_escape(vs_sanitize_text($input['ort_strasse'])) . "',
+		       `hausnummer`  = '" . db_escape(vs_sanitize_text($input['ort_hausnummer'])) . "',
+		       `plz`         = '" . db_escape(vs_sanitize_text($input['ort_plz'])) . "',
+		       `ort`         = '" . db_escape(vs_sanitize_text($input['ort_ort'])) . "',
+			   `telefon`    = '" . db_escape(vs_sanitize_text($input['ort_telvorwahl'])) . "/" . db_escape(vs_sanitize_text($input['ort_telnr'])) . "',
 			   `typ`        = '2',
-               `createdby`  = '" . mysql_real_escape_string(intval($user['mitglieder_id'])) . "'";
+               `createdby`  = '" . db_escape(intval($user['mitglieder_id'])) . "'";
 				// MySQL Code ausf�hren (und somit �nderungen speichern)
-				if (mysql_query($sql_new_ort)) {
+				if (db_query($sql_new_ort)) {
 					// Bei Erfolg entsprechendes als GET-Parameter �bergeben
-					//header('Location: ort_show.php?id='.mysql_insert_id()."&created");
+					//header('Location: ort_show.php?id='.db_insert_id()."&created");
 					//exit();
 
 					//ID des neuen Ortes in die Veranstaltung schreiben
-					$sql .= "`ort` = '" . mysql_insert_id() . "',";
+					$sql .= "`ort` = '" . db_insert_id() . "',";
 				} else {
 					// Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-					// header('Location: ort_add.php?created=fail&why='.mysql_errno());
+					// header('Location: ort_add.php?created=fail&why='.db_errno());
 					// exit();
 					$errors[] = "Datenbank-Fehler bei Erstellung des neuen Ortes";
 				}
@@ -154,7 +154,7 @@ if (isset($input['saveevent'])) {
 
 		} else {
 			//Veranstaltungseintrag mit gegebeneer Orts ID füllen
-			$sql .= "`ort` = '" . mysql_real_escape_string(intval($input['ort'])) . "',";
+			$sql .= "`ort` = '" . db_escape(intval($input['ort'])) . "',";
 		}
 
 		//Variable die angibt ob es mehrere Personen desselben Namens gibt
@@ -167,16 +167,16 @@ if (isset($input['saveevent'])) {
 			if (!empty($input['ansprechpartner_vorname']) and !empty($input['ansprechpartner_nachname'])) {
 				//Test ob Ansprechpartner in der DB vorhanden
 
-				$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . mysql_real_escape_string(filter_var($input['ansprechpartner_vorname'], FILTER_SANITIZE_STRING)) . "' AND `nachname` = '" . mysql_real_escape_string(filter_var($input['ansprechpartner_nachname'], FILTER_SANITIZE_STRING)) . "'";
-				$test_person_result = mysql_query($sql_test_person);
+				$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . db_escape(vs_sanitize_text($input['ansprechpartner_vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($input['ansprechpartner_nachname'])) . "'";
+				$test_person_result = db_query($sql_test_person);
 				
-				$person = mysql_fetch_assoc($test_person_result);
+				$person = db_fetch_assoc($test_person_result);
 
-				//echo mysql_error();
+				//echo db_error();
 				//Wenn es nur eine Person mit diesem Namen gibt oder diese Person bereits in der DB steht
-				if (mysql_num_rows($test_person_result) == 1 or $person['mitglieder_id'] == $veranstaltung['ansprechpartner']) {
+				if (db_num_rows($test_person_result) == 1 or $person['mitglieder_id'] == $veranstaltung['ansprechpartner']) {
 					$sql .= "`ansprechpartner` = '" . $person['mitglieder_id'] . "',";
-				} elseif (mysql_num_rows($test_person_result) > 1) {
+				} elseif (db_num_rows($test_person_result) > 1) {
 					//Wenn es mehrere Personen gibt muss dies im nächsten Schritt ausgewählt werden
 					$more_persons = TRUE;
 					$errors[] = "Es wurden mehrere Personen mit diesem Namen gefunden, bitte w&auml;hlen sie die richtige aus!";
@@ -192,8 +192,8 @@ if (isset($input['saveevent'])) {
 		}
 
 		//Zeit Timestamps aus übergebenen Daten generieren
-		$startzeit = mysql_real_escape_string(mktime(intval($input['startzeit_stunde']), intval($input['startzeit_minute']), 0, intval($input['startzeit_monat']), intval($input['startzeit_tag']), intval($input['startzeit_jahr'])));
-		$endzeit = mysql_real_escape_string(mktime(intval($input['endzeit_stunde']), intval($input['endzeit_minute']), 0, intval($input['endzeit_monat']), intval($input['endzeit_tag']), intval($input['endzeit_jahr'])));
+		$startzeit = db_escape(mktime(intval($input['startzeit_stunde']), intval($input['startzeit_minute']), 0, intval($input['startzeit_monat']), intval($input['startzeit_tag']), intval($input['startzeit_jahr'])));
+		$endzeit = db_escape(mktime(intval($input['endzeit_stunde']), intval($input['endzeit_minute']), 0, intval($input['endzeit_monat']), intval($input['endzeit_tag']), intval($input['endzeit_jahr'])));
 
 		//Startzeit muss vor Endzeit sein
 		if ($endzeit > $startzeit) {
@@ -210,19 +210,19 @@ if (isset($input['saveevent'])) {
 
 		//Veranstaltungseintrag bearbeiten
 		$sql .= "   WHERE `veranstaltungs_id` = '" . intval($input['veranstaltungs_id']) . "'";
-		if (mysql_query($sql)) {
+		if (db_query($sql)) {
 				
 				//Bei Veränderungen an der Veranstaltung müssen evtl vorhandene Dienste geändert oder gelöscht werden
 				if($startzeit != $veranstaltung['startzeit'] or $endzeit != $veranstaltung['endzeit']){	
 					$sql_dienste = "DELETE FROM `dienste`
 		                WHERE
 		               `dienste`.`event` = '".intval($input['veranstaltungs_id'])."'";
-					mysql_query($sql_dienste);
+					db_query($sql_dienste);
 				}elseif($input['mindienste'] != $veranstaltung['mindienste']){
 					$sql_dienste = "DELETE FROM `dienste`
 		                WHERE
 		               `dienste`.`stand` > '".intval($input['mindienste'])."'";
-					mysql_query($sql_dienste);
+					db_query($sql_dienste);
 				}
 			//Wenn es nicht mehrere Personen gab, keinen Namen übergeben
 			if ($more_persons == FALSE) {
@@ -239,7 +239,7 @@ if (isset($input['saveevent'])) {
 
 		} else {
 			// Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-			header('Location: veranstaltung_edit.php?id=' . intval($input['veranstaltungs_id']) . "&save=fail&why=" . mysql_errno() . "&errors=" . base64_encode(json_encode($errors)));
+			header('Location: veranstaltung_edit.php?id=' . intval($input['veranstaltungs_id']) . "&save=fail&why=" . db_errno() . "&errors=" . base64_encode(json_encode($errors)));
 			exit();
 		}
 
@@ -258,10 +258,10 @@ if (isset($input['saveevent'])) {
 	//Veranstaltungsname muss vorhanden sein
 	if (!empty($input['veranstaltungsname'])) {
 		$sql = "INSERT INTO `veranstaltungen` SET
-        	 `veranstaltungsname` = '" . mysql_real_escape_string(filter_var($input['veranstaltungsname'], FILTER_SANITIZE_STRING)) . "',
-        	 `beschreibung` = '" . stripslashes(mysql_real_escape_string(filter_var($input['beschreibung'], FILTER_SANITIZE_STRING))) . "',
-        	 `mindienste` = '" . mysql_real_escape_string(filter_var($input['mindienste'], FILTER_SANITIZE_STRING)) . "',
-        	 `dienstbeschreibung` = '" . stripslashes(mysql_real_escape_string(filter_var($input['dienstbeschreibung'], FILTER_SANITIZE_STRING))) . "',";
+        	 `veranstaltungsname` = '" . db_escape(vs_sanitize_text($input['veranstaltungsname'])) . "',
+        	 `beschreibung` = '" . stripslashes(db_escape(vs_sanitize_text($input['beschreibung']))) . "',
+        	 `mindienste` = '" . db_escape(vs_sanitize_text($input['mindienste'])) . "',
+        	 `dienstbeschreibung` = '" . stripslashes(db_escape(vs_sanitize_text($input['dienstbeschreibung']))) . "',";
 	} else {
 		$sql = "";
 		$errors[] = "Veranstaltungsname muss vorhanden sein";
@@ -274,25 +274,25 @@ if (isset($input['saveevent'])) {
 		
 		if (empty($errors_ort)) {
 			$sql_new_ort = "INSERT INTO `orte` SET
-		       `name`        = '" . mysql_real_escape_string(filter_var($input['ort_name'], FILTER_SANITIZE_STRING)) . "',
-		       `strasse`     = '" . mysql_real_escape_string(filter_var($input['ort_strasse'], FILTER_SANITIZE_STRING)) . "',
-		       `hausnummer`  = '" . mysql_real_escape_string(filter_var($input['ort_hausnummer'], FILTER_SANITIZE_STRING)) . "',
-		       `plz`         = '" . mysql_real_escape_string(filter_var($input['ort_plz'], FILTER_SANITIZE_STRING)) . "',
-		       `ort`         = '" . mysql_real_escape_string(filter_var($input['ort_ort'], FILTER_SANITIZE_STRING)) . "',
-			   `telefon`     = '" . mysql_real_escape_string(filter_var($input['ort_telvorwahl'], FILTER_SANITIZE_STRING)) . "/" . mysql_real_escape_string(filter_var($input['ort_telnr'], FILTER_SANITIZE_STRING)) . "',
+		       `name`        = '" . db_escape(vs_sanitize_text($input['ort_name'])) . "',
+		       `strasse`     = '" . db_escape(vs_sanitize_text($input['ort_strasse'])) . "',
+		       `hausnummer`  = '" . db_escape(vs_sanitize_text($input['ort_hausnummer'])) . "',
+		       `plz`         = '" . db_escape(vs_sanitize_text($input['ort_plz'])) . "',
+		       `ort`         = '" . db_escape(vs_sanitize_text($input['ort_ort'])) . "',
+			   `telefon`     = '" . db_escape(vs_sanitize_text($input['ort_telvorwahl'])) . "/" . db_escape(vs_sanitize_text($input['ort_telnr'])) . "',
 			   `typ`         = '2',
-               `createdby`   = '" . mysql_real_escape_string(intval($user['mitglieder_id'])) . "'";
+               `createdby`   = '" . db_escape(intval($user['mitglieder_id'])) . "'";
 			// MySQL Code ausf�hren (und somit �nderungen speichern)
-			if (mysql_query($sql_new_ort)) {
+			if (db_query($sql_new_ort)) {
 				// Bei Erfolg entsprechendes als GET-Parameter �bergeben
-				//header('Location: ort_show.php?id='.mysql_insert_id()."&created");
+				//header('Location: ort_show.php?id='.db_insert_id()."&created");
 				//exit();
 
 				//ID des neuen Ortes in die Veranstaltung schreiben
-				$sql .= "`ort` = '" . mysql_insert_id() . "',";
+				$sql .= "`ort` = '" . db_insert_id() . "',";
 			} else {
 				// Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-				// header('Location: ort_add.php?created=fail&why='.mysql_errno());
+				// header('Location: ort_add.php?created=fail&why='.db_errno());
 				// exit();
 				$errors[] = "Datenbank-Fehler bei Erstellung des neuen Ortes";
 			}
@@ -303,7 +303,7 @@ if (isset($input['saveevent'])) {
 
 	} else {
 		//Ausgewählten Ort einfügen
-		$sql .= "`ort` = '" . mysql_real_escape_string(intval($input['ort'])) . "',";
+		$sql .= "`ort` = '" . db_escape(intval($input['ort'])) . "',";
 	}
 	
 	$more_persons = FALSE;
@@ -315,17 +315,17 @@ if (isset($input['saveevent'])) {
 		if (!empty($input['ansprechpartner_vorname']) and !empty($input['ansprechpartner_nachname'])) {
 			//Test ob Ansprechpartner in der DB vorhanden
 
-			$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . mysql_real_escape_string(filter_var($input['ansprechpartner_vorname'], FILTER_SANITIZE_STRING)) . "' AND `nachname` = '" . mysql_real_escape_string(filter_var($input['ansprechpartner_nachname'], FILTER_SANITIZE_STRING)) . "'";
-			$test_person_result = mysql_query($sql_test_person);
+			$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . db_escape(vs_sanitize_text($input['ansprechpartner_vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($input['ansprechpartner_nachname'])) . "'";
+			$test_person_result = db_query($sql_test_person);
 
 			$more_persons = FALSE;
-			$person = mysql_fetch_assoc($test_person_result);
+			$person = db_fetch_assoc($test_person_result);
 
-			//echo mysql_error();
+			//echo db_error();
 			//Gibt es mehrere Personen?
-			if (mysql_num_rows($test_person_result) == 1) {
+			if (db_num_rows($test_person_result) == 1) {
 				$sql .= "`ansprechpartner` = '" . $person['mitglieder_id'] . "',";
-			} elseif (mysql_num_rows($test_person_result) > 1) {
+			} elseif (db_num_rows($test_person_result) > 1) {
 				$more_persons = TRUE;
 				$errors[] = "Es gibt mehrere Personen mit diesem Namen";
 			} else {
@@ -340,8 +340,8 @@ if (isset($input['saveevent'])) {
 	}
 
 	//Zeiten als Timestamp generieren
-	$startzeit = mysql_real_escape_string(mktime(intval($input['startzeit_stunde']), intval($input['startzeit_minute']), 0, intval($input['startzeit_monat']), intval($input['startzeit_tag']), intval($input['startzeit_jahr'])));
-	$endzeit = mysql_real_escape_string(mktime(intval($input['endzeit_stunde']), intval($input['endzeit_minute']), 0, intval($input['endzeit_monat']), intval($input['endzeit_tag']), intval($input['endzeit_jahr'])));
+	$startzeit = db_escape(mktime(intval($input['startzeit_stunde']), intval($input['startzeit_minute']), 0, intval($input['startzeit_monat']), intval($input['startzeit_tag']), intval($input['startzeit_jahr'])));
+	$endzeit = db_escape(mktime(intval($input['endzeit_stunde']), intval($input['endzeit_minute']), 0, intval($input['endzeit_monat']), intval($input['endzeit_tag']), intval($input['endzeit_jahr'])));
 
 	//Startzeit muss vor Endzeit sein
 	if ($endzeit > $startzeit) {
@@ -359,12 +359,12 @@ if (isset($input['saveevent'])) {
 	$sql .= ";";
 
 	if (empty($errors)) {
-		if (mysql_query($sql)) {
+		if (db_query($sql)) {
 			// Bei Erfolg entsprechendes als GET-Parameter �bergeben
-			header('Location: veranstaltung_show.php?id=' . mysql_insert_id() . "&save=success");
+			header('Location: veranstaltung_show.php?id=' . db_insert_id() . "&save=success");
 		} else {
 			// Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-			header('Location: veranstaltung_add.php?save=fail&why=' . mysql_errno());
+			header('Location: veranstaltung_add.php?save=fail&why=' . db_errno());
 		}
 		exit();
 
@@ -390,13 +390,13 @@ if (isset($input['saveevent'])) {
 		 $sql_dienste = "DELETE FROM `dienste`
                 WHERE
                `dienste`.`event` = '".intval($input['veranstaltungs_id'])."'";
-          if (mysql_query($sql) and mysql_query($sql_dienste)){
+          if (db_query($sql) and db_query($sql_dienste)){
              // Bei Erfolg entsprechendes als GET-Parameter übergeben
            header('Location: veranstaltungen.php?deletion=success&who='.intval($input['veranstaltungs_id']));
              exit();
           }else{
              // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-           header('Location: veranstaltungen.php?deletion=fail&who='.intval($input['veranstaltungs_id'])."&why=".mysql_errno());
+           header('Location: veranstaltungen.php?deletion=fail&who='.intval($input['veranstaltungs_id'])."&why=".db_errno());
              exit();
           }
         }else{
@@ -408,13 +408,13 @@ if (isset($input['saveevent'])) {
            $sql_dienste = "DELETE FROM `dienste`
             WHERE
            `dienste`.`event` = '".intval($input['veranstaltungs_id'])."'";
-          if (mysql_query($sql) and mysql_query($sql_dienste)){
+          if (db_query($sql) and db_query($sql_dienste)){
              // Bei Erfolg entsprechendes als GET-Parameter übergeben
              header('Location: veranstaltungen.php?removal=success&who='.intval($input['veranstaltungs_id']));
              exit();
           }else{
              // Bei einem Fehler die Mysql-Fehlernummer zur Fehleruntersuchung mitsenden
-            header('Location: veranstaltungen.php?removal=fail&who='.intval($input['veranstaltungs_id'])."&why=".mysql_errno());
+            header('Location: veranstaltungen.php?removal=fail&who='.intval($input['veranstaltungs_id'])."&why=".db_errno());
              exit();
           }
         }

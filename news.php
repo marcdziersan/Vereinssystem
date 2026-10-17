@@ -119,12 +119,12 @@ require_once("inc/head.inc.php");
               // Gesamtanzahl aller Nachrichten ermitteln
               $anzahl_sql = "SELECT count(*) as count FROM `news` WHERE status = '1'";
               if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                $anzahl_sql .= " AND (`title` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `content` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                $anzahl_sql .= " AND (`title` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `content` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
               }
               // Nur Beiträge, die für das eigene Rechtelevel oder niedriger bestimmt sind
               $anzahl_sql .= " AND (`minright` <= '".$user['rights']."' OR `author` = '".$user['mitglieder_id']."')";
-              $anzahl_result = mysql_query($anzahl_sql);
-              $anzahl = mysql_fetch_assoc($anzahl_result);
+              $anzahl_result = db_query($anzahl_sql);
+              $anzahl = db_fetch_assoc($anzahl_result);
               // Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
               $proseite = 10;
               if (!isset($_GET['page'])){
@@ -141,7 +141,7 @@ require_once("inc/head.inc.php");
               $sql = "SELECT * FROM `news` LEFT JOIN `mitglieder` ON `news`.`author` = `mitglieder`.`mitglieder_id` WHERE `news`.`status` = 1";
               if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
                 // Haben wir eine Suche? Dann das Suchwort in die Abfrage einbauen (eigentliche Filterung findet damit statt)
-                $sql .= " AND (`title` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `content` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                $sql .= " AND (`title` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `content` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
               }
               $sql .= " AND (`minright` <= '".$user['rights']."' OR `author` = '".$user['mitglieder_id']."')";
 
@@ -155,16 +155,16 @@ require_once("inc/head.inc.php");
               // Ergebnismenge limitieren, evtl. entsprechend der Seitenzahl bereits nur hintere Ergebnisse ausgeben
               $sql .= " LIMIT ".(abs($page-1)*$proseite).",$proseite";
               echo "<tr><td colspan=\"5\">$sql</td></tr>";
-              $nachrichten = mysql_query($sql);
-              if (mysql_num_rows($nachrichten) == 0){
+              $nachrichten = db_query($sql);
+              if (db_num_rows($nachrichten) == 0){
                 echo "<tr><td colspan=\"5\" class=\"tcenter\">Es wurden keine Nachrichten gefunden!</td></tr>";
               }else{
-                while ($nachricht = mysql_fetch_assoc($nachrichten)){
+                while ($nachricht = db_fetch_assoc($nachrichten)){
                   echo "<tr>
                           <td><a href=\"news_show.php?id=".$nachricht['news_id']."\" title=\"Nachricht lesen\">".htmlspecialchars($nachricht['title'])."</a></td>
                           <td>".substr(strip_tags($nachricht['content']),0,75)."...</td>
                           <td>".$nachricht['vorname']." ".$nachricht['nachname']."</td>
-                          <td>".strftime("%d. %B %Y, %H:%M",$nachricht['lastchange'])."</td>
+                          <td>".vs_strftime("%d. %B %Y, %H:%M",$nachricht['lastchange'])."</td>
                       <td class=\"actionrow\"><a href=\"news_show.php?id=".$nachricht['news_id']."\" title=\"Nachricht anzeigen\"><img src=\"images/show.png\" alt=\"\" title=\"Anzeigen\" /></a>";
                       if ($user['rights'] >= 2 ){
                         if ($nachricht['author'] == $user['mitglieder_id'] || $user['rights'] >= 4){

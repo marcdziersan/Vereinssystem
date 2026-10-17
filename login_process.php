@@ -1,80 +1,56 @@
 <?php
-// Datenbankverbindung & Kodierung einbinden
-require_once("inc/connect.inc.php");
-
-// Diese Datei wird aufgerufen, wenn sich ein Besucher anmeldet.
-// Die Anmeldedaten bestehen aus dem username oder der E-Mail Adresse,
-// dem Passwort und dem Captcha-Code und werden per POST übergeben
-
-// Test-Cookie auslesen
-if (!isset($_COOKIE['keks']) || $_COOKIE['keks'] != "funktioniert"){
-    // Cookies werden nicht unterstützt
-    header("location:login.php?fail=cookie");
-    exit();
+require_once __DIR__ . '/inc/connect.inc.php';
+vs_session_start();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: login.php'); exit; }
+if (!hash_equals((string)($_SESSION['vs_login_token'] ?? ''), (string)($_POST['vs_login_token'] ?? '')) || empty($_SESSION['vs_login_token'])) {
+    header('Location: login.php?fail=data'); exit;
 }
-
-if ($settings['usecaptchalogin'] == 1){
-  // Blowfish Klasse einbingen, wenn Captchas verwendet werden sollen
-  include ("inc/blowfish.class.php");
-  $blowfish = new Blowfish("schluessel");
+if ((int)($_SESSION['vs_login_block_until'] ?? 0) > time()) {
+    header('Location: login.php?fail=wait'); exit;
 }
-// Prüfen, ob der Captcha-Code richtig war
-// $_POST['captcha'] enthält die Nutzereingabe, $_POST['astresult'] den MD5-Hash des richtigen Ergebnissen
-// Alternativ ist $settings['usecaptchalogin'] gleich 0 (kein Captcha beim Login Nutzen)
-if ($settings['usecaptchalogin'] == 1 && (md5($_POST['captcha']) == $_POST['astresult']) || $settings['usecaptchalogin'] == 0){
-    // Captcha-Test bestanden, Login weiter fortsetzen
-    // Mitglieder aus der DB auslesen, die den eingegebenen Nutzernmane/Mitgliedsnummer und das eingegebene Passwort haben
-    $sql = "SELECT * FROM `mitglieder` WHERE (`username` = '".mysql_real_escape_string(stripslashes($_POST['username']))."' OR `mitgliedsnummer` = '".mysql_real_escape_string(stripslashes($_POST['username']))."') AND `passwort` = '".md5(stripslashes($_POST['psword']))."'";
-    $nutzer = mysql_query($sql);
-
-    if (mysql_num_rows($nutzer) == 1){
-        // Gibt es genau eine Übereinstimmung, dann Login erfolgreich
-        // Session starten
-        session_start();
-
-        // Session-ID erneuern, um das Sicherheitsproblem der Session Fixation zu verhindern
-        session_regenerate_id();
-
-        // Nutzerdaten des aktuell angemeldet Mitglieds
-        $user = mysql_fetch_assoc($nutzer);
-
-        // Prüfen, ob der Nutzer berechtigt ist, sich anzumelden
-        if ($user['status'] != 1 || $user['rights'] == 0){
-          // Der Nutzer ist gesperrt (entweder keine Recht (rights=0) und/oder der Status ist nicht 1 (vll. Nutzer gelöscht, was Status auf 2 setzt)
-          // Session zerstören und zurück zum Login-Formular
-          session_destroy();
-          header ("Location: login.php?forbidden");
-          exit();
-        }
-
-        // Last-Login Daten aktualisieren
-        mysql_query("UPDATE `mitglieder` SET `lastlogintime` = `currentlogintime`, `lastloginip` = `currentloginip`, `currentlogintime` = ".time().", `currentloginip` = '".$_SERVER["REMOTE_ADDR"]."' WHERE `mitglieder_id` = ".$user['mitglieder_id']);
-
-        // SESSION-Variable setzen
-        $_SESSION["uid"] = $user['mitglieder_id'];
-        $_SESSION["loginip"] = $_SERVER["REMOTE_ADDR"];
-        $_SESSION["freshlogin"] = true;
-
-        // Login Erfolgreich; Wurde einer after-URL übergeben und verweist diese auf den aktuellen Server?
-        if (isset($_POST['after'])){
-            // Weiterleiten zur after-URL
-            header("location: ".base64_decode($_POST['after']));
-            exit();
-        }else{
-            // Weiterleiten zur Startseite
-            header("location:index.php");
-            exit();
-        }
-    }else{
-        // Keine oder mehrere Übereinstimmungen, Login fehlgeschlagen
-        header("location:login.php?fail=data");
-        exit();
+if ((int)$settings['usecaptchalogin'] === 1) {
+    if (empty($_SESSION['vs_captcha']) || !hash_equals(strtolower((string) $_SESSION['vs_captcha']), strtolower(trim((string)($_POST['captcha'] ?? ''))))) {
+        header('Location: login.php?fail=captcha'); exit;
     }
-}else{
-  // Captcha-Test fehlgeschlagen
-  header("location:login.php?fail=captcha");
-  exit();
+    unset($_SESSION['vs_captcha']);
 }
-// Keine Weiterleitung bisher, dann zurück zur Login (sollte nie vorkommen)
-header("location:login.php");
-?>
+$username = trim((string)($_POST['username'] ?? ''));
+$password = (string)($_POST['psword'] ?? '');
+$found = ($username !== '' && $password !== '') ? db_query(
+    'SELECT * FROM `mitglieder` WHERE (`username` = ? OR `mitgliedsnummer` = ?) LIMIT 2',
+    [$username, $username]
+) : false;
+$account = db_num_rows($found) === 1 ? db_fetch_assoc($found) : false;
+$valid = false;
+if ($account) {
+    $hash = (string)$account['passwort'];
+    $valid = password_verify($password, $hash);
+    $legacy = !$valid && preg_match('/^[a-f0-9]{32}$/i', $hash) && hash_equals(strtolower($hash), md5($password));
+    if ($legacy) $valid = true;
+    if ($valid && ($legacy || password_needs_rehash($hash, PASSWORD_DEFAULT))) {
+        db_query('UPDATE `mitglieder` SET `passwort` = ? WHERE `mitglieder_id` = ?', [password_hash($password, PASSWORD_DEFAULT), (int)$account['mitglieder_id']]);
+    }
+}
+if (!$valid || (int)$account['status'] !== 1 || (int)$account['rights'] === 0) {
+    $_SESSION['vs_login_failures'] = (int)($_SESSION['vs_login_failures'] ?? 0) + 1;
+    if ($_SESSION['vs_login_failures'] >= 5) {
+        $_SESSION['vs_login_block_until'] = time() + 900;
+        $_SESSION['vs_login_failures'] = 0;
+    }
+    header('Location: login.php?fail=data'); exit;
+}
+$_SESSION['vs_login_failures'] = 0;
+unset($_SESSION['vs_login_block_until'], $_SESSION['vs_login_token']);
+session_regenerate_id(true);
+$ip = (string)($_SERVER['REMOTE_ADDR'] ?? '');
+db_query('UPDATE `mitglieder` SET `lastlogintime` = `currentlogintime`, `lastloginip` = `currentloginip`, `currentlogintime` = ?, `currentloginip` = ? WHERE `mitglieder_id` = ?', [time(),$ip,(int)$account['mitglieder_id']]);
+$_SESSION['uid'] = (int)$account['mitglieder_id'];
+$_SESSION['loginip'] = $ip;
+$_SESSION['freshlogin'] = true;
+$redirect = 'index.php';
+if (isset($_POST['after'])) {
+    $path = base64_decode((string)$_POST['after'], true);
+    // Nur Pfade dieser Installation. Externe Weiterleitungen oder //hostname verbieten.
+    if (is_string($path) && preg_match('~^/(?!/)[a-zA-Z0-9_/?&=%.,+\-]*$~D', $path)) $redirect = $path;
+}
+header('Location: '.$redirect); exit;

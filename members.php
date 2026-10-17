@@ -128,14 +128,14 @@ require_once("inc/head.inc.php");
                   // Gesamtanzahl aller Mitglieder ermitteln
                   $anzahl_sql = "SELECT count(*) as count FROM `mitglieder` WHERE status = '1'";
                   if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                    $anzahl_sql .= " AND (`vorname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `nachname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `email` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `username` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                    $anzahl_sql .= " AND (`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `email` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `username` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
                   }
                   if ($user['rights'] < 4){
                     // Rechtelevel geringer als 4 = Man darf nur den eigenen Eintrag + die eigenen Kinder sehen
                     $anzahl_sql .= " AND (`mitglieder_id` = ".$user['mitglieder_id']." OR `parent1` = ".$user['mitglieder_id']." OR `parent2` = ".$user['mitglieder_id'].")";
                   }
-                  $anzahl_result = mysql_query($anzahl_sql);
-                  $anzahl = mysql_fetch_assoc($anzahl_result);
+                  $anzahl_result = db_query($anzahl_sql);
+                  $anzahl = db_fetch_assoc($anzahl_result);
                   // Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
                   $proseite = 10;
                   if (!isset($_GET['page'])){
@@ -152,7 +152,7 @@ require_once("inc/head.inc.php");
                   // SQL-Anfrage erstellen, um die Daten zu erhalten
                   $sql = "SELECT * FROM `mitglieder` WHERE status = 1 ";
                   if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                    $sql .= " AND (`vorname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `nachname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `email` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `username` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                    $sql .= " AND (`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `email` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `username` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
                   }
                   if ($user['rights'] < 4){
                     // Rechtelevel geringer als 4 = Man darf nur den eigenen Eintrag + die eigenen Kinder sehen
@@ -164,16 +164,16 @@ require_once("inc/head.inc.php");
                     $sql .= "ORDER BY `nachname` ASC, `vorname` ASC";
                   }
                   $sql .= " LIMIT ".(($page-1)*$proseite).",$proseite";
-                  $members = mysql_query($sql);
-                  if (mysql_num_rows($members) == 0){
+                  $members = db_query($sql);
+                  if (db_num_rows($members) == 0){
                     echo "<tr><td colspan=\"5\" class=\"tcenter\">Es wurden keine Mitglieder gefunden!</td></tr>";
                   }else{
-                    while ($member = mysql_fetch_assoc($members)){
+                    while ($member = db_fetch_assoc($members)){
                       echo "<tr>
                               <td class=\"firstcolumn\">".$member['nachname']."</td>
                               <td>".$member['vorname']."</td>
-                              <td>".strftime("%d. %B %Y",strtotime($member['geburtstag']))."</td>
-                              <td>".strftime("%d. %B %Y",strtotime($member['beitritt']))."</td>
+                              <td>".vs_strftime("%d. %B %Y",strtotime($member['geburtstag']))."</td>
+                              <td>".vs_strftime("%d. %B %Y",strtotime($member['beitritt']))."</td>
                               <td class=\"actionrow\"><a href=\"member_show.php?id=".$member['mitglieder_id']."\"><img src=\"images/show.png\" alt=\"\" title=\"Anzeigen\" /></a>";
                               if ($user['rights'] >= 4 || $member['mitglieder_id'] == $user['mitglieder_id'] || ($member['parent1'] == $user['mitglieder_id'] && time()-strtotime($member['geburtstag']) < 568024668) || ($member['parent2'] == $user['mitglieder_id'] && time()-strtotime($member['geburtstag']) < 568024668)){
                                 // Um folgenden Link sehen zu können, muss man entweder Rechtelevel 4 oder höher haben, das Mitglied selber oder ein Elternteil des Mitglieds sein

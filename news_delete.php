@@ -27,10 +27,10 @@ require_once("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `news` LEFT JOIN `mitglieder` ON `news`.`author` = `mitglieder`.`mitglieder_id` WHERE `news_id` = ".intval($_GET['id'])." AND `news`.`status` = '1' ";
-            $nachrichten_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($nachrichten_result) == 1){
-                $nachricht = mysql_fetch_assoc($nachrichten_result);
+            $nachrichten_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($nachrichten_result) == 1){
+                $nachricht = db_fetch_assoc($nachrichten_result);
                 // Hat der Nutzer die erforderlichen Rechte?
                 if ($user['rights'] >= 4 || $nachricht['author'] == $user['mitglieder_id']){
                 ?>
@@ -46,6 +46,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                           <form id="deleteform" class="formular" method="post" action="news_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   Möchten Sie folgende Nachricht wirklich löschen?
                               </p>
@@ -56,7 +57,7 @@ require_once("inc/head.inc.php");
                                   }else{
                                     echo "<i>".htmlspecialchars($nachricht['title'])."</i>";
                                   }
-                                  echo "<br />Erstellt am ".strftime("%d. %B %Y um %H:%M Uhr",$nachricht['lastchange'])." von ";
+                                  echo "<br />Erstellt am ".vs_strftime("%d. %B %Y um %H:%M Uhr",$nachricht['lastchange'])." von ";
                                   if (empty($nachricht['vorname']) && empty($nachricht['nachname'])){
                                     echo "<i>Unbekannt</i>";
                                   }else{

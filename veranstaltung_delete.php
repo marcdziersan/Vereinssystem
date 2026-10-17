@@ -15,10 +15,10 @@ require_once ("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_GET['id']);
-            $veranstaltung_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($veranstaltung_result) == 1){
-                $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+            $veranstaltung_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($veranstaltung_result) == 1){
+                $veranstaltung = db_fetch_assoc($veranstaltung_result);
 			if (date("d.n.Y", $veranstaltung["startzeit"]) == date("d.n.Y", $veranstaltung["endzeit"])) {
 				$termin = "Am " . date("d.n.Y", $veranstaltung["startzeit"]) . "<br />Von " . date("H:i", $veranstaltung["startzeit"]) . " bis " . date("H:i", $veranstaltung["endzeit"]);
 			} else {
@@ -29,6 +29,7 @@ require_once ("inc/head.inc.php");
             		  <div class="leftbox">
                           <h2>Veranstaltung löschen</h2>
                           <form id="deleteform" class="formular" method="post" action="veranstaltungen_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   Möchten Sie folgende Veranstaltung wirklich löschen?
                               </p>

@@ -15,10 +15,10 @@ require_once("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `news` LEFT JOIN `mitglieder` ON `news`.`author` = `mitglieder`.`mitglieder_id` WHERE `news_id` = ".intval($_GET['id'])." AND `news`.`status` = '1' ";
-            $nachrichten_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($nachrichten_result) == 1){
-                $nachricht = mysql_fetch_assoc($nachrichten_result);
+            $nachrichten_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($nachrichten_result) == 1){
+                $nachricht = db_fetch_assoc($nachrichten_result);
                 // Hat der Nutzer die erforderlichen Rechte?
                 if ($user['rights'] >= $nachricht['minright'] || $nachricht['author'] == $user['mitglieder_id']){
                   // Er hat das nötige Rechtelevel (gleich oder größer minright) oder ist der Autor der Nachricht
@@ -34,10 +34,10 @@ require_once("inc/head.inc.php");
                           <?php
                           echo nl2br($nachricht['content']);
                           echo "<div class=\"afternews\">
-                          <p>Diese Nachricht wurde am ".strftime("%A, %d. %B %Y, um %H:%M Uhr",$nachricht['created'])." von ".htmlspecialchars($nachricht['vorname']." ".$nachricht['nachname'])." geschrieben";
+                          <p>Diese Nachricht wurde am ".vs_strftime("%A, %d. %B %Y, um %H:%M Uhr",$nachricht['created'])." von ".htmlspecialchars($nachricht['vorname']." ".$nachricht['nachname'])." geschrieben";
                           if ($nachricht['lastchange']-60 > ($nachricht['created'])){
                             // Wurde die letzte Änderung mehr als 60 Sekunden nach dem erstellen gemacht
-                            echo ", zuletzt am ".strftime("%A, %d. %B %Y, um %H:%M Uhr",$nachricht['lastchange'])." bearbeitet";
+                            echo ", zuletzt am ".vs_strftime("%A, %d. %B %Y, um %H:%M Uhr",$nachricht['lastchange'])." bearbeitet";
                           }
                           echo " und ist für ";
                           switch ($nachricht['minright']) {

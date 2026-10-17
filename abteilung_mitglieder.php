@@ -28,10 +28,10 @@ require_once("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT `abteilungen`.* FROM `abteilungen` WHERE `abteilungs_id` = ".intval($_GET['id'])." AND `abteilungen`.`status` = '1' ";
-            $abteilungs_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($abteilungs_result) == 1){
-                $abteilung = mysql_fetch_assoc($abteilungs_result);
+            $abteilungs_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($abteilungs_result) == 1){
+                $abteilung = db_fetch_assoc($abteilungs_result);
                 if ($abteilung['abteilungsleiter'] == $user['mitglieder_id'] || $user['rights'] >= 4){
                 ?>
             		<div class="boxsystem33">
@@ -115,10 +115,10 @@ require_once("inc/head.inc.php");
                                 LEFT JOIN `mitglieder` ON `abteilungszugehoerigkeit`.`mitglied` = `mitglieder`.`mitglieder_id`
                                 WHERE `abteilung` = ".intval($abteilung['abteilungs_id']);
                         if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                          $anzahl_sql .= " AND (`mitglieder`.`vorname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `mitglieder`.`nachname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                          $anzahl_sql .= " AND (`mitglieder`.`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `mitglieder`.`nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
                         }
-                        $anzahl_result = mysql_query($anzahl_sql);
-                        $anzahl = mysql_fetch_assoc($anzahl_result);
+                        $anzahl_result = db_query($anzahl_sql);
+                        $anzahl = db_fetch_assoc($anzahl_result);
                         // Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
                         $proseite = 10;
                         if (!isset($_GET['page'])){
@@ -138,7 +138,7 @@ require_once("inc/head.inc.php");
                                 WHERE `abteilung` = ".intval($abteilung['abteilungs_id']);
                         if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
                           // Haben wir eine Suche? Dann das Suchwort in die Abfrage einbauen (eigentliche Filterung findet damit statt)
-                          $sql .= " AND (`mitglieder`.`vorname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `mitglieder`.`nachname` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                          $sql .= " AND (`mitglieder`.`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `mitglieder`.`nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
                         }
                         if (isset($sqlorder)){
                           // Haben wir eine manuelle Sortierung? Dann diese hier in die Abfrage einbauen
@@ -150,14 +150,14 @@ require_once("inc/head.inc.php");
                         // Ergebnismenge limitieren, evtl. entsprechend der Seitenzahl bereits nur hintere Ergebnisse ausgeben
                         $sql .= " LIMIT ".(abs($page-1)*$proseite).",$proseite";
                         //echo "<tr><td colspan=\"4\">$sql</td></tr>";
-                        $mitglieder = mysql_query($sql);
-                        if (mysql_num_rows($mitglieder) == 0){
+                        $mitglieder = db_query($sql);
+                        if (db_num_rows($mitglieder) == 0){
                           echo "<tr><td colspan=\"4\" class=\"tcenter\">Es wurden keine Mitglieder der Abteilung gefunden!</td></tr>";
                         }else{
-                          while ($mitglied = mysql_fetch_assoc($mitglieder)){
+                          while ($mitglied = db_fetch_assoc($mitglieder)){
                             echo "<tr>
                                     <td>".htmlspecialchars($mitglied['vorname']." ".$mitglied['nachname'])."</td>
-                                    <td>".strftime("%d. %B %Y",strtotime($mitglied['geburtstag']))."</td>";
+                                    <td>".vs_strftime("%d. %B %Y",strtotime($mitglied['geburtstag']))."</td>";
                                     if ($mitglied['aktiv'] == 1){
                                       echo "<td>Aktiv</td>";
                                     }else{

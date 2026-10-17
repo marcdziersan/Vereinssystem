@@ -123,10 +123,10 @@ require_once("inc/head.inc.php");
               // Gesamtanzahl aller Orte ermitteln
               $anzahl_sql = "SELECT count(*) as count FROM `abteilungen` WHERE status = '1'";
               if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                $anzahl_sql .= " AND (`name` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `beschreibung` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                $anzahl_sql .= " AND (`name` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `beschreibung` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
               }
-              $anzahl_result = mysql_query($anzahl_sql);
-              $anzahl = mysql_fetch_assoc($anzahl_result);
+              $anzahl_result = db_query($anzahl_sql);
+              $anzahl = db_fetch_assoc($anzahl_result);
               // Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
               $proseite = 10;
               if (!isset($_GET['page'])){
@@ -149,7 +149,7 @@ require_once("inc/head.inc.php");
                        ";
               if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
                 // Haben wir eine Suche? Dann das Suchwort in die Abfrage einbauen (eigentliche Filterung findet damit statt)
-                $sql .= " AND (`name` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%' OR `beschreibung` LIKE '%".mysql_real_escape_string(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                $sql .= " AND (`name` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `beschreibung` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
               }
               // Ergebnisse gruppieren (ansonsten wäre jede Abteilungszugehötigkeiten ein Eintrag
               $sql .= " GROUP BY `abteilungen`.`abteilungs_id` ";
@@ -163,11 +163,11 @@ require_once("inc/head.inc.php");
               // Ergebnismenge limitieren, evtl. entsprechend der Seitenzahl bereits nur hintere Ergebnisse ausgeben
               $sql .= " LIMIT ".(abs($page-1)*$proseite).",$proseite";
               //echo "<tr><td colspan=\"6\">$sql</td></tr>";
-              $abteilungen = mysql_query($sql);
-              if (mysql_num_rows($abteilungen) == 0){
+              $abteilungen = db_query($sql);
+              if (db_num_rows($abteilungen) == 0){
                 echo "<tr><td colspan=\"6\" class=\"tcenter\">Es wurden keine Abteilungen gefunden!</td></tr>";
               }else{
-                while ($abteilung = mysql_fetch_assoc($abteilungen)){
+                while ($abteilung = db_fetch_assoc($abteilungen)){
                   echo "<tr>
                           <td>".htmlspecialchars($abteilung['name'])."</td>
                           <td>".htmlspecialchars($abteilung['vorname']." ".$abteilung['nachname'])."</td>

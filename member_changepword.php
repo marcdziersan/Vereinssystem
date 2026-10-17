@@ -42,6 +42,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                           <form id="editform" class="formular" method="post" action="member_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   <label for="oldpword">Bisheriges Passwort</label>
                                   <input type="password" autocomplete="off" value="" name="oldpword" id="oldpword" title="Ihr bisheriges Passwort" class="medium" />

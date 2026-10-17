@@ -38,10 +38,10 @@ require_once("inc/head.inc.php");
             $sql = "SELECT `abteilungen`.*, `mitglieder`.`vorname`, `mitglieder`.`nachname` FROM `abteilungen`
                         LEFT JOIN `mitglieder` ON `abteilungen`.`abteilungsleiter` = `mitglieder`.`mitglieder_id`
                         WHERE `abteilungs_id` = ".intval($_GET['id'])." AND `abteilungen`.`status` = '1' ";
-            $abteilungs_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($abteilungs_result) == 1){
-                $abteilung = mysql_fetch_assoc($abteilungs_result);
+            $abteilungs_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($abteilungs_result) == 1){
+                $abteilung = db_fetch_assoc($abteilungs_result);
                 if ($abteilung['abteilungsleiter'] == $user['mitglieder_id'] || $user['rights'] >= 4){
                 ?>
             		<div class="boxsystem33">
@@ -79,6 +79,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                           <form id="editform" class="formular" method="post" action="abteilung_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   <label for="name">Name</label>
                                   <input type="text" value="<?php
@@ -120,46 +121,46 @@ require_once("inc/head.inc.php");
                                           $abteilungsleiterid = $abteilung['abteilungsleiter'];
                                         }
                                         // Wir haben also nur eine ID. WIr lesen den Namen des Mitglieds aus, um mithilfe des Namens den Suchstring zusammenbauen zu können
-                                        $pre_abteilungsleiter = mysql_query("SELECT `vorname`,`nachname` FROM `mitglieder` WHERE `mitglieder_id` = ".intval($abteilungsleiterid)."");
-                                        $pre_abteilungsleiter_data = mysql_fetch_assoc($pre_abteilungsleiter);
-                                        $abteilungsleiter_sql = "SELECT `vorname`,`nachname` FROM `mitglieder` WHERE (`nachname` LIKE '%".$pre_abteilungsleiter_data['vorname']."%' OR `vorname` LIKE '%".$pre_abteilungsleiter_data['vorname']."%') AND (`nachname` LIKE '%".$pre_abteilungsleiter_data['nachname']."%' OR `vorname` LIKE '%".$pre_abteilungsleiter_data['nachname']."%')";
+                                        $pre_abteilungsleiter = db_query("SELECT `vorname`,`nachname` FROM `mitglieder` WHERE `mitglieder_id` = ".intval($abteilungsleiterid)."");
+                                        $pre_abteilungsleiter_data = db_fetch_assoc($pre_abteilungsleiter);
+                                        $abteilungsleiter_sql = "SELECT `vorname`,`nachname` FROM `mitglieder` WHERE (`nachname` LIKE '%".db_escape($pre_abteilungsleiter_data['vorname'])."%' OR `vorname` LIKE '%".db_escape($pre_abteilungsleiter_data['vorname'])."%') AND (`nachname` LIKE '%".db_escape($pre_abteilungsleiter_data['nachname'])."%' OR `vorname` LIKE '%".db_escape($pre_abteilungsleiter_data['nachname'])."%')";
                                     }elseif(isset($prefill['abteilungsleiter']) && is_string($prefill['abteilungsleiter'])){
                                         // Das Prefill übergibt den Namen des Abteilungsleiters, diesen an Leerzeichen trennen und alle Personen suchen, die übereinstimmungen im Vor- und/oder Nachnamen haben
                                         $namensteile = explode(" ",$prefill['abteilungsleiter']);
                                         $suchteile = array(); // Suchteile Array erstellen, welches alle Suchkriterien (Textteile des Namens) enthält
                                         foreach ($namensteile as &$suchteil) {
-                                          $suchteile[] = "(`nachname` LIKE '%".$suchteil."%' OR `vorname` LIKE '%".$suchteil."%')";
+                                          $suchteile[] = "(`nachname` LIKE '%".db_escape($suchteil)."%' OR `vorname` LIKE '%".db_escape($suchteil)."%')";
                                         }
                                         $suchteile[] = "`status` = 1"; // Nur aktive Mitglieder verwenden
                                         $abteilungsleiter_sql = "SELECT `vorname`,`nachname` FROM `mitglieder` WHERE ".implode(" AND ",$suchteile);
                                     }
                                     // Ruft den Namen der Abteilungsleiter und die Anzahl ab, wie oft diese Nameskombination vorkommt
                                     echo $abteilungsleiter_sql;
-                                    $abteilungsleiter_count = mysql_query($abteilungsleiter_sql);
-                                    if (mysql_num_rows($abteilungsleiter_count) == 0){
+                                    $abteilungsleiter_count = db_query($abteilungsleiter_sql);
+                                    if (db_num_rows($abteilungsleiter_count) == 0){
                                         // Es gibt genau keinen Nutzer mit dem Namen = Textbox leer anzeigen
-                                        $abteilungsleiter_data = mysql_fetch_assoc($abteilungsleiter_count);
+                                        $abteilungsleiter_data = db_fetch_assoc($abteilungsleiter_count);
                                         echo "<input type=\"text\" value=\"\" name=\"abteilungsleiter\" id=\"abteilungsleiter\" title=\"Abteilungsleiter\" class=\"large\" />";
-                                    }elseif (mysql_num_rows($abteilungsleiter_count) == 1){
+                                    }elseif (db_num_rows($abteilungsleiter_count) == 1){
                                         // Es gibt genau einen Nutzer mit dem Namen = Textbox mit dem anzeigen
-                                        $abteilungsleiter_data = mysql_fetch_assoc($abteilungsleiter_count);
+                                        $abteilungsleiter_data = db_fetch_assoc($abteilungsleiter_count);
                                         echo "<input type=\"text\" value=\"".htmlspecialchars($abteilungsleiter_data['vorname']." ".$abteilungsleiter_data['nachname'])."\" name=\"abteilungsleiter\" id=\"abteilungsleiter\" title=\"Abteilungsleiter\" class=\"large\" />";
                                     }else{
                                         // Es gibt mehrere Nutzer mit identischem Namen = Selectbox mit weiteren Informationen zu diesen Nutzern anzeigen
                                         // Um eventuelle gleiche Kombinationen von Vorname-Nachname nicht mehrfach zu durchlaufen, gruppieren wir unsere Anfrage
-                                        $moegl_abteilungsleiternamen = mysql_query($abteilungsleiter_sql." GROUP BY `vorname`,`nachname`");
+                                        $moegl_abteilungsleiternamen = db_query($abteilungsleiter_sql." GROUP BY `vorname`,`nachname`");
                                         // Alle möglichen Nutzer auslesen
                                         echo "<select name=\"abteilungsleiterdrop\" size=\"1\" id=\"abteilungsleiterdrop\" class=\"xlarge\">";
-                                        while ($moegl_abteilungsleitername = mysql_fetch_row($moegl_abteilungsleiternamen)){
+                                        while ($moegl_abteilungsleitername = db_fetch_row($moegl_abteilungsleiternamen)){
                                           // Alle Möglichen Kombinationen von Vor- und Nachnamen, die mit der Eingabe übereinstimmen, durchlaufen
-                                          $abteilungsleiter_mit_diesem_namen = mysql_query("SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `orte`.`orts_id` = `mitglieder`.`anschrift` WHERE `vorname` = '".$moegl_abteilungsleitername['0']."' AND `nachname` = '".$moegl_abteilungsleitername['1']."' AND `mitglieder`.`status` = 1");
-                                          while ($abteilungsleiter = mysql_fetch_assoc($abteilungsleiter_mit_diesem_namen)){
+                                          $abteilungsleiter_mit_diesem_namen = db_query("SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `orte`.`orts_id` = `mitglieder`.`anschrift` WHERE `vorname` = '".$moegl_abteilungsleitername['0']."' AND `nachname` = '".$moegl_abteilungsleitername['1']."' AND `mitglieder`.`status` = 1");
+                                          while ($abteilungsleiter = db_fetch_assoc($abteilungsleiter_mit_diesem_namen)){
                                               echo "<option value=\"".$abteilungsleiter['mitglieder_id']."\"";
                                               if ((!isset($prefill['abteilungsleiterdrop']) && $abteilungsleiter['mitglieder_id'] == $abteilung['abteilungsleiter']) || (isset($prefill['abteilungsleiterdrop']) && intval($prefill['abteilungsleiterdrop']) == $abteilungsleiter['mitglieder_id'])){
                                                 // Ist der aktuelle Schleifendurchlauf der bisherige Abteilungsleiter, diesen Eintrag vorselektieren
                                                 echo " selected=\"selected\" ";
                                               }
-                                              echo ">".htmlspecialchars($abteilungsleiter['vorname']." ".$abteilungsleiter['nachname'])." (".strftime("%d. %B %Y",strtotime($abteilungsleiter['geburtstag'])).", ".$abteilungsleiter['plz']." ".$abteilungsleiter['ort'].")</option>\n";
+                                              echo ">".htmlspecialchars($abteilungsleiter['vorname']." ".$abteilungsleiter['nachname'])." (".vs_strftime("%d. %B %Y",strtotime($abteilungsleiter['geburtstag'])).", ".$abteilungsleiter['plz']." ".$abteilungsleiter['ort'].")</option>\n";
                                           }
                                         }
                                         echo "<option value=\"new\">Andere Person</option>

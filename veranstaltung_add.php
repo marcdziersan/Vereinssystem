@@ -63,6 +63,7 @@ require_once ("inc/head.inc.php");
 			if($user['rights'] >= 3){
 			?>
 			<form id="saveform" class="formular" method="post" action="veranstaltungen_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
 				<p>
 					<label for="veranstaltungsname">Bezeichnung / Name</label>
 					<input type="text" value="<?php //Bereits eingegebene übergebene Daten werden in die Felder geschrieben
@@ -91,10 +92,10 @@ require_once ("inc/head.inc.php");
 						echo ">Neuer Ort</option>";
 						//Per Sql alle vorhandenen Veranstaltungsorte abfragen
 						$sql = "SELECT * FROM `orte` WHERE `typ` = 2 AND `status` = 1";
-						$veranstaltungsorte = mysql_query($sql);
+						$veranstaltungsorte = db_query($sql);
 						//Zählervariable
 						$first = TRUE;
-						while ($veranstaltungsort = mysql_fetch_assoc($veranstaltungsorte)) {
+						while ($veranstaltungsort = db_fetch_assoc($veranstaltungsorte)) {
 							//Veranstaltungsorte als option generieren
 							echo "<option value=\"" . $veranstaltungsort['orts_id'] . "\"";
 							//Erste Veranstaltung selektieren damit nicht new vorselektiert ist
@@ -179,11 +180,11 @@ Vorname
 <?php
 					} else {
 						//Ansonsten alle Personen mit dem gleichen Namen suchen und mit deren Daten verknüpfen
-						$sql_personen = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `vorname` = '" . mysql_real_escape_string(filter_var($data['ansprechpartner_vorname'], FILTER_SANITIZE_STRING)) . "' AND `nachname` = '" . mysql_real_escape_string(filter_var($data['ansprechpartner_nachname'], FILTER_SANITIZE_STRING)) . "'";
-						$personen_result = mysql_query($sql_personen);
+						$sql_personen = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `vorname` = '" . db_escape(vs_sanitize_text($data['ansprechpartner_vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($data['ansprechpartner_nachname'])) . "'";
+						$personen_result = db_query($sql_personen);
 						//Verfügbare Personen mit Wohnort in Selectbox schreiben
 						echo '<label for=\"ansprechpartner\">Ansprechpartner</label><select size="1" name="ansprechpartner_id" id="ansprechpartner_id" class="xlarge">';
-						while ($person = mysql_fetch_assoc($personen_result)) {
+						while ($person = db_fetch_assoc($personen_result)) {
 							echo "<option value=\"" . $person['mitglieder_id'] . "\">" . $person['vorname'] . " " . $person['nachname'] . "  (" . $person['plz'] . " " . $person['ort'] . ")" . "</option>";
 						}
 						echo "</select>";
@@ -247,7 +248,7 @@ Vorname
 							// Sonst aktuelle Zeit verwenden
 							$jetzt = time();
 						}
-						$aktuellertag = intval(strftime("%d", $jetzt));
+						$aktuellertag = intval(vs_strftime("%d", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 31 ein Auswahlfeld für den Tag erstellen
 						for ($i = 1; $i <= 31; $i++) {
 							echo "<option value=\"$i\"";
@@ -262,7 +263,7 @@ Vorname
 					.
 					<select size="1" name="startzeit_monat" id="startzeit_monat" class="small">
 						<?php
-						$aktuellermonat = intval(strftime("%m", $jetzt));
+						$aktuellermonat = intval(vs_strftime("%m", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 1; $i <= 12; $i++) {
 							echo "<option value=\"$i\"";
@@ -270,18 +271,18 @@ Vorname
 								// Ist der aktuelle Schleifendurchlauf der bisherige Monat des Geburtstags, diesen Eintrag vorselektieren
 								echo " selected=\"selected\" ";
 							}
-							echo ">" . strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
+							echo ">" . vs_strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
 						}
 						?>
 					</select>
 					.
-					<input type="text" value="<?php echo strftime("%Y", $jetzt); ?>" name="startzeit_jahr" id="startzeit_jahr" maxlength="4" class="xsmall" />
+					<input type="text" value="<?php echo vs_strftime("%Y", $jetzt); ?>" name="startzeit_jahr" id="startzeit_jahr" maxlength="4" class="xsmall" />
 				</p>
 				<p>
 					<label for="start (Uhrzeit)">Start (Uhrzeit)</label>
 					<select size="1" name="startzeit_stunde" id="startzeit_stunde" class="small">
 						<?php
-						$aktuellestunde = intval(strftime("%H", $jetzt));
+						$aktuellestunde = intval(vs_strftime("%H", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 23; $i++) {
 							echo "<option value=\"$i\"";
@@ -300,7 +301,7 @@ Vorname
 						</select> :
 						<select size="1" name="startzeit_minute" id="startzeit_minute" class="small">
 						<?php
-						$aktuelleminute = intval(strftime("%M", $jetzt));
+						$aktuelleminute = intval(vs_strftime("%M", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 60; $i++) {
 							echo "<option value=\"$i\"";
@@ -328,7 +329,7 @@ Vorname
 						} else {
 							$jetzt = time();
 						}
-						$aktuellertag = intval(strftime("%d", $jetzt));
+						$aktuellertag = intval(vs_strftime("%d", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 31 ein Auswahlfeld für den Tag erstellen
 						for ($i = 1; $i <= 31; $i++) {
 							echo "<option value=\"$i\"";
@@ -342,7 +343,7 @@ Vorname
 						</select> .
 						<select size="1" name="endzeit_monat" id="startzeit_monat" class="small">
 						<?php
-						$aktuellermonat = intval(strftime("%m", $jetzt));
+						$aktuellermonat = intval(vs_strftime("%m", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 1; $i <= 12; $i++) {
 							echo "<option value=\"$i\"";
@@ -350,17 +351,17 @@ Vorname
 								// Ist der aktuelle Schleifendurchlauf der bisherige Monat des Geburtstags, diesen Eintrag vorselektieren
 								echo " selected=\"selected\" ";
 							}
-							echo ">" . strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
+							echo ">" . vs_strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
 						}
 						?>
 						</select> .
-						<input type="text" value="<?php echo strftime("%Y", $jetzt); ?>" name="endzeit_jahr" id="endzeit_jahr" maxlength="4" class="xsmall" />
+						<input type="text" value="<?php echo vs_strftime("%Y", $jetzt); ?>" name="endzeit_jahr" id="endzeit_jahr" maxlength="4" class="xsmall" />
 						</p>
 						<p>
 						<label for="ende (Uhrzeit)">Ende (Uhrzeit)</label>
 						<select size="1" name="endzeit_stunde" id="endzeit_stunde" class="small">
 						<?php
-						$aktuellestunde = intval(strftime("%H", $jetzt));
+						$aktuellestunde = intval(vs_strftime("%H", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 23; $i++) {
 							echo "<option value=\"$i\"";
@@ -382,7 +383,7 @@ Vorname
 						</select> :
 						<select size="1" name="endzeit_minute" id="endzeit_minute" class="small">
 						<?php
-						$aktuelleminute = intval(strftime("%M", $jetzt));
+						$aktuelleminute = intval(vs_strftime("%M", $jetzt));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 60; $i++) {
 							echo "<option value=\"$i\"";

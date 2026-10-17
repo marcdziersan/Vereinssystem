@@ -27,10 +27,10 @@ require_once("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `orte` WHERE `orts_id` = ".intval($_GET['id'])." AND `status` = '1' ";
-            $ort_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($ort_result) == 1){
-                $ort = mysql_fetch_assoc($ort_result);
+            $ort_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($ort_result) == 1){
+                $ort = db_fetch_assoc($ort_result);
                 ?>
             		<div class="boxsystem33">
             		  <div class="leftbox">
@@ -62,6 +62,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                           <form id="deleteform" class="formular" method="post" action="ort_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   Möchten Sie folgenden Ort wirklich löschen?
                               </p>

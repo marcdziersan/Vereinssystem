@@ -11,16 +11,16 @@ $orange = imagecolorallocate($bild, 255, 128, 0);
 //$orange = imagecolorallocate($bild, 255, 136, 0);
 
 if(isset($_GET['value'])){
-      // Orange füllen
+      // Orange fÃ¼llen
       imagefilledrectangle($bild, 2, 2, 201, 27, $orange);
-      // Es wurde ein Value übergeben; ungültige Werte filtern
+      // Es wurde ein Value Ã¼bergeben; ungÃ¼ltige Werte filtern
       if($_GET['value'] > 0){
       	if($_GET['value'] > 100){
       		$value = 100;
       	}else{
       		$value = $_GET['value'];
       	}
-        // Grünen Balkenteil einfügen
+        // GrÃ¼nen Balkenteil einfÃ¼gen
       	imagefilledrectangle($bild, 2, 2, 1+(2*$value), 27, $gruen);
       }else{
       	$value = 0;

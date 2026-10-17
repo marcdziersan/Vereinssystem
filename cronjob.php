@@ -5,6 +5,12 @@
 // Datenbankverbindung & Kodierung einbinden
 require_once ("inc/connect.inc.php");
 
+// Nur CLI-Cron oder eingeloggter Administrator darf diesen Job aufrufen.
+if (PHP_SAPI !== 'cli') {
+    require_once __DIR__.'/inc/checkuser.inc.php';
+    if ((int)$user['rights'] < 5) { http_response_code(403); exit('Kein Zugriff.'); }
+}
+
 // Output-Buffer starten
 ob_start();
 echo "Ausführung startet ".date("r")."<br />\n";
@@ -36,20 +42,20 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
     //                      - innerhalb der letzten 11 Monate keine birthday-mail erhalten haben
     //                      - keine E-Mail-Adresse haben und in 3 Tagen oder weniger Geburtstag haben
     //                      - eine E-Mail-Adresse haben und am heutigen Tag Geburtstag haben
-    $members = mysql_query($sql);
-    echo mysql_error();
-    if (mysql_num_rows($members) == 0){
+    $members = db_query($sql);
+    echo db_error();
+    if (db_num_rows($members) == 0){
       echo "Keine Geburtstage anstehend";
     }else{
       // Ergebnisse der DB Abfrage durchlaufen
-      while ($member = mysql_fetch_assoc($members)){
+      while ($member = db_fetch_assoc($members)){
         if (empty($member['email']) || filter_var($member['email'], FILTER_VALIDATE_EMAIL) === false) {
           // Aktuelles Mitglied hat keine E-Mail oder die E-Mail ist ungültig = Meldung an Vereinsleitung, einen Brief zu senden
           // Array mit dem Mitgliedsdaten der Datenbankanfrage und dem zusatz des Grundes in das Brief-Array schreiben
           $member["why"] = "geburtstag";
           $brief[] = $member;
           // In die DB schreiben, dass dieses Mitglied eine E-Mail bekommen hat
-          mysql_query("UPDATE `mitglieder` SET `lastbirthdaymail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
+          db_query("UPDATE `mitglieder` SET `lastbirthdaymail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
         }else{
             // Das Mitglied hat eine eigene, gültige E-Mail
     		$betreff = "Alles Gute zum Geburtstag";
@@ -85,7 +91,7 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
             if (mail($member['email'], $betreff, $mailtext, $header)){
               echo "Erfolgreich Geburtstagsgrüße versendet an ".$member['vorname']." ".$member['nachname']."<br />\n";
               // In die DB schreiben, dass dieses Mitglied eine E-Mail bekommen hat
-              mysql_query("UPDATE `mitglieder` SET `lastbirthdaymail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
+              db_query("UPDATE `mitglieder` SET `lastbirthdaymail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
             }else{
               echo "Fehler beim Senden der Geburtstagsgrüße an ".$member['vorname']." ".$member['nachname']."<br />\n";
             }
@@ -107,20 +113,20 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
     //                      - keine E-Mail-Adresse haben und in 3 Tagen oder weniger Jubiläum haben
     //                      - eine E-Mail-Adresse haben und am heutigen Tag Jubiläum haben
     //                      - ein "rundes" Jubiläum haben, also 5 Jahre, 10 Jahre, 15 Jahre, ...
-    $members = mysql_query($sql);
-    echo mysql_error();
-    if (mysql_num_rows($members) == 0){
+    $members = db_query($sql);
+    echo db_error();
+    if (db_num_rows($members) == 0){
       echo "Keine Jubiläen anstehend<br />\n";
     }else{
       // Ergebnisse der DB Abfrage durchlaufen
-      while ($member = mysql_fetch_assoc($members)){
+      while ($member = db_fetch_assoc($members)){
         if (empty($member['email']) || filter_var($member['email'], FILTER_VALIDATE_EMAIL) === false) {
           // Aktuelles Mitglied hat keine E-Mail oder die E-Mail ist ungültig = Meldung an Vereinsleitung, einen Brief zu senden
           // Array mit dem Mitgliedsdaten der Datenbankanfrage und dem zusatz des Grundes in das Brief-Array schreiben
           $member["why"] = "jubilaeum";
           $brief[] = $member;
           // In die DB schreiben, dass dieses Mitglied eine E-Mail bekommen hat
-          mysql_query("UPDATE `mitglieder` SET `lastjubileemail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
+          db_query("UPDATE `mitglieder` SET `lastjubileemail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
         }else{
             // Das Mitglied hat eine eigene, gültige E-Mail
     		$betreff = $member['jahre']." Jahre Vereinsmitgliedschaft";
@@ -156,7 +162,7 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
             if (mail($member['email'], $betreff, $mailtext, $header)){
               echo "Jubiläumgsrüße Erfolgreich versendet an ".$member['vorname']." ".$member['nachname']."<br />\n";
               // In die DB schreiben, dass dieses Mitglied eine E-Mail bekommen hat
-              mysql_query("UPDATE `mitglieder` SET `lastjubileemail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
+              db_query("UPDATE `mitglieder` SET `lastjubileemail`  = '".time()."' WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."' ");
             }else{
               echo "Fehler beim Senden der Jubiläumgsrüße an ".$member['vorname']." ".$member['nachname']."<br />\n";
             }
@@ -202,8 +208,8 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
               LEFT JOIN `dienste` ON `dienste`.`person` = `mitglieder`.`mitglieder_id`
               WHERE `status` = 1 AND `startzeit` > ".mktime(0,0,0,1,1,date("Y"))." AND `startzeit` < ".mktime(23,59,59,12,31,date("Y"))."
               GROUP BY `mitglieder_id`";
-      $dienst_ergebnisse = mysql_query($sql);
-      while ($member = mysql_fetch_assoc($dienst_ergebnisse)){
+      $dienst_ergebnisse = db_query($sql);
+      while ($member = db_fetch_assoc($dienst_ergebnisse)){
         // Alle Mitglieder durchlaufen
         $geleisteter_dienst = $member['standdienste'];
         if ($member['kuchenzahl'] > 0){
@@ -226,21 +232,21 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
         if ($geleisteter_dienst < $zuleistende_arbeit){
             // Mitglied hat nicht genug gearbeitet
             echo $member['vorname']." ".$member['nachname']." hat ".($zuleistende_arbeit-$geleisteter_dienst)." Dienste zu wenig gemacht<br />\n";
-            $sql_dienstelastyears = mysql_query("UPDATE `mitglieder` SET `dienste_lastyears` = ".intval($zuleistende_arbeit-$geleisteter_dienst)." WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."'");
+            $sql_dienstelastyears = db_query("UPDATE `mitglieder` SET `dienste_lastyears` = ".intval($zuleistende_arbeit-$geleisteter_dienst)." WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."'");
         }elseif($member['dienste_lastyears'] > 0){
             // Das Mitglied hat genug gearbeitet, in der DB stehen jedoch noch Dienste vom letzten Jahr, dann diese jetzt entfernen (sie wurden ja abgeleistet)
             echo $member['vorname']." ".$member['nachname']." hat den Übertrag der Vorjahre komplett abgearbeitet<br />\n";
-            $sql_dienstelastyears = mysql_query("UPDATE `mitglieder` SET `dienste_lastyears` = 0 WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."'");
+            $sql_dienstelastyears = db_query("UPDATE `mitglieder` SET `dienste_lastyears` = 0 WHERE `mitglieder`.`mitglieder_id` = '".$member['mitglieder_id']."'");
         }
       }
-      mysql_query("UPDATE `einstellungen` SET `value`  = '".time()."' WHERE `einstellungen`.`name` = 'last_diensteabrechnung'");
+      db_query("UPDATE `einstellungen` SET `value`  = '".time()."' WHERE `einstellungen`.`name` = 'last_diensteabrechnung'");
     }
     echo "Ausführung Ende ".date("r")."<br />\n";
     // Output-Buffer Inhalt in Variable schreiben
     $ausgabe = ob_get_contents();
     // In die DB schreiben, dass der Cronjob ausgeführt wurde
-    mysql_query("UPDATE `einstellungen` SET `value`  = '".time()."' WHERE `einstellungen`.`name` = 'lastcronrun'");
-    mysql_query("UPDATE `einstellungen` SET `value`  = '".mysql_real_escape_string($ausgabe)."' WHERE `einstellungen`.`name` = 'lastcronoutput'");
+    db_query("UPDATE `einstellungen` SET `value`  = '".time()."' WHERE `einstellungen`.`name` = 'lastcronrun'");
+    db_query("UPDATE `einstellungen` SET `value`  = '".db_escape($ausgabe)."' WHERE `einstellungen`.`name` = 'lastcronoutput'");
 
 }else{
   echo "Cronjob wurde heute bereits ausgeführt";

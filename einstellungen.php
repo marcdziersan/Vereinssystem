@@ -63,10 +63,11 @@ require_once("inc/head.inc.php");
                           }
                           // Daten der Vereinsanschrift auslesen
                           $sql = "SELECT * FROM `orte` WHERE `orte`.`orts_id` = '".$settings['vereinsanschrift']."'";
-                          $ort_result = mysql_query($sql);
-                          $ort = mysql_fetch_assoc($ort_result);
+                          $ort_result = db_query($sql);
+                          $ort = db_fetch_assoc($ort_result);
                           ?>
                           <form id="editform" class="formular" method="post" action="einstellungen_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                               <p>
                                   <label for="vereinsname">Vereinsname</label>
                                   <input type="text" value="<?php
@@ -237,9 +238,9 @@ require_once("inc/head.inc.php");
                       </div>
             		  <div class="rightbox">
                        <h2>Systemstatus</h2>
-                       <p>Letzter Cronjob-Durchlauf:<br /><?php echo strftime("%d. %B %Y, %H:%M",$settings['lastcronrun']);?></p>
+                       <p>Letzter Cronjob-Durchlauf:<br /><?php echo vs_strftime("%d. %B %Y, %H:%M",$settings['lastcronrun']);?></p>
                        <p>Letzte Cronjob-Ausgabe:<br /><i><?php echo ($settings['lastcronoutput']);?></i></p>
-                       <p>Letzte Diensteabrechnung:<br /><i><?php echo strftime("%d. %B %Y, %H:%M",$settings['last_diensteabrechnung']);?></i></p>
+                       <p>Letzte Diensteabrechnung:<br /><i><?php echo vs_strftime("%d. %B %Y, %H:%M",$settings['last_diensteabrechnung']);?></i></p>
             		  </div>
             		</div>
     		<div class="clearit">&nbsp;</div>

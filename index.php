@@ -20,7 +20,7 @@ require_once("inc/head.inc.php");
                     // Ist dies der erste Login, kann kein letzter Besuch angezeigt werden
                     echo "Herzlich Willkommen, Sie haben sich erfolgreich angemeldet.<br />Dies ist ihr erster Besuch!";
                 } else {
-                    echo "Willkommen zurück, Sie haben sich erfolgreich angemeldet.<br />Ihr letzter Besuch war am " . strftime("%A, dem %d. %B %Y, um %H:%M", $user['lastlogintime']) . " Uhr.";
+                    echo "Willkommen zurück, Sie haben sich erfolgreich angemeldet.<br />Ihr letzter Besuch war am " . vs_strftime("%A, dem %d. %B %Y, um %H:%M", $user['lastlogintime']) . " Uhr.";
                 }
                 echo "</p></div>";
                 // Session-Variable auf false setzen, um zu kennzeichnen, dass der Nutzer nicht mehr frisch eingeloggt ist
@@ -28,15 +28,15 @@ require_once("inc/head.inc.php");
             }
             // Kommende Dienste des Nutzers auslesen
             $sql_nextdienst = "SELECT `veranstaltungen`.*,`dienste`.`stand`,`dienste`.`dienstart`,MIN(`dienste`.`startzeit`) as anfang,MAX(`dienste`.`endzeit`) as ende, COUNT(`dienst_id`) as dienstzahl FROM `dienste` LEFT JOIN `veranstaltungen` ON `veranstaltungen`.`veranstaltungs_id` = `dienste`.`event` WHERE `dienste`.`person` = " . $user['mitglieder_id'] . " AND `dienste`.`startzeit` > UNIX_TIMESTAMP() GROUP BY `dienste`.`stand` ORDER BY `dienste`.`startzeit` ASC, `dienste`.`endzeit` ASC LIMIT 0,2";
-            $nextdienste_result = mysql_query($sql_nextdienst);
-            if (mysql_num_rows($nextdienste_result) > 0) {
+            $nextdienste_result = db_query($sql_nextdienst);
+            if (db_num_rows($nextdienste_result) > 0) {
                 echo "<div class=\"message information\"><p>Ihr";
-                if (mysql_num_rows($nextdienste_result) == 1) {
+                if (db_num_rows($nextdienste_result) == 1) {
                     echo " nächster Dienst bei einer Veranstaltung ist:</p>";
                 } else {
                     echo "e nächsten Dienste bei Veranstaltungen sind:</p>";
                 }
-                while ($dienst = mysql_fetch_assoc($nextdienste_result)) {
+                while ($dienst = db_fetch_assoc($nextdienste_result)) {
                     echo "<p>";
                     if ($dienst['dienstart'] > 0) {
                         echo "<b>" . $dienst['dienstart'] . " Kuchen mitbringen</b> bei <a href=\"veranstaltung_show.php?id=" . $dienst['veranstaltungs_id'] . "\" title=\"Veranstaltung anzeigen\">" . $dienst['veranstaltungsname'] . "</a> am " . date("d.m.Y", $dienst['startzeit']);
@@ -76,7 +76,7 @@ require_once("inc/head.inc.php");
             }
             //Alle Dienste der betroffenen Person raussuchen
             /* $sql_dienste = "SELECT * FROM `dienste` WHERE `person` = ".$user['mitglieder_id'];
-              $dienste_result = mysql_query($sql_dienste);
+              $dienste_result = db_query($sql_dienste);
               //Dienstzähler zurücksetzen
               $kuchen_jahr = 0;
               $kuchen = 0;
@@ -86,8 +86,8 @@ require_once("inc/head.inc.php");
               $i = 0;
               $kommend = FALSE;
               //Wurden Dienste gefunde?
-              if($dienste_result != FALSE and mysql_num_rows($dienste_result) != 0){
-              while($dienst = mysql_fetch_assoc($dienste_result)){
+              if($dienste_result != FALSE and db_num_rows($dienste_result) != 0){
+              while($dienst = db_fetch_assoc($dienste_result)){
               //Nächsten Dienst herraussuchen
               //Nur kommende Dienste durchsuchen
               if($dienst['startzeit'] - time() > 0){
@@ -116,9 +116,9 @@ require_once("inc/head.inc.php");
               }
               if($kommend != FALSE){
               $sql_veranstaltung = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".$kommend['event'];
-              $veranstaltung_result = mysql_query($sql_veranstaltung);
-              if($veranstaltung_result != FALSE and mysql_num_rows($veranstaltung_result) != 0){
-              $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+              $veranstaltung_result = db_query($sql_veranstaltung);
+              if($veranstaltung_result != FALSE and db_num_rows($veranstaltung_result) != 0){
+              $veranstaltung = db_fetch_assoc($veranstaltung_result);
               if (date("d.n.Y", $kommend["startzeit"]) == date("d.n.Y", $kommend["endzeit"])) {
               $termin = date("d.n.Y", $kommend["startzeit"]) . "<br />Von " . date("H:i", $kommend["startzeit"]) . " bis " . date("H:i", $kommend["endzeit"]);
               } else {
@@ -160,11 +160,11 @@ require_once("inc/head.inc.php");
             <h2>Letzte Nachrichten</h2>
             <?php
             $sql = "SELECT * FROM `news` LEFT JOIN `mitglieder` ON `news`.`author` = `mitglieder`.`mitglieder_id` WHERE `news`.`status` = 1 AND (`minright` <= '" . $user['rights'] . "' OR `author` = '" . $user['mitglieder_id'] . "') ORDER BY `lastchange` DESC, `created` DESC LIMIT 0,3";
-            $nachrichten = mysql_query($sql);
-            if (mysql_num_rows($nachrichten) == 0) {
+            $nachrichten = db_query($sql);
+            if (db_num_rows($nachrichten) == 0) {
                 echo "<p>Es wurden keine Nachrichten gefunden!</p>";
             } else {
-                while ($nachricht = mysql_fetch_assoc($nachrichten)) {
+                while ($nachricht = db_fetch_assoc($nachrichten)) {
                     echo "<h3 class=\"clearit\">" . $nachricht['title'] . "</h3>\n
                             <p>" . substr(strip_tags($nachricht['content']), 0, 165) . "... <a class=\"floatright\" href=\"news_show.php?id=" . $nachricht['news_id'] . "\" title=\"Nachricht komplett anzeigen\">Weiterlesen</a></p>";
                 }

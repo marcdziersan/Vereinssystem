@@ -23,10 +23,10 @@ require_once("inc/head.inc.php");
               $sql .= " FROM `orte` ";
             }
             $sql .= "WHERE `orts_id` = ".intval($_GET['id'])." AND `orte`.`status` = '1' ";
-            $ort_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($ort_result) == 1){
-                $ort = mysql_fetch_assoc($ort_result);
+            $ort_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($ort_result) == 1){
+                $ort = db_fetch_assoc($ort_result);
                 // Hat der Nutzer die erforderlichen Rechte?
                 if ($user['rights'] <= 2 && $ort['typ'] == 2 || $user['anschrift'] == $ort['orts_id'] || $settings['vereinsanschrift'] == $ort['orts_id'] || $user['rights'] >= 3){
                 ?>
@@ -88,11 +88,11 @@ require_once("inc/head.inc.php");
                                 <td class="firstcolumn">Verknüpfungen</td>
                                 <td>
                                     <?php
-                                      $connections_members_result = mysql_query("SELECT COUNT(*) as count FROM `mitglieder` WHERE `anschrift` = '".$ort['orts_id']."'");
-                                      $connections_members = mysql_fetch_assoc($connections_members_result);
+                                      $connections_members_result = db_query("SELECT COUNT(*) as count FROM `mitglieder` WHERE `anschrift` = '".$ort['orts_id']."'");
+                                      $connections_members = db_fetch_assoc($connections_members_result);
                                       echo "Mitglieder, die hier wohnen: ".$connections_members['count']."<br />";
-                                      $connections_events_result = mysql_query("SELECT COUNT(*) as count FROM `veranstaltungen` WHERE `ort` = '".$ort['orts_id']."'");
-                                      $connections_events = mysql_fetch_assoc($connections_events_result);
+                                      $connections_events_result = db_query("SELECT COUNT(*) as count FROM `veranstaltungen` WHERE `ort` = '".$ort['orts_id']."'");
+                                      $connections_events = db_fetch_assoc($connections_events_result);
                                       echo "Veranstaltungen, die hier stattfanden/finden: ".$connections_events['count'];
                                       ?></td>
                             </tr>

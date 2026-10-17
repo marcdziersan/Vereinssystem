@@ -52,6 +52,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                       <form id="addform" class="formular" method="post" action="news_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                           <p>
                               <label for="title">Titel</label>
                               <input type="text" value="<?php if (isset($prefill['title'])){echo htmlspecialchars($prefill['title']);}?>" name="title" title="Titel" id="title" class="xlarge" />

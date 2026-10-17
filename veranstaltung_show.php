@@ -16,11 +16,11 @@ require_once ("inc/head.inc.php");
 if (isset($_GET['id'])){
 	//Wenn es die ID gibt, Veranstaltungen mit zugehörigen Daten aus der DB abrufen
 $sql = "SELECT * FROM `veranstaltungen` LEFT JOIN `mitglieder` ON `veranstaltungen`.`ansprechpartner` = `mitglieder`.`mitglieder_id` LEFT JOIN `orte` ON `veranstaltungen`.`ort` = `orte`.`orts_id`  WHERE `veranstaltungs_id` = ".intval($_GET['id']);
-	$veranstaltung_result = mysql_query($sql);
-    echo mysql_error();
+	$veranstaltung_result = db_query($sql);
+    echo db_error();
 	//Nur fortfahren wenn genau eine Veranstaltung gefunden wurde
-    if (mysql_num_rows($veranstaltung_result) == 1){
-        $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+    if (db_num_rows($veranstaltung_result) == 1){
+        $veranstaltung = db_fetch_assoc($veranstaltung_result);
 		echo "<h2>".$veranstaltung['veranstaltungsname']."</h2>";
 			//Falls es austehende Meldungen gibt, diese Anzeigen
 			if (isset($_GET['created'])){
@@ -74,11 +74,11 @@ $sql = "SELECT * FROM `veranstaltungen` LEFT JOIN `mitglieder` ON `veranstaltung
                                 //Wenn geforderte Zeitdienste in der DB eingetragen sind, diese auslesen und anzeigen
                                 if($veranstaltung['mindienste'] > 0){
 	                                $sql_dienste = "SELECT * FROM `dienste` WHERE `dienstart` = 0 AND `event` = ".intval($_GET['id']);
-									$dienste_result = mysql_query($sql_dienste);
+									$dienste_result = db_query($sql_dienste);
 									$diensteprozent = (($veranstaltung['endzeit']-$veranstaltung['startzeit'])/60/30)*$veranstaltung['mindienste']/100;
 									if($dienste_result != FALSE){
 										//Prozentanzeige der erfüllten Zeitdienste einer Veranstlatung
-	   									$eingetragen = round(mysql_num_rows($dienste_result)/$diensteprozent);
+	   									$eingetragen = round(db_num_rows($dienste_result)/$diensteprozent);
 	   									if($eingetragen > 100){
 	   										$eingetragen = 100;
 	   									}
@@ -90,10 +90,10 @@ $sql = "SELECT * FROM `veranstaltungen` LEFT JOIN `mitglieder` ON `veranstaltung
 								}
 								//Kuchen werden abgerufen auch wenn keine benötigten Kuchen eingetragen waren
 								$sql_kuchen = "SELECT * FROM `dienste` LEFT JOIN `mitglieder` ON `dienste`.`person` = `mitglieder`.`mitglieder_id` WHERE `dienstart` > 0 AND `event` = ".intval($_GET['id'])." ORDER BY `erstellt` DESC";
-								$kuchen_result = mysql_query($sql_kuchen);
+								$kuchen_result = db_query($sql_kuchen);
 								$kuchen = 0;
-								if($kuchen_result != FALSE and mysql_num_rows($kuchen_result) != 0){
-									while($kuchendienst = mysql_fetch_assoc($kuchen_result)){
+								if($kuchen_result != FALSE and db_num_rows($kuchen_result) != 0){
+									while($kuchendienst = db_fetch_assoc($kuchen_result)){
 										$kuchen += $kuchendienst['dienstart'];
 									}
 								}
@@ -111,9 +111,9 @@ $sql = "SELECT * FROM `veranstaltungen` LEFT JOIN `mitglieder` ON `veranstaltung
 								//Falls Kuchen eingetragen waren, eine Liste derer Ausgeben, die diese mitbringen
 								if($kuchen > 0){
 									echo "<p><b>Kuchenliste:</b></p><p>";
-									mysql_data_seek($kuchen_result,0);
+									db_data_seek($kuchen_result,0);
 									$i = 0;
-									while($kuchendienst = mysql_fetch_assoc($kuchen_result)){
+									while($kuchendienst = db_fetch_assoc($kuchen_result)){
 										if($i != 0){
 											echo "<br />\n";
 										}

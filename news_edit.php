@@ -30,10 +30,10 @@ require_once("inc/head.inc.php");
         <?php
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `news` WHERE `news_id` = ".intval($_GET['id'])." AND `status` = '1' ";
-            $news_result = mysql_query($sql);
-            //echo mysql_error();
-            if (mysql_num_rows($news_result) == 1){
-                $nachricht = mysql_fetch_assoc($news_result);
+            $news_result = db_query($sql);
+            //echo db_error();
+            if (db_num_rows($news_result) == 1){
+                $nachricht = db_fetch_assoc($news_result);
                 // Hat der Nutzer die erforderlichen Rechte?
                 if ($user['rights'] >= 4 || $nachricht['author'] == $user['mitglieder_id']){
                 ?>
@@ -72,6 +72,7 @@ require_once("inc/head.inc.php");
                           }
                           ?>
                       <form id="editform" class="formular" method="post" action="news_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
                           <p>
                               <label for="title">Titel</label>
                               <input type="text" value="<?php

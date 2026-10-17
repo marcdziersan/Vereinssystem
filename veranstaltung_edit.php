@@ -44,12 +44,12 @@ if (isset($_GET['id'])){
 // Falls ID übergeben wurde, Daten dieser Veranstaltung abrufen
 $sql = "SELECT * FROM `veranstaltungen` LEFT JOIN `mitglieder` ON `veranstaltungen`.`ansprechpartner` = `mitglieder`.`mitglieder_id` WHERE `veranstaltungs_id` = ".intval($_GET['id']);
 
-$veranstaltung_result = mysql_query($sql);
+$veranstaltung_result = db_query($sql);
 
-//echo mysql_error();
+//echo db_error();
 //Nur Fortfahren wenn die Abfrage genau ein Resultat hatte
-if (mysql_num_rows($veranstaltung_result) == 1){
-$veranstaltung = mysql_fetch_assoc($veranstaltung_result);
+if (db_num_rows($veranstaltung_result) == 1){
+$veranstaltung = db_fetch_assoc($veranstaltung_result);
 	?>
 		<div class="boxsystem33">
 		<div class="leftbox">
@@ -87,6 +87,7 @@ $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
 			}
 			?>
 			<form id="editform" class="formular" method="post" action="veranstaltungen_process.php" accept-charset="utf-8">
+<input type="hidden" name="vs_csrf" value="<?php echo htmlspecialchars($_SESSION['vs_csrf'], ENT_QUOTES); ?>" />
 				<p>
 					<label for="veranstaltungsname">Bezeichnung / Name</label>
 					<input type="text" value="<?php //Per SQL ermittelte Daten in die edit felder schreiben
@@ -104,8 +105,8 @@ $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
 						<?php
 						//Alle Veranstaltungsorte abrufen und in select feld als option einfügen
 						$sql = "SELECT * FROM `orte` WHERE `typ` = 2 AND `status` = 1";
-						$veranstaltungsorte = mysql_query($sql);
-						while ($veranstaltungsort = mysql_fetch_assoc($veranstaltungsorte)) {
+						$veranstaltungsorte = db_query($sql);
+						while ($veranstaltungsort = db_fetch_assoc($veranstaltungsorte)) {
 							echo "<option value=\"" . $veranstaltungsort['orts_id'] . "\"";
 							if ($veranstaltungsort['orts_id'] == $veranstaltung["ort"]) {
 								// Ist der aktuelle Ort des Schleifendurchlaufs der Veranstaltungsort der Veranstaltung, diesen vorselektieren
@@ -154,10 +155,10 @@ $veranstaltung = mysql_fetch_assoc($veranstaltung_result);
 					<?php
 					//Alle Personen mit übergebenen Namen abfragen
 					$sql_personen = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `vorname` = '" . $veranstaltung['vorname'] . "' AND `nachname` = '" . $veranstaltung['nachname'] . "'";
-					$personen_result = mysql_query($sql_personen);
+					$personen_result = db_query($sql_personen);
 
 					//Falls kein doppelter Name übergeben wurde und es auch nur einen SQL Treffer gibt diesen in Textbox eintragen
-					if (empty($_GET['vorname']) and mysql_num_rows($personen_result) <= 1) {
+					if (empty($_GET['vorname']) and db_num_rows($personen_result) <= 1) {
 						echo "
 <label for=\"ansprechpartner_vorname\">Ansprechpartner</label>
 Vorname
@@ -167,10 +168,10 @@ Vorname
 ";
 					} elseif (!empty($_GET['vorname'])) {
 						//Falls es einen übergebenen Doppelnamen gibt, diese Möglichkeiten in Selectbox schreiben
-						$sql_personen = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `vorname` = '" . mysql_real_escape_string(filter_var($_GET['vorname'], FILTER_SANITIZE_STRING)) . "' AND `nachname` = '" . mysql_real_escape_string(filter_var($_GET['nachname'], FILTER_SANITIZE_STRING)) . "'";
-						$personen_result = mysql_query($sql_personen);
+						$sql_personen = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `vorname` = '" . db_escape(vs_sanitize_text($_GET['vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($_GET['nachname'])) . "'";
+						$personen_result = db_query($sql_personen);
 						echo '<label for="ansprechpartner"><b>Ansprechpartner</b></label><select size="1" name="ansprechpartner_id" id="ansprechpartner_id" class="xlarge">';
-						while ($person = mysql_fetch_assoc($personen_result)) {
+						while ($person = db_fetch_assoc($personen_result)) {
 							echo "<option value=\"" . $person['mitglieder_id'] . "\">" . $person['vorname'] . " " . $person['nachname'] . "  (" . $person['plz'] . " " . $person['ort'] . ")" . "</option>";
 						}
 						echo "</select></p>";
@@ -178,7 +179,7 @@ Vorname
 						//Falls es keinen übergebenen Doppelnamen aber mehrere SQL Treffer gibt, diese in Selectbox eintragen und aktuelle Person vorselektieren
 						echo '<label for="ansprechpartner_id">Ansprechpartner</label><select size="1" name="ansprechpartner_id" id="ansprechpartner_id" class="xlarge">';
 						echo '<option value="other">Anderer User</option>';
-						while ($person = mysql_fetch_assoc($personen_result)) {
+						while ($person = db_fetch_assoc($personen_result)) {
 							echo "<option value=\"" . $person['mitglieder_id'] . "\" ";
 							if ($person['mitglieder_id'] == $veranstaltung['mitglieder_id']) {echo "selected=\"selected\"";
 							}
@@ -233,7 +234,7 @@ Vorname
 					<label for="startzeit_tag">Start (Datum)</label>
 					<select size="1" name="startzeit_tag" id="startzeit_tag" class="small">
 						<?php
-						$aktuellertag = intval(strftime("%d", $veranstaltung['startzeit']));
+						$aktuellertag = intval(vs_strftime("%d", $veranstaltung['startzeit']));
 						// Mittels einer For-Schleife von 1 bis 31 ein Auswahlfeld für den Tag erstellen
 						for ($i = 1; $i <= 31; $i++) {
 							echo "<option value=\"$i\"";
@@ -248,7 +249,7 @@ Vorname
 					.
 					<select size="1" name="startzeit_monat" id="startzeit_monat" class="small">
 						<?php
-						$aktuellermonat = intval(strftime("%m", $veranstaltung['startzeit']));
+						$aktuellermonat = intval(vs_strftime("%m", $veranstaltung['startzeit']));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 1; $i <= 12; $i++) {
 							echo "<option value=\"$i\"";
@@ -256,18 +257,18 @@ Vorname
 								// Ist der aktuelle Schleifendurchlauf der bisherige Monat des Geburtstags, diesen Eintrag vorselektieren
 								echo " selected=\"selected\" ";
 							}
-							echo ">" . strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
+							echo ">" . vs_strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
 						}
 						?>
 					</select>
 					.
-					<input type="text" value="<?php echo strftime("%Y", $veranstaltung['startzeit']); ?>" name="startzeit_jahr" id="startzeit_jahr" maxlength="4" class="xsmall" />
+					<input type="text" value="<?php echo vs_strftime("%Y", $veranstaltung['startzeit']); ?>" name="startzeit_jahr" id="startzeit_jahr" maxlength="4" class="xsmall" />
 				</p>
 				<p>
 					<label for="startzeit_stunde">Start (Uhrzeit)</label>
 					<select size="1" name="startzeit_stunde" id="startzeit_stunde" class="small">
 						<?php
-						$aktuellestunde = intval(strftime("%H", $veranstaltung['startzeit']));
+						$aktuellestunde = intval(vs_strftime("%H", $veranstaltung['startzeit']));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 23; $i++) {
 							echo "<option value=\"$i\"";
@@ -286,7 +287,7 @@ Vorname
 						</select> :
 						<select size="1" name="startzeit_minute" id="startzeit_minute" class="small">
 						<?php
-						$aktuelleminute = intval(strftime("%M", $veranstaltung['startzeit']));
+						$aktuelleminute = intval(vs_strftime("%M", $veranstaltung['startzeit']));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 60; $i++) {
 							echo "<option value=\"$i\"";
@@ -308,7 +309,7 @@ Vorname
 						<label for="endzeit_tag">Ende (Datum)</label>
 						<select size="1" name="endzeit_tag" id="endzeit_tag" class="small">
 						<?php
-						$aktuellertag = intval(strftime("%d", $veranstaltung['endzeit']));
+						$aktuellertag = intval(vs_strftime("%d", $veranstaltung['endzeit']));
 						// Mittels einer For-Schleife von 1 bis 31 ein Auswahlfeld für den Tag erstellen
 						for ($i = 1; $i <= 31; $i++) {
 							echo "<option value=\"$i\"";
@@ -322,7 +323,7 @@ Vorname
 						</select> .
 						<select size="1" name="endzeit_monat" id="endzeit_monat" class="small">
 						<?php
-						$aktuellermonat = intval(strftime("%m", $veranstaltung['endzeit']));
+						$aktuellermonat = intval(vs_strftime("%m", $veranstaltung['endzeit']));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 1; $i <= 12; $i++) {
 							echo "<option value=\"$i\"";
@@ -330,17 +331,17 @@ Vorname
 								// Ist der aktuelle Schleifendurchlauf der bisherige Monat des Geburtstags, diesen Eintrag vorselektieren
 								echo " selected=\"selected\" ";
 							}
-							echo ">" . strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
+							echo ">" . vs_strftime("%B", mktime(0, 0, 0, $i)) . "</option>\n";
 						}
 						?>
 						</select> .
-						<input type="text" value="<?php echo strftime("%Y", $veranstaltung['endzeit']); ?>" name="endzeit_jahr" id="endzeit_jahr" maxlength="4" class="xsmall" />
+						<input type="text" value="<?php echo vs_strftime("%Y", $veranstaltung['endzeit']); ?>" name="endzeit_jahr" id="endzeit_jahr" maxlength="4" class="xsmall" />
 						</p>
 						<p>
 						<label for="endzeit_stunde">Ende (Uhrzeit)</label>
 						<select size="1" name="endzeit_stunde" id="endzeit_stunde" class="small">
 						<?php
-						$aktuellestunde = intval(strftime("%H", $veranstaltung['endzeit']));
+						$aktuellestunde = intval(vs_strftime("%H", $veranstaltung['endzeit']));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 23; $i++) {
 							echo "<option value=\"$i\"";
@@ -359,7 +360,7 @@ Vorname
 						</select> :
 						<select size="1" name="endzeit_minute" id="endzeit_minute" class="small">
 						<?php
-						$aktuelleminute = intval(strftime("%M", $veranstaltung['endzeit']));
+						$aktuelleminute = intval(vs_strftime("%M", $veranstaltung['endzeit']));
 						// Mittels einer For-Schleife von 1 bis 12 ein Auswahlfeld für den Monat erstellen
 						for ($i = 0; $i <= 60; $i++) {
 							echo "<option value=\"$i\"";
