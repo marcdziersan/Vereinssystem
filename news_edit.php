@@ -86,9 +86,9 @@ require_once("inc/head.inc.php");
                               <label for="inhalt">Inhalt</label>
                                   <textarea name="content" id="inhalt" class="xlarge" rows="15" cols="20"><?php
                                   if (isset($prefill['content'])){
-                                    echo $prefill['content'];
+                                    echo htmlspecialchars((string)$prefill['content'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                   }else{
-                                    echo $nachricht['content'];
+                                    echo htmlspecialchars((string)$nachricht['content'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                                   }?></textarea>
                           </p>
                           <p>

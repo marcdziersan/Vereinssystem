@@ -1,5 +1,27 @@
 # Vereinssystem – Änderungsprotokoll
 
+## 2.3.1 – 18.10.2026
+
+### Behoben
+- Interne Versionsanzeige berichtete fälschlich 2.1.0 statt des aktuellen Stands.
+- Unsicheres Rückgängigmachen von SQL-Escaping in historischen Veranstaltungsabfragen entfernt.
+- In historischen Nachrichten unerlaubte HTML-Attribute, Script- und Eventhandler-Ausführung unterbunden.
+- SQL-Debugausgabe auf der Nachrichtenübersicht entfernt; Datenbankfehler des Cronjobs werden ins Serverlog geschrieben.
+- Dashboard mit fehlender Kuchenleistungs-Konfiguration stürzt nicht mehr wegen Division durch null ab.
+- Alte Seitennavigation ist auch mit ungünstigem `page`-Parameter definiert.
+- Cronjob im Browser startet nur noch per ausdrücklichem Admin-POST; planmäßiger CLI-Cron bleibt ausführbar.
+
+### Geändert
+- Suche bei Mitgliedern, Nachrichten und Abteilungsmitgliedern auf gebundene PDO-Parameter umgestellt; mehrere Detailabfragen ebenfalls.
+- E-Mail-Absenderfelder im Cronjob von Steuerzeichen bereinigt, Vereinsname im HTML-Kontext escaped.
+- Rechtliche Herkunft und vorhandene Vereinsdaten bleiben unangetastet; kein neues Datenbankschema notwendig.
+- PHP-8-Syntax, Quellkatalog und Dokumentation aktualisiert; Quell-/Sicherheitsregeln und gesonderte Praxisabnahme ergänzt.
+- README beschreibt künftig die Anwendung ohne wiederkehrende Hinweise zur Entwicklungs-/Testumgebung.
+
+### Nachfolgende Modernisierung
+- Historische `db_escape()`-SQL-Builder und der alte MySQL-SQL-Mode werden weiterhin schrittweise durch vollständig parametrisierte, strikt SQL-konforme Abfragen ersetzt. Siehe `docs/PDO_MIGRATION.md`.
+
+
 ## 2.3.0 – 18.10.2026
 
 **Gemeinsamer Release der ursprünglich geplanten Ausbaustufen 2.2.0 und 2.3.0.** Es wird keine separate Zwischenversion 2.2.0 benötigt.

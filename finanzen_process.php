@@ -1,6 +1,6 @@
 <?php
 /**
- * Vereinssystem 2.3.0 – Modul: finanzen process.
+ * Vereinssystem 2.3.1 – Modul: finanzen process.
  * Pfad: finanzen_process.php
  * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
  * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
@@ -9,10 +9,10 @@ require_once __DIR__.'/inc/connect.inc.php';
 require_once __DIR__.'/inc/checkuser.inc.php';
 require_once __DIR__.'/inc/finance.php';
 require_once __DIR__.'/inc/cash.php';
-if((int)$user['rights']<4){http_response_code(403);exit('Keine Berechtigung für Finanzbuchungen.');}
+if((int)($user['rights'] ?? 0)<4){http_response_code(403);exit('Keine Berechtigung für Finanzbuchungen.');}
 if(($_SERVER['REQUEST_METHOD']??'')!=='POST'){http_response_code(405);exit('Nur POST.');}
 // Anti-Doppelbuchung zusätzlich zur CSRF-Prüfung in checkuser.
-$nonce=(string)($_POST['nonce']??'');
+$nonce = is_string($_POST['nonce'] ?? null) ? $_POST['nonce'] : '';
 if(empty($_SESSION['vf_nonce']) || $nonce==='' || !hash_equals($_SESSION['vf_nonce'],$nonce)){
  http_response_code(409);exit('Dieses Formular wurde bereits verarbeitet. Bitte neu laden.');
 }

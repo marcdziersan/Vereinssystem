@@ -15,13 +15,13 @@ require_once ("inc/head.inc.php");
 <?php
 if (isset($_GET['id'])){
 	//Wenn es die ID gibt, Veranstaltungen mit zugehörigen Daten aus der DB abrufen
-$sql = "SELECT * FROM `veranstaltungen` LEFT JOIN `mitglieder` ON `veranstaltungen`.`ansprechpartner` = `mitglieder`.`mitglieder_id` LEFT JOIN `orte` ON `veranstaltungen`.`ort` = `orte`.`orts_id`  WHERE `veranstaltungs_id` = ".intval($_GET['id']);
-	$veranstaltung_result = db_query($sql);
-    echo db_error();
+$sql = "SELECT * FROM `veranstaltungen` LEFT JOIN `mitglieder` ON `veranstaltungen`.`ansprechpartner` = `mitglieder`.`mitglieder_id` LEFT JOIN `orte` ON `veranstaltungen`.`ort` = `orte`.`orts_id`  WHERE `veranstaltungs_id` = ?";
+	$veranstaltung_result = db_query($sql, [(int) $_GET['id']]);
+    if (db_error() !== '') error_log('[Veranstaltung] ' . db_error());
 	//Nur fortfahren wenn genau eine Veranstaltung gefunden wurde
     if (db_num_rows($veranstaltung_result) == 1){
         $veranstaltung = db_fetch_assoc($veranstaltung_result);
-		echo "<h2>".$veranstaltung['veranstaltungsname']."</h2>";
+		echo "<h2>".htmlspecialchars((string)$veranstaltung['veranstaltungsname'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')."</h2>";
 			//Falls es austehende Meldungen gibt, diese Anzeigen
 			if (isset($_GET['created'])){
 			echo "<p class=\"message success\">Die Veranstaltung wurde erfolgreich gespeichert.</p>";

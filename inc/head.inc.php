@@ -15,11 +15,11 @@
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
       <link rel="stylesheet" type="text/css" href="css/main.css" />
       <?php if (in_array(basename($_SERVER["SCRIPT_NAME"] ?? ""), ["finanzen.php","finanzkonto.php","kasse.php","kasse_rechte.php","kasse_tarife.php","kasse_import.php","kasse_protokoll.php"], true)): ?>
-      <link rel="stylesheet" href="css/finance.css?v=2.3.0">
+      <link rel="stylesheet" href="css/finance.css?v=2.3.1">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       <?php endif; ?>
       <?php if (str_starts_with(basename($_SERVER["SCRIPT_NAME"] ?? ""), "kasse")): ?>
-      <link rel="stylesheet" href="css/cash.css?v=2.3.0">
+      <link rel="stylesheet" href="css/cash.css?v=2.3.1">
       <?php endif; ?>
       <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
       <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />

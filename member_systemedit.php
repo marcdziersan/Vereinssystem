@@ -46,7 +46,7 @@ require_once("inc/head.inc.php");
         if (isset($_GET['id'])){
             $sql = "SELECT * FROM `mitglieder` WHERE `mitglieder`.`mitglieder_id` = ".intval($_GET['id'])." AND `mitglieder`.`status` = '1' ";
             $member_result = db_query($sql);
-            echo db_error();
+            if (db_error() !== '') error_log('[Vereinssystem/SQL] ' . db_error());
             if (db_num_rows($member_result) == 1){
                 $member = db_fetch_assoc($member_result);
                 if ($member['rights'] == 5 && $user['rights'] == 4){

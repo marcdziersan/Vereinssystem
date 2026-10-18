@@ -166,7 +166,7 @@ require_once("inc/head.inc.php");
             } else {
                 while ($nachricht = db_fetch_assoc($nachrichten)) {
                     echo "<h3 class=\"clearit\">" . $nachricht['title'] . "</h3>\n
-                            <p>" . substr(strip_tags($nachricht['content']), 0, 165) . "... <a class=\"floatright\" href=\"news_show.php?id=" . $nachricht['news_id'] . "\" title=\"Nachricht komplett anzeigen\">Weiterlesen</a></p>";
+                            <p>" . htmlspecialchars(substr(strip_tags((string)$nachricht['content']), 0, 165), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . "... <a class=\"floatright\" href=\"news_show.php?id=" . $nachricht['news_id'] . "\" title=\"Nachricht komplett anzeigen\">Weiterlesen</a></p>";
                 }
                 echo "<p><img src=\"images/arrow_right.png\" alt=\"\" class=\"imageinline\" /> <a href=\"news.php\" title=\"Zur Nachrichtenübersicht\">Zur Nachrichtenübersicht</a></p>";
             }

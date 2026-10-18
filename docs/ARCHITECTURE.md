@@ -35,3 +35,12 @@ Neuinstallation: `sql/schema.sql` mit acht Originaltabellen, drei Finanztabellen
 - Die historischen Altseiten und deren Rechte-/SQL-Builder sind noch nicht vollständig neu geschrieben.
 - Der private Speicherpfad benötigt Serverkonfiguration; Belegupload ist andernfalls absichtlich blockiert.
 - Vor Produktivbetrieb ist ein Datenbank-Integrations-/Sicherheitstest erforderlich.
+
+## Wartungsstand 2.3.1
+
+- Nachrichten werden beim Speichern und Anzeigen über `inc/security.php` als HTML-Allowlist ausgegeben. Eventhandler, Skripte, fremde Attribute und unsichere Links werden verworfen. Ohne PHP-DOM-Erweiterung erfolgt sichere Textausgabe.
+- Bei Mitgliedern, Nachrichten und Abteilungsmitgliedern erfolgt die Suche über PDO-Platzhalter. Zusätzliche Profil-Detailabfragen wurden ebenfalls parametrisiert.
+- Das alte `db_escape()` besteht nur als **Übergangshilfe** für historische SQL-Builder. Vorhandene `stripslashes(db_escape(...))`-Kombinationen wurden entfernt; neu geschriebener Code nutzt ausschließlich bindbare PDO-Parameter.
+- Der Cronjob kann im Browser nur nach einer expliziten Admin-POST-Aktion gestartet werden. CLI-Cronjobs bleiben unverändert nutzbar.
+- Die Datenbank-Selbstprüfung unter `tests/praxis_db.php` ist nur über CLI erreichbar und schreibt keine Daten.
+- Das MySQL-`sql_mode=NO_ENGINE_SUBSTITUTION` bleibt für historische Datenschemata aktuell erforderlich; seine Abschaffung benötigt ein separat versioniertes Datenbank- und Query-Refactoring.

@@ -126,19 +126,25 @@ require_once("inc/head.inc.php");
                   <tbody>
                   <?php
                   // Gesamtanzahl aller Mitglieder ermitteln
+                  // Search terms use bound PDO values; wildcard characters remain user search syntax.
+                  $vsSearchLike = '%' . str_replace(' ', '%', trim((string)($_GET['searchfor'] ?? ''))) . '%';
+                  $vsCountParams = [];
+                  $vsListParams = [];
                   $anzahl_sql = "SELECT count(*) as count FROM `mitglieder` WHERE status = '1'";
                   if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                    $anzahl_sql .= " AND (`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `email` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `username` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                    $anzahl_sql .= ' AND (`vorname` LIKE ? OR `nachname` LIKE ? OR `email` LIKE ? OR `username` LIKE ?) ';
+                    $vsCountParams = array_fill(0, 4, $vsSearchLike);
                   }
                   if ($user['rights'] < 4){
                     // Rechtelevel geringer als 4 = Man darf nur den eigenen Eintrag + die eigenen Kinder sehen
-                    $anzahl_sql .= " AND (`mitglieder_id` = ".$user['mitglieder_id']." OR `parent1` = ".$user['mitglieder_id']." OR `parent2` = ".$user['mitglieder_id'].")";
+                    $anzahl_sql .= ' AND (`mitglieder_id`=? OR `parent1`=? OR `parent2`=?)';
+                    array_push($vsCountParams, (int)$user['mitglieder_id'], (int)$user['mitglieder_id'], (int)$user['mitglieder_id']);
                   }
-                  $anzahl_result = db_query($anzahl_sql);
+                  $anzahl_result = db_query($anzahl_sql, $vsCountParams);
                   $anzahl = db_fetch_assoc($anzahl_result);
                   // Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
                   $proseite = 10;
-                  if (!isset($_GET['page'])){
+                  if (!isset($_GET['page']) || (int)$anzahl['count'] <= $proseite){
                     // Keine Seite übermittelt, dann erste Seite anzeigen
                     $page = 1;
                   }elseif($anzahl['count'] > $proseite){
@@ -152,11 +158,13 @@ require_once("inc/head.inc.php");
                   // SQL-Anfrage erstellen, um die Daten zu erhalten
                   $sql = "SELECT * FROM `mitglieder` WHERE status = 1 ";
                   if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                    $sql .= " AND (`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `email` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `username` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                    $sql .= ' AND (`vorname` LIKE ? OR `nachname` LIKE ? OR `email` LIKE ? OR `username` LIKE ?) ';
+                    $vsListParams = array_fill(0, 4, $vsSearchLike);
                   }
                   if ($user['rights'] < 4){
                     // Rechtelevel geringer als 4 = Man darf nur den eigenen Eintrag + die eigenen Kinder sehen
-                    $sql .= " AND (`mitglieder_id` = ".$user['mitglieder_id']." OR `parent1` = ".$user['mitglieder_id']." OR `parent2` = ".$user['mitglieder_id'].")";
+                    $sql .= ' AND (`mitglieder_id`=? OR `parent1`=? OR `parent2`=?)';
+                    array_push($vsListParams, (int)$user['mitglieder_id'], (int)$user['mitglieder_id'], (int)$user['mitglieder_id']);
                   }
                   if (isset($sqlorder)){
                     $sql .= $sqlorder.", `nachname` ASC, `vorname` ASC ";
@@ -164,14 +172,14 @@ require_once("inc/head.inc.php");
                     $sql .= "ORDER BY `nachname` ASC, `vorname` ASC";
                   }
                   $sql .= " LIMIT ".(($page-1)*$proseite).",$proseite";
-                  $members = db_query($sql);
+                  $members = db_query($sql, $vsListParams);
                   if (db_num_rows($members) == 0){
                     echo "<tr><td colspan=\"5\" class=\"tcenter\">Es wurden keine Mitglieder gefunden!</td></tr>";
                   }else{
                     while ($member = db_fetch_assoc($members)){
                       echo "<tr>
-                              <td class=\"firstcolumn\">".$member['nachname']."</td>
-                              <td>".$member['vorname']."</td>
+                              <td class=\"firstcolumn\">".htmlspecialchars((string)$member['nachname'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')."</td>
+                              <td>".htmlspecialchars((string)$member['vorname'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')."</td>
                               <td>".vs_strftime("%d. %B %Y",strtotime($member['geburtstag']))."</td>
                               <td>".vs_strftime("%d. %B %Y",strtotime($member['beitritt']))."</td>
                               <td class=\"actionrow\"><a href=\"member_show.php?id=".$member['mitglieder_id']."\"><img src=\"images/show.png\" alt=\"\" title=\"Anzeigen\" /></a>";

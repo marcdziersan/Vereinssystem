@@ -4,27 +4,33 @@
 
 // Datenbankverbindung & Kodierung einbinden
 require_once ("inc/connect.inc.php");
+require_once __DIR__ . "/inc/security.php";
 
 // Nur CLI-Cron oder eingeloggter Administrator darf diesen Job aufrufen.
 if (PHP_SAPI !== 'cli') {
     require_once __DIR__.'/inc/checkuser.inc.php';
     if ((int)$user['rights'] < 5) { http_response_code(403); exit('Kein Zugriff.'); }
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+        // Die Seite kann gelesen werden, ohne E-Mails oder Jahresläufe zu starten.
+        header('Content-Type: text/html; charset=utf-8');
+        echo '<!doctype html><html lang="de"><meta charset="utf-8"><title>Vereins-Cronjob</title>';
+        echo '<main style="font:16px system-ui;max-width:700px;margin:3rem auto">';
+        echo '<h1>Hintergrundlauf manuell ausführen</h1>';
+        echo '<p>Ein manueller Lauf kann E-Mails versenden und Dienste abrechnen.</p>';
+        echo '<form method="post"><input type="hidden" name="vs_csrf" value="'.
+            htmlspecialchars((string)($_SESSION['vs_csrf'] ?? ''), ENT_QUOTES, 'UTF-8').
+            '"><button name="force" value="1">Cronjob ausführen</button></form></main></html>';
+        exit;
+    }
 }
 
 // Output-Buffer starten
 ob_start();
 echo "Ausführung startet ".date("r")."<br />\n";
-// Soll der Cronjob zur Durchführung gezwungen werden oder eine Ausgabe getätigt werden
-if (isset($_GET['force']) || isset($_GET['output'])){
-  // Dann prüfen ob jemand eingeloggt ist und ob dieser Admin ist
-  // Login-Status-Prüfung einbinden
-  require_once("inc/checkuser.inc.php");
-}
-// Prüfen, ob die letzte Ausführung knapp 24h her ist
-// Nicht Sekundengenau rechnen, da aufgrund von Serverlast der Cronjob nicht immer Sekundengenau gestartet und ausgeführt wird
-if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $user['rights'] >= 5)){
-    // Letzte ausführung knapp 24h zurück, also jetzt erneut ausführen ODER es soll gezwungen werden und ein Admin ist eingeloggt
-
+// Normale CLI-Cronjobs laufen weiterhin täglich über den Server-Zeitplan.
+// Ein Browser-Lauf benötigt die ausdrückliche POST-Entscheidung des Admins.
+$manualRun = PHP_SAPI !== 'cli' && isset($_POST['force']) && (int)$user['rights'] >= 5;
+if (time() - 86300 >= (int)($settings['lastcronrun'] ?? 0) || $manualRun) {
     // Brief-Array erstellen. In ihm werden alle Mitglieder gespeichert, die von der Vereinsleitung einen Brief per Post zugestellt bekommen müssen,
     // da sie keine E-Mail-Adresse haben
     $brief = array();
@@ -43,7 +49,7 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
     //                      - keine E-Mail-Adresse haben und in 3 Tagen oder weniger Geburtstag haben
     //                      - eine E-Mail-Adresse haben und am heutigen Tag Geburtstag haben
     $members = db_query($sql);
-    echo db_error();
+    if (db_error() !== '') error_log('[Vereinssystem/Cron] '.db_error());
     if (db_num_rows($members) == 0){
       echo "Keine Geburtstage anstehend";
     }else{
@@ -83,11 +89,11 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
                 }
                 $mailtext .= ",<br />\n<br />\nzu deinem ".$member['new_age'].". Geburtstag gratulieren wir dir recht herzlich und wünschen alles Gute.</p>";
             }
-            $mailtext .= "<p>Mit besten Grüßen<br />Die Vereinsleitung ".$settings['vereinsname']."</p>
+            $mailtext .= "<p>Mit besten Grüßen<br />Die Vereinsleitung ".htmlspecialchars((string)$settings['vereinsname'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')."</p>
             </html>";
             $header = "MIME-Version: 1.0\n";
             $header .= "Content-type: text/html; charset=utf-8\n";
-            $header .= "From: '".$settings['vereinsname']."' <".$settings['leitermail'].">\n";
+            $header .= "From: ".vs_mail_header_value((string)$settings['vereinsname'])." <".vs_mail_header_value((string)$settings['leitermail']).">\n";
             if (mail($member['email'], $betreff, $mailtext, $header)){
               echo "Erfolgreich Geburtstagsgrüße versendet an ".$member['vorname']." ".$member['nachname']."<br />\n";
               // In die DB schreiben, dass dieses Mitglied eine E-Mail bekommen hat
@@ -114,7 +120,7 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
     //                      - eine E-Mail-Adresse haben und am heutigen Tag Jubiläum haben
     //                      - ein "rundes" Jubiläum haben, also 5 Jahre, 10 Jahre, 15 Jahre, ...
     $members = db_query($sql);
-    echo db_error();
+    if (db_error() !== '') error_log('[Vereinssystem/Cron] '.db_error());
     if (db_num_rows($members) == 0){
       echo "Keine Jubiläen anstehend<br />\n";
     }else{
@@ -154,11 +160,11 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
                 }
                 $mailtext .= ",<br />\n<br />\nzu deinem ".$member['jahre']."jährigen Vereinsjubiläum gratulieren wir dir recht herzlich.</p>";
             }
-            $mailtext .= "<p>Mit besten Grüßen<br />Die Vereinsleitung ".$settings['vereinsname']."</p>
+            $mailtext .= "<p>Mit besten Grüßen<br />Die Vereinsleitung ".htmlspecialchars((string)$settings['vereinsname'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')."</p>
             </html>";
             $header = "MIME-Version: 1.0\n";
             $header .= "Content-type: text/html; charset=utf-8\n";
-            $header .= "From: '".$settings['vereinsname']."' <".$settings['leitermail'].">\n";
+            $header .= "From: ".vs_mail_header_value((string)$settings['vereinsname'])." <".vs_mail_header_value((string)$settings['leitermail']).">\n";
             if (mail($member['email'], $betreff, $mailtext, $header)){
               echo "Jubiläumgsrüße Erfolgreich versendet an ".$member['vorname']." ".$member['nachname']."<br />\n";
               // In die DB schreiben, dass dieses Mitglied eine E-Mail bekommen hat
@@ -191,7 +197,7 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
       </html>";
       $header = "MIME-Version: 1.0\n";
       $header .= "Content-type: text/html; charset=utf-8\n";
-      $header .= "From: '".$settings['vereinsname']."' <".$settings['leitermail'].">\n";
+      $header .= "From: ".vs_mail_header_value((string)$settings['vereinsname'])." <".vs_mail_header_value((string)$settings['leitermail']).">\n";
       if (mail($settings['leitermail'], $betreff, $mailtext, $header)){
         echo "Erfolgreich versendet an Vereinsleitung mit ".count($brief)." Hinweisen<br />\n";
       }else{
@@ -251,7 +257,7 @@ if (time() - 86300 >= $settings['lastcronrun'] || (isset($_GET['force']) && $use
 }else{
   echo "Cronjob wurde heute bereits ausgeführt";
 }
-if (isset($_GET['output']) || isset($_GET['force'])){
+if (isset($_GET['output']) || (isset($_POST['force']) || (PHP_SAPI === 'cli' && isset($_GET['force'])))){
     // Wird die Ausführung erzwungen oder eine Ausgabe gewünscht?
     if ($user['rights'] >= 4){
         // Rechte sind vorhanden, Output-Buffer leeren (Inhalt ausgeben)

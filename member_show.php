@@ -14,8 +14,8 @@ require_once("inc/head.inc.php");
         <div id="content">
         <?php
         if (isset($_GET['id'])){
-            $sql = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `mitglieder_id` = ".intval($_GET['id'])." AND `mitglieder`.`status` = '1' ";
-            $member_result = db_query($sql);
+            $sql = "SELECT * FROM `mitglieder` LEFT JOIN `orte` ON `mitglieder`.`anschrift` = `orte`.`orts_id` WHERE `mitglieder_id` = ? AND `mitglieder`.`status` = '1' ";
+            $member_result = db_query($sql, [(int) $_GET['id']]);
             if (db_num_rows($member_result) == 1){
                 $member = db_fetch_assoc($member_result);
                 // Ansehen können Eltern das Profil ihrer Kinder auch nach deren 18. Lebensjahr noch

@@ -1,6 +1,6 @@
 <?php
 /**
- * Vereinssystem 2.3.0 – Modul: kasse process.
+ * Vereinssystem 2.3.1 – Modul: kasse process.
  * Pfad: kasse_process.php
  * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
  * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
@@ -15,7 +15,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     http_response_code(405); exit('Nur POST-Anfragen zugelassen.');
 }
 // Einmalige Formularsignatur verhindert unabsichtliche Doppelbuchungen durch Doppelklick.
-$nonce = (string)($_POST['vk_nonce'] ?? '');
+$nonce = is_string($_POST['vk_nonce'] ?? null) ? $_POST['vk_nonce'] : '';
 if (empty($_SESSION['vk_nonce']) || $nonce==='' || !hash_equals((string)$_SESSION['vk_nonce'],$nonce)) {
     http_response_code(409); exit('Formular bereits verarbeitet oder abgelaufen. Bitte Seite neu laden.');
 }

@@ -6,6 +6,7 @@ require_once("inc/connect.inc.php");
 
 // Login-Status-Prüfung einbinden
 require_once("inc/checkuser.inc.php");
+require_once __DIR__ . "/inc/security.php";
 
 // Genereller Rechte Check
 if ($user['rights'] < 2){
@@ -26,7 +27,7 @@ function verify_newsdaten($input){
     $errors[] = "Der eingegebene Titel ist ungültig";
   }
   // Verbotene Tags aus dem Inhalt entfernen
-  $input['content'] = strip_tags($input['content'],"<a><u><i><b><strong><em><img>");
+  $input['content'] = vs_safe_html(is_string($input['content'] ?? null) ? $input['content'] : '');
   if (strlen($input['content']) < 50){
     // PLZ dürfen nur aus Ziffern bestehen und müssen 5 Zeichen lang sein
     $errors[] = "Die eingegebene Nachricht ist zu kurz";
@@ -71,7 +72,7 @@ if (isset($_POST['savenews'])){
       $sql =
           "UPDATE `news` SET
            `title`        = '".db_escape(vs_sanitize_text(stripslashes($input['title'])))."',
-           `content`      = '".db_escape((stripslashes($input['content'])))."',";
+           `content`      = '".db_escape((string)$input['content'])."',";
           if (!isset($input['silentchange']) || (isset($input['silentchange']) && $input['silentchange'] == 1 && $user['rights'] >= 5)){
             // Möglichkeit bieten für Nutzer mit Rechtelevel 5 oder höher, einen Nachrichtenbeitrag zu ändern ohne "lastchange" zu verändern
               $sql .= "`lastchange`   = '".db_escape(time())."',";

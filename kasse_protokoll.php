@@ -1,6 +1,6 @@
 <?php
 /**
- * Vereinssystem 2.3.0 – Modul: kasse protokoll.
+ * Vereinssystem 2.3.1 – Modul: kasse protokoll.
  * Pfad: kasse_protokoll.php
  * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
  * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.

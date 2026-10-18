@@ -1,6 +1,6 @@
 <?php
 /**
- * Vereinssystem 2.3.0 – Modul: finanzkonto.
+ * Vereinssystem 2.3.1 – Modul: finanzkonto.
  * Pfad: finanzkonto.php
  * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
  * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.

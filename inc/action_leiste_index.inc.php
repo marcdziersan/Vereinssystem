@@ -32,7 +32,7 @@ if ($user['rights'] >= 4){
         default:
           echo "In ".$member['days_to_birthday']." Tagen";
       }
-      echo ": <a href=\"member_show.php?id=".$member['mitglieder_id']."\" title=\"Zum Mitgliedsprofil\">".$member['vorname']." ".$member['nachname']."</a> (".$member['new_age'].")</li>";
+      echo ": <a href=\"member_show.php?id=".$member['mitglieder_id']."\" title=\"Zum Mitgliedsprofil\">".htmlspecialchars((string)$member['vorname'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')." ".htmlspecialchars((string)$member['nachname'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')."</a> (".$member['new_age'].")</li>";
     }
     echo "</ul>";
     }

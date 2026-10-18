@@ -16,7 +16,7 @@ require_once ("inc/head.inc.php");
 if (isset($_GET['id'])){
 $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_GET['id']);
 	$veranstaltung_result = db_query($sql);
-    echo db_error();
+    if (db_error() !== '') error_log('[Vereinssystem/SQL] ' . db_error());
     if (db_num_rows($veranstaltung_result) == 1){
         $veranstaltung = db_fetch_assoc($veranstaltung_result);
         echo "<h1>Dienstplan von \"".htmlspecialchars($veranstaltung['veranstaltungsname'])."\"</h1>";

@@ -111,17 +111,22 @@ require_once("inc/head.inc.php");
                         <tbody>
                         <?php
                         // Gesamtanzahl aller Abteilungsmitglieder ermitteln
+                  // Search terms use bound PDO values; wildcard characters remain user search syntax.
+                  $vsSearchLike = '%' . str_replace(' ', '%', trim((string)($_GET['searchfor'] ?? ''))) . '%';
+                  $vsCountParams = [];
+                  $vsListParams = [];
                         $anzahl_sql = "SELECT count(*) as count FROM `abteilungszugehoerigkeit`
                                 LEFT JOIN `mitglieder` ON `abteilungszugehoerigkeit`.`mitglied` = `mitglieder`.`mitglieder_id`
                                 WHERE `abteilung` = ".intval($abteilung['abteilungs_id']);
                         if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
-                          $anzahl_sql .= " AND (`mitglieder`.`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `mitglieder`.`nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                          $anzahl_sql .= ' AND (`mitglieder`.`vorname` LIKE ? OR `mitglieder`.`nachname` LIKE ?) ';
+                          $vsCountParams = array_fill(0, 2, $vsSearchLike);
                         }
-                        $anzahl_result = db_query($anzahl_sql);
+                        $anzahl_result = db_query($anzahl_sql, $vsCountParams);
                         $anzahl = db_fetch_assoc($anzahl_result);
                         // Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
                         $proseite = 10;
-                        if (!isset($_GET['page'])){
+                        if (!isset($_GET['page']) || (int)$anzahl['count'] <= $proseite){
                           // Keine Seite übermittelt, dann erste Seite anzeigen
                           $page = 1;
                         }elseif($anzahl['count'] > $proseite){
@@ -138,7 +143,8 @@ require_once("inc/head.inc.php");
                                 WHERE `abteilung` = ".intval($abteilung['abteilungs_id']);
                         if (!empty($_GET['searchfor']) && strlen($_GET['searchfor']) > 2){
                           // Haben wir eine Suche? Dann das Suchwort in die Abfrage einbauen (eigentliche Filterung findet damit statt)
-                          $sql .= " AND (`mitglieder`.`vorname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%' OR `mitglieder`.`nachname` LIKE '%".db_escape(str_replace(" ","%",$_GET['searchfor']))."%') ";
+                          $sql .= ' AND (`mitglieder`.`vorname` LIKE ? OR `mitglieder`.`nachname` LIKE ?) ';
+                          $vsListParams = array_fill(0, 2, $vsSearchLike);
                         }
                         if (isset($sqlorder)){
                           // Haben wir eine manuelle Sortierung? Dann diese hier in die Abfrage einbauen
@@ -150,7 +156,7 @@ require_once("inc/head.inc.php");
                         // Ergebnismenge limitieren, evtl. entsprechend der Seitenzahl bereits nur hintere Ergebnisse ausgeben
                         $sql .= " LIMIT ".(abs($page-1)*$proseite).",$proseite";
                         //echo "<tr><td colspan=\"4\">$sql</td></tr>";
-                        $mitglieder = db_query($sql);
+                        $mitglieder = db_query($sql, $vsListParams);
                         if (db_num_rows($mitglieder) == 0){
                           echo "<tr><td colspan=\"4\" class=\"tcenter\">Es wurden keine Mitglieder der Abteilung gefunden!</td></tr>";
                         }else{

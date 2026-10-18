@@ -1,8 +1,9 @@
-# Vereinssystem 2.3.0 – Vereinsverwaltung, Beiträge und Kassenführung
+# Vereinssystem 2.3.1 – Vereinsverwaltung, Beiträge und Kassenführung
 
 **Vereinssystem** ist eine klassische, selbst hostbare PHP-Vereinsverwaltung. Sie vereint Mitglieder, Abteilungen, Vereinsveranstaltungen, Helferdienste, Nachrichten, Beitragsforderungen und Zahlungseingänge mit einer mehrkontenfähigen Kassenverwaltung. Die Bedienung läuft im Browser. **Kein Node.js, kein React und kein verpflichtendes Cloud-Abonnement.**
 
-**Version:** 2.3.0 (18. Oktober 2026) · **PHP:** ab 8.0 · **Datenbank:** MySQL/MariaDB via PDO · **Nutzung:** nichtkommerziell nach den unten erläuterten Herkunfts- und Lizenzbedingungen.
+**Version:** 2.3.1 (18. Oktober 2026) · **PHP:** ab 8.0 · **Datenbank:** MySQL/MariaDB via PDO · **Nutzung:** nichtkommerziell nach den unten erläuterten Herkunfts- und Lizenzbedingungen.
+
 
 ## Herkunft und Entwicklung
 
@@ -12,7 +13,7 @@ Das ursprüngliche Vereinssystem entstand **2012/2013** als Abiturprojekt von **
 
 ## Funktionen nach Version
 
-| Bereich | Stand in 2.3.0 |
+| Bereich | Stand in 2.3.1 |
 |---|---|
 | Mitglieder und Benutzer | Stammdaten, Familienbeziehungen, Status, Login |
 | Abteilungen | Zuordnungen, Abteilungsumlagen und Leitungen |
@@ -61,18 +62,18 @@ Die älteren PHP-Module nutzen weiterhin den PDO-Ergebnisadapter (`db_query`, `d
 7. In **Kasse → Konto anlegen** zuerst beliebig viele Zahlungskonten mit den belegten Anfangsbeständen einrichten.
 8. Nach der Einrichtung `install.php` entfernen; `inc/config.php` schützen und Backups aktivieren.
 
-### Updates auf 2.3.0 (von 2.0.x oder 2.1.0)
+### Updates auf 2.3.1 (von 2.0.x, 2.1.0 oder 2.3.0)
 
 **Unbedingt Datenbank UND Dateien sichern!**
 
-1. Dateien in eine getrennte Testinstallation kopieren; bestehende `inc/config.php` behalten.
+1. Vor jedem Update Datenbank und Dateien sichern; bestehende `inc/config.php` behalten.
 2. Als Administrator (Rechtelevel **5**) anmelden.
 3. `upgrade.php` aufrufen, per POST die Datenbankmigration starten. Das Skript erzeugt nur fehlende Tabellen aus **2.1.0** (3 Tabellen) und **2.3.0** (7 Tabellen).
 4. Kassenkonten mit korrektem **Anfangsdatum und Anfangsbestand** anlegen; bereits importierte oder manuell erfasste Zahlungen prüfen.
-5. Testweise Buchung, Umbuchung, Storno, Mitgliedsbeitrag, Belegabruf und CSV-/PDF-Ausgaben durchführen.
+5. Mitglieder- und Finanzdaten kontrollieren und den neuen Stand anschließend freigeben.
 6. Erst danach auf Produktivdaten umstellen und `upgrade.php` vom Server **löschen**.
 
-**Keine rückwirkende automatische Kassenbuchung:** 2.1.0-Bestandszahlungen werden ausdrücklich nicht automatisch Konten zugeordnet. Das System löscht keine alten Finanzdatensätze. **Das Upgrade ist keine vollständige Migrationsengine für beliebig modifizierte Alt-Datenbankschemata.** Weitere Informationen: [UPGRADE-2.3.0.md](UPGRADE-2.3.0.md).
+**Keine rückwirkende automatische Kassenbuchung:** 2.1.0-Bestandszahlungen werden ausdrücklich nicht automatisch Konten zugeordnet. Das System löscht keine alten Finanzdatensätze. **Das Upgrade ist keine vollständige Migrationsengine für beliebig modifizierte Alt-Datenbankschemata.** Weitere Informationen: [UPGRADE-2.3.1.md](UPGRADE-2.3.1.md).
 
 ## Bedienung der neuen Kassenverwaltung
 
@@ -138,10 +139,10 @@ Unter **Kasse → Rechte & Beiträge** lassen sich neue Kind-/Erwachsenenbeiträ
 | `install.php`, `upgrade.php` | Erstinstallation und Versionsupdate |
 | `docs/ARCHITECTURE.md` | Architektur, Geldflüsse und Schema |
 | `docs/SOURCE_REFERENCE.md` | Vollständiger PHP-Datei-/Funktionskatalog |
-| `docs/USER_GUIDE.md`, `UPGRADE-2.3.0.md` | Bedienung und Upgrade |
-| `tests/*_smoke.php` | Datenbankfreie Quell- und Schema-Checks |
+| `docs/USER_GUIDE.md`, `UPGRADE-2.3.1.md` | Bedienung und Upgrade |
+| `inc/security.php` | Sichere HTML-Darstellung historischer Nachrichten |
 
-Neue Module sind mit PHPDoc-Funktions- und Sicherheitskommentaren versehen; für die historischen PHP-/HTML-Mischdateien wurden die Zeilenenden vereinheitlicht und bestehende Funktionsabläufe bewusst nicht durch riskante automatische Neuformatierung beschädigt. Der gesamte Bestand ist unter [docs/SOURCE_REFERENCE.md](docs/SOURCE_REFERENCE.md) verzeichnet.
+Die Quelldateien sind im [Modul- und Funktionskatalog](docs/SOURCE_REFERENCE.md) verzeichnet. Neue Module nutzen dokumentierte Schnittstellen und einheitliche Formatierungsregeln gemäß [CODE_STYLE.md](docs/CODE_STYLE.md). Historische gemischte PHP/HTML-Templates behalten ihre gewachsene Struktur, bis sie funktional modernisiert werden.
 
 ## Versionsübersicht
 
@@ -151,13 +152,14 @@ Neue Module sind mit PHPDoc-Funktions- und Sicherheitskommentaren versehen; für
 | 2.0.0 / 2.0.1 (2026) | PHP 8, PDO, Installer, Session-/Validierungskorrekturen |
 | 2.1.0 (2026) | Sollstellungen, Zahlungen, Teilzahlungen, Guthaben, Rückstände |
 | **2.3.0 (2026)** | Gemeinsamer Ausbau der geplanten **2.2.0 und 2.3.0**: Kasse, Rechte, Berichte, Import, Belege, Audit, Stichtagstarife |
+| **2.3.1 (2026)** | Codehärtung, PDO-Suchabfragen, Schutz für Nachrichten-HTML und Cron-POST, Quellcodedokumentation |
 | 2.4.0 (geplant) | Vollständige responsive Modernisierung der älteren Verwaltungsmasken |
 
 Die beiden zuvor geplanten Versionsschritte **2.2.0 und 2.3.0 wurden in einem gemeinsamen Release 2.3.0 zusammengefasst**. Es ist keine eigenständig veröffentlichte Zwischenversion 2.2.0 erforderlich.
 
 ## Sicherheit und Grenzen
 
-Dies ist eine modernisierte Altanwendung, **kein abschließend sicherheitsauditiertes Vereinsprodukt**. Die alten Masken verwenden teils historische Abfragen und den weniger strikten Datenbank-Kompatibilitätsmodus. Für die neuen Finanzmasken werden Prepared Statements, CSRF- und Rechteprüfungen, Sessions und Datenbanktransaktionen eingesetzt; eine unabhängige Prüfung aller Module bleibt notwendig. CSV-Daten und Belege sind vertraulich. Hinweise in `SECURITY.md` und `docs/ARCHITECTURE.md` beachten.
+Dies ist eine modernisierte Altanwendung, **kein abschließend sicherheitsauditiertes Vereinsprodukt**. Historische Masken verwenden teilweise noch den dokumentierten Datenbank-Kompatibilitätsmodus. Für die neuen Finanzmasken werden Prepared Statements, CSRF- und Rechteprüfungen, Sessions und Datenbanktransaktionen eingesetzt; CSV-Daten und Belege sind vertraulich. Hinweise in `SECURITY.md` und `docs/ARCHITECTURE.md` beachten.
 
 Keine Bank- oder Steuerdaten als Beweis für eine tatsächliche Transaktion interpretieren, bevor eine Prüfung anhand von Belegen/Kontoauszügen erfolgt ist.
 

@@ -35,8 +35,8 @@ require_once("inc/head.inc.php");
         <div id="content">
         <?php
         if (isset($_GET['id'])){
-            $sql = "SELECT * FROM `orte` WHERE `orts_id` = ".intval($_GET['id'])." AND `status` = '1' ";
-            $ort_result = db_query($sql);
+            $sql = "SELECT * FROM `orte` WHERE `orts_id` = ? AND `status` = '1' ";
+            $ort_result = db_query($sql, [(int) $_GET['id']]);
             //echo db_error();
             if (db_num_rows($ort_result) == 1){
                 $ort = db_fetch_assoc($ort_result);

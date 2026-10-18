@@ -42,7 +42,7 @@ require_once ("inc/head.inc.php");
 					<?php
 					$sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($input['event']);
 					$veranstaltung_result = db_query($sql);
-  				    echo db_error();
+  				    if (db_error() !== '') error_log('[Vereinssystem/SQL] ' . db_error());
   				    if (db_num_rows($veranstaltung_result) == 1){
     				    $veranstaltung = db_fetch_assoc($veranstaltung_result);
 						 ?>

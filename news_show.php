@@ -4,6 +4,7 @@ require_once("inc/connect.inc.php");
 
 // Login-Status-Prüfung einbinden
 require_once("inc/checkuser.inc.php");
+require_once __DIR__ . "/inc/security.php";
 
 // Titel festlegen
 $title = "Nachricht / Meldung anzeigen";
@@ -14,8 +15,8 @@ require_once("inc/head.inc.php");
         <div id="content">
         <?php
         if (isset($_GET['id'])){
-            $sql = "SELECT * FROM `news` LEFT JOIN `mitglieder` ON `news`.`author` = `mitglieder`.`mitglieder_id` WHERE `news_id` = ".intval($_GET['id'])." AND `news`.`status` = '1' ";
-            $nachrichten_result = db_query($sql);
+            $sql = "SELECT * FROM `news` LEFT JOIN `mitglieder` ON `news`.`author` = `mitglieder`.`mitglieder_id` WHERE `news_id` = ? AND `news`.`status` = '1' ";
+            $nachrichten_result = db_query($sql, [(int) $_GET['id']]);
             //echo db_error();
             if (db_num_rows($nachrichten_result) == 1){
                 $nachricht = db_fetch_assoc($nachrichten_result);
@@ -25,14 +26,14 @@ require_once("inc/head.inc.php");
                 ?>
             		<div class="boxsystem33">
             		  <div class="leftbox">
-                          <h2><?php echo $nachricht['title'];?></h2>
+                          <h2><?php echo htmlspecialchars((string)$nachricht['title'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');?></h2>
                           <?php
                           if (isset($_GET['created'])){
                               echo "<div class=\"message success\"><p>Die neue Nachricht wurde erfolgreich erstellt.</p></div>";
                           }
                           ?>
                           <?php
-                          echo nl2br($nachricht['content']);
+                          echo vs_safe_html((string)$nachricht['content']);
                           echo "<div class=\"afternews\">
                           <p>Diese Nachricht wurde am ".vs_strftime("%A, %d. %B %Y, um %H:%M Uhr",$nachricht['created'])." von ".htmlspecialchars($nachricht['vorname']." ".$nachricht['nachname'])." geschrieben";
                           if ($nachricht['lastchange']-60 > ($nachricht['created'])){

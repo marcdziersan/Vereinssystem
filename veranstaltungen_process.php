@@ -259,9 +259,9 @@ if (isset($input['saveevent'])) {
 	if (!empty($input['veranstaltungsname'])) {
 		$sql = "INSERT INTO `veranstaltungen` SET
         	 `veranstaltungsname` = '" . db_escape(vs_sanitize_text($input['veranstaltungsname'])) . "',
-        	 `beschreibung` = '" . stripslashes(db_escape(vs_sanitize_text($input['beschreibung']))) . "',
+        	 `beschreibung` = '" . db_escape(vs_sanitize_text($input['beschreibung'])) . "',
         	 `mindienste` = '" . db_escape(vs_sanitize_text($input['mindienste'])) . "',
-        	 `dienstbeschreibung` = '" . stripslashes(db_escape(vs_sanitize_text($input['dienstbeschreibung']))) . "',";
+        	 `dienstbeschreibung` = '" . db_escape(vs_sanitize_text($input['dienstbeschreibung'])) . "',";
 	} else {
 		$sql = "";
 		$errors[] = "Veranstaltungsname muss vorhanden sein";
