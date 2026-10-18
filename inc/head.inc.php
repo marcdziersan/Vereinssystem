@@ -6,7 +6,7 @@
         echo htmlspecialchars($title)." - ";
       }
       if (!empty($settings['vereinsname'])){
-        echo $settings['vereinsname']." - ";
+        echo htmlspecialchars((string)$settings['vereinsname'],ENT_QUOTES)." - ";
       }
       echo "VereinsSystem";
       ?></title>
@@ -14,6 +14,10 @@
       <meta name="author" content="Nicolas Jourdan, Sebastian Fuss" />
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
       <link rel="stylesheet" type="text/css" href="css/main.css" />
+      <?php if (in_array(basename($_SERVER["SCRIPT_NAME"] ?? ""), ["finanzen.php","finanzkonto.php"], true)): ?>
+      <link rel="stylesheet" href="css/finance.css?v=2.1.0">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <?php endif; ?>
       <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
       <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
       <!--[if IE]>
@@ -58,6 +62,7 @@
                 <li><a href="abteilungen.php" title="Abteilungen">Abteilungen</a></li>
                 <li><a href="orte.php" title="Orte">Orte</a></li>
                 <li><a href="veranstaltungen.php" title="Veranstaltungen">Veranstaltungen</a></li>
+                <li><a href="<?php echo (int)$user['rights'] >= 4 ? 'finanzen.php' : 'finanzkonto.php'; ?>" title="Beitragskonto">Finanzen</a></li>
                 <?php
                 if ($user['rights'] >= 5){
                   echo "<li><a href=\"einstellungen.php\" title=\"Einstellungen\">Einstellungen</a></li>\n";

@@ -30,6 +30,7 @@ require_once("inc/head.inc.php");
                 echo "<h2>Meine Finanzen</h2>";
               }
               ?>
+              <p><a href="finanzkonto.php?mitglied=<?php echo (int)$member['mitglieder_id']; ?>" title="Zahlungseingänge und Soll-/Ist anzeigen">Buchungen, offene Beiträge und Soll/Ist anzeigen »</a></p>
               <table class="">
               <!-- Richtwerte für die Spaltenbreite -->
               <colgroup>
