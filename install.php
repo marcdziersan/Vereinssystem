@@ -1,4 +1,10 @@
 <?php
+/**
+ * Vereinssystem 2.3.0 – Modul: install.
+ * Pfad: install.php
+ * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
+ * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
+ */
 declare(strict_types=1);
 /** Geführte Neuinstallation / Anbindung einer bestehenden Vereinsdatenbank.
  * Konfiguration erst bei vollständig erfolgreicher Datenbankinitialisierung schreiben.
@@ -60,7 +66,7 @@ if (!$installed && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 throw new RuntimeException('Die Datenbank enthält eine unvollständige Altinstallation (Tabelle einstellungen fehlt).');
             }
             $schema = file_get_contents(__DIR__.'/sql/schema.sql');
-            if (!preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`[^`]+`\s*\(.*?\)\s*ENGINE=.*?;/si', $schema, $statements) || count($statements[0]) < 8) {
+            if (!preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`[^`]+`\s*\(.*?\)\s*ENGINE=.*?;/si', $schema, $statements) || count($statements[0]) < 18) {
                 throw new RuntimeException('Das Installationsschema konnte nicht vollständig gelesen werden.');
             }
             foreach ($statements[0] as $createSql) $pdo->exec($createSql);
@@ -71,7 +77,7 @@ if (!$installed && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'vereinsanschrift'=>'0', 'beitrag_kinder'=>'0', 'beitrag_erwachsener'=>'0',
                 'usecaptchalogin'=>'0', 'annualwork'=>'0', 'cakeworkcount'=>'0',
                 'webmastermail'=>$form['adminemail'], 'leitermail'=>$form['adminemail'],
-                'lastcronrun'=>'0', 'lastcronoutput'=>'', 'last_diensteabrechnung'=>'0', 'version'=>'2.1.0',
+                'lastcronrun'=>'0', 'lastcronoutput'=>'', 'last_diensteabrechnung'=>'0', 'version'=>'2.3.0',
             ];
             $insertSetting = $pdo->prepare('INSERT INTO `einstellungen` (`name`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `name`=`name`');
             foreach ($defaults as $key=>$value) $insertSetting->execute([$key, $value]);
@@ -117,11 +123,11 @@ if (!$installed && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 function e(mixed $x): string { return htmlspecialchars((string)$x,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8'); }
 ?>
 <!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow">
-<title>Vereinssystem 2.1.0 – Installation</title>
+<title>Vereinssystem 2.3.0 – Installation</title>
 <style>
 :root{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#14233a;background:#eef2f8}*{box-sizing:border-box}body{margin:0;padding:28px 15px}main{max-width:780px;margin:auto;background:white;border:1px solid #d9e0ec;border-radius:14px;box-shadow:0 7px 28px #1b304220;padding:clamp(20px,5vw,44px)}h1{margin-top:0;color:#193c68}h2{font-size:1.1em;margin:24px 0 10px;border-bottom:1px solid #ddd;padding-bottom:9px}p{line-height:1.55}label{display:block;margin:12px 0 5px;font-weight:600}input{display:block;width:100%;border:1px solid #9daab9;border-radius:7px;padding:11px;font:inherit}input:focus{outline:2px solid #2964a3}.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}@media(max-width:600px){.grid{grid-template-columns:1fr}}button,.go{display:inline-block;padding:12px 23px;background:#1c5c9a;border:0;border-radius:7px;color:#fff;font-weight:bold;text-decoration:none;cursor:pointer}.alert{padding:13px 18px;border-radius:7px;background:#fff0ed;border:1px solid #edb5ad}.ok{background:#e7f7ee;border-color:#b8dbc4}.muted{color:#526278;font-size:0.93rem}
 </style></head><body><main>
-<h1>Vereinssystem <small>2.1.0</small></h1>
+<h1>Vereinssystem <small>2.3.0</small></h1>
 <p>Installation für PHP 8 und MySQL/MariaDB mit PDO. Die Datenbank muss beim Hoster bereits angelegt sein. Die Tabellen erstellt der Assistent.</p>
 <?php if ($success): ?>
 <div class="alert ok"><strong>Installation abgeschlossen.</strong>

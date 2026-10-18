@@ -69,7 +69,7 @@ $input = $_POST;
 if (isset($input['saveevent'])) {
 	// Eine Veranstaltung wurde ver�ndert und muss in die DB gespeichert werden
 
-	
+
 	$errors = array();
 	// Fehlerarray anlegen
 
@@ -82,7 +82,7 @@ if (isset($input['saveevent'])) {
 	//Nur fortfahren wenn es genau ein Ergebniss gibt
 	if (db_num_rows($veranstaltung_result) == 1) {
 		$veranstaltung = db_fetch_assoc($veranstaltung_result);
-		
+
 		//Dienstbeschreibung muss auf Form überprüft werden
 		 $dienstbeschreibung = explode("\n",$input['dienstbeschreibung']);
 		 //Jede zeile durchgehen
@@ -99,7 +99,7 @@ if (isset($input['saveevent'])) {
 		 }
 		 $dienstbeschreibung = array_slice($dienstbeschreibung,0,$input['mindienste']);
 		 $dienstbeschreibung = implode($dienstbeschreibung);
-		
+
 		//Veranstaltungsname muss ausgefüllt sein
 		if (!empty($input['veranstaltungsname'])) {
 			$sql = "UPDATE `veranstaltungen` SET
@@ -169,7 +169,7 @@ if (isset($input['saveevent'])) {
 
 				$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . db_escape(vs_sanitize_text($input['ansprechpartner_vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($input['ansprechpartner_nachname'])) . "'";
 				$test_person_result = db_query($sql_test_person);
-				
+
 				$person = db_fetch_assoc($test_person_result);
 
 				//echo db_error();
@@ -211,9 +211,9 @@ if (isset($input['saveevent'])) {
 		//Veranstaltungseintrag bearbeiten
 		$sql .= "   WHERE `veranstaltungs_id` = '" . intval($input['veranstaltungs_id']) . "'";
 		if (db_query($sql)) {
-				
+
 				//Bei Veränderungen an der Veranstaltung müssen evtl vorhandene Dienste geändert oder gelöscht werden
-				if($startzeit != $veranstaltung['startzeit'] or $endzeit != $veranstaltung['endzeit']){	
+				if($startzeit != $veranstaltung['startzeit'] or $endzeit != $veranstaltung['endzeit']){
 					$sql_dienste = "DELETE FROM `dienste`
 		                WHERE
 		               `dienste`.`event` = '".intval($input['veranstaltungs_id'])."'";
@@ -269,9 +269,9 @@ if (isset($input['saveevent'])) {
 
 	//Soll auch ein neuer Ort angelegt werden?
 	if ($input['ort'] == "new") {
-		
+
 		list($errors_ort, $input) = verify_ortsdaten($input);
-		
+
 		if (empty($errors_ort)) {
 			$sql_new_ort = "INSERT INTO `orte` SET
 		       `name`        = '" . db_escape(vs_sanitize_text($input['ort_name'])) . "',
@@ -305,9 +305,9 @@ if (isset($input['saveevent'])) {
 		//Ausgewählten Ort einfügen
 		$sql .= "`ort` = '" . db_escape(intval($input['ort'])) . "',";
 	}
-	
+
 	$more_persons = FALSE;
-	
+
 	//Wenn kein eindeutiger Ansprechpartner übergeben wurde
 	if (empty($input['ansprechpartner_id'])) {
 
@@ -378,7 +378,7 @@ if (isset($input['saveevent'])) {
 		exit();
 	}
 
-	
+
 }elseif (isset($input['deleteevent'])){
   // Vorhandene Veranstaltung Löschen bzw. als im Papierkorb markieren
   if ($input['sure'] == 2){

@@ -105,8 +105,8 @@ require_once ("inc/head.inc.php");
 					<?php
 					if(isset($input['anfang']) and isset($input['ende']) and isset($input['stand'])){?>
 					<p>
-					<label for="zeit">Zeit</label> 
-						<?php 
+					<label for="zeit">Zeit</label>
+						<?php
 						if(isset($veranstaltung['dienstbeschreibung'])){
 							$dienstbeschreibung = explode("\n",$veranstaltung['dienstbeschreibung']);
 						}
@@ -115,7 +115,7 @@ require_once ("inc/head.inc.php");
 						}else{
 							$stand = $input['stand'];
 						}
-						
+
 						if(isset($input['anfang']) and isset($input['ende']) and isset($input['stand'])){echo "<b>".date("d.m.Y H:i", $input['anfang'])."</b> bis <b>".date("d.m.Y H:i", $input['ende'])."</b> an <b>Stand ".$stand."</b>";}?>
 					</p><br />
 					<input type="hidden" name="anfang" value="<?php if(isset($input['anfang'])){echo $input['anfang'];} ?>" />
@@ -139,7 +139,7 @@ require_once ("inc/head.inc.php");
                   <?php
                   if(db_num_rows($dienste_result) != 0){
                   ?>
-                  <thead>                  
+                  <thead>
                     <tr>
                         <th>Name</th>
                         <th>Menge</th>
@@ -155,7 +155,7 @@ require_once ("inc/head.inc.php");
 				  	echo "<tbody><tr><td>Keine Kuchendienste zu dieser Veranstaltung eingetragen.</td></tr>";
 				  }
 				   ?>
-				   
+
                   </tbody>
 				</table>
 		</div>

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Vereinssystem 2.3.0 – Modul: finance.
+ * Pfad: inc/finance.php
+ * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
+ * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
+ */
 declare(strict_types=1);
 /** Vereinssystem 2.1.0 – Finanzkern. Nie Geldbeträge als Fließkomma verarbeiten. */
 function vf_db(): PDO { return db_pdo(); }
@@ -64,17 +70,28 @@ function vf_generate_month(string $period,int $actor): array {
             $age=$birthday->diff(new DateTimeImmutable($begin))->y;
             $key=($age>=18)?'beitrag_erwachsener':'beitrag_kinder';
             $base=(int)($settings[$key]??0);
+            // Neue Stichtagstarife überschreiben die historischen 2013-Grundeinstellungen,
+            // jedoch nur für noch nicht erzeugte Sollstellungen.
+            if (function_exists('vk_rate')) {
+                $base=vk_rate($age>=18?'erwachsen':'kind',0,$begin,$base);
+            }
             if($base>0)$charges[]=[(int)$m['mitglieder_id'],$period,'grundbeitrag',0,$age>=18?'Vereinsbeitrag Erwachsene':'Vereinsbeitrag Kind',$base,$end,$actor];
         }
         $deps=vf_all('SELECT z.mitglied,z.abteilung,a.name,a.aktivenumlage FROM abteilungszugehoerigkeit z JOIN abteilungen a ON a.abteilungs_id=z.abteilung JOIN mitglieder m ON m.mitglieder_id=z.mitglied WHERE z.aktiv=1 AND a.status=1 AND m.status=1 AND m.mitgliedschaft<>2 AND m.beitritt<=? ORDER BY z.mitglied,z.abteilung',[$end]);
         foreach($deps as $d) {
             $sum=(int)$d['aktivenumlage'];
+            if (function_exists('vk_rate')) {
+                $sum=vk_rate('abteilung',(int)$d['abteilung'],$begin,$sum);
+            }
             if($sum>0)$charges[]=[(int)$d['mitglied'],$period,'abteilung',(int)$d['abteilung'],'Aktivenumlage: '.substr((string)$d['name'],0,165),$sum,$end,$actor];
         }
         foreach($charges as $charge){
             if($charge[5]>100000000)throw new DomainException('Ungültiger Beitragssatz in den Einstellungen.');
             $stmt->execute($charge);
             if($stmt->rowCount()===1){$inserted++;$total+=$charge[5];}else{$skipped++;}
+        }
+        if (function_exists('vk_ready') && vk_ready()) {
+            vk_audit($actor,'beitrag.sollstellung','periode',0,['monat'=>$period,'neu'=>$inserted,'cent'=>$total]);
         }
         $pdo->commit();return ['neu'=>$inserted,'vorhanden'=>$skipped,'cent'=>$total];
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
@@ -98,7 +115,7 @@ function vf_allocate_locked(int $member,int $paymentId,?int $preferred=null): in
     }
     return $allocated;
 }
-function vf_add_payment(int $member,string $amount,string $paidAt,string $channel,string $payer,string $reference,string $note,int $actor,?int $preferred=null): array {
+function vf_add_payment(int $member,string $amount,string $paidAt,string $channel,string $payer,string $reference,string $note,int $actor,?int $preferred=null,?int $cashAccount=null): array {
     vf_require_ready();$c=vf_parse_amount($amount);vf_date($paidAt);
     if(!in_array($channel,['Überweisung','Bar','Lastschrift','PayPal','Sonstiges'],true))throw new DomainException('Ungültiger Zahlungsweg.');
     if(strlen($payer)>190||strlen($reference)>190||strlen($note)>500)throw new DomainException('Referenz oder Bemerkung zu lang.');
@@ -107,6 +124,13 @@ function vf_add_payment(int $member,string $amount,string $paidAt,string $channe
         vf_member($member,true);
         vf_exec('INSERT INTO vs_zahlungen (mitglied_id,betrag_cent,gezahlt_am,zahlungsweg,zahler_name,referenz,bemerkung,erstellt_von) VALUES (?,?,?,?,?,?,?,?)',[$member,$c,$paidAt,$channel,$payer,$reference,$note,$actor]);
         $id=(int)$pdo->lastInsertId();$allocated=vf_allocate_locked($member,$id,$preferred);
+        // Eine Beitragszahlung und ihr Kassenbucheintrag bilden EINE Transaktion.
+        if ($cashAccount !== null && function_exists('vk_link_payment_locked')) {
+            vk_link_payment_locked($cashAccount,$id,$member,$c,$paidAt,$actor);
+        }
+        if (function_exists('vk_ready') && vk_ready()) {
+            vk_audit($actor,'beitrag.zahlung','zahlung',$id,['mitglied'=>$member,'cent'=>$c,'konto'=>$cashAccount]);
+        }
         $pdo->commit();return ['id'=>$id,'zugeordnet'=>$allocated,'guthaben'=>$c-$allocated];
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
 }
@@ -127,6 +151,11 @@ function vf_void_payment(int $id,string $reason,int $actor): void {
         $r=vf_one('SELECT mitglied_id FROM vs_zahlungen WHERE id=?',[$id]);if(!$r)throw new DomainException('Zahlung nicht gefunden.');
         vf_member((int)$r['mitglied_id'],true);
         if(vf_exec('UPDATE vs_zahlungen SET storniert_am=NOW(),storniert_von=?,storno_grund=? WHERE id=? AND storniert_am IS NULL',[$actor,$reason,$id])!==1)throw new DomainException('Zahlung bereits storniert.');
+        // Storno einer Beitragszahlung storniert verknüpften Kasseneingang mit.
+        if (function_exists('vk_void_linked_payment_locked')) {
+            vk_void_linked_payment_locked($id,$actor,$reason);
+        }
+        if (function_exists('vk_ready') && vk_ready()) vk_audit($actor,'beitrag.storno','zahlung',$id,['grund'=>$reason]);
         $pdo->commit();
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
 }
@@ -139,6 +168,7 @@ function vf_void_charge(int $id,string $reason,int $actor): void {
         $paid=(int)(vf_one('SELECT COALESCE(SUM(a.betrag_cent),0) AS s FROM vs_zuordnungen a JOIN vs_zahlungen z ON z.id=a.zahlung_id WHERE a.forderung_id=? AND z.storniert_am IS NULL',[$id])['s']??0);
         if($paid>0)throw new DomainException('Bezahlte Forderung nicht stornierbar. Zuerst die Zahlung stornieren.');
         if(vf_exec('UPDATE vs_forderungen SET storniert_am=NOW(),storniert_von=?,storno_grund=? WHERE id=? AND storniert_am IS NULL',[$actor,$reason,$id])!==1)throw new DomainException('Forderung bereits storniert.');
+        if (function_exists('vk_ready') && vk_ready()) vk_audit($actor,'beitrag.forderung.storno','forderung',$id,['grund'=>$reason]);
         $pdo->commit();
     }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
 }

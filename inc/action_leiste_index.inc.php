@@ -1,4 +1,10 @@
 <?php
+/**
+ * Vereinssystem 2.3.0 – Modul: action leiste index.inc.
+ * Pfad: inc/action_leiste_index.inc.php
+ * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
+ * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
+ */
 if ($user['rights'] >= 4){
   // Nur Ab Rechtelevel 4 hier anzeigen, wer zunächst Geburtstag hat
 ?>

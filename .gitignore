@@ -64,7 +64,18 @@ Icon
 # Files that might appear on external disk
 .Spotlight-V100
 .Trashes
+# Vereinssystem: nie Zugangsdaten oder Installer-Reste committen
 /inc/config.php
 /inc/config.php.tmp.*
 .env
 *.log
+
+# No production backup, private uploads or member data in version control.
+/storage/
+/private-data/
+/backup/
+/backups/
+*.sql.gz
+*.csv
+*.log
+/inc/config.php

@@ -18,7 +18,7 @@ foreach(['2026-02-29','2026-13-04','2026-01-00'] as $date){rejection(fn()=>vf_da
 verify(vf_date('2024-02-29')==='2024-02-29','Schaltjahr');
 $schema=file_get_contents(__DIR__.'/../sql/schema.sql');
 preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`([^`]+)`\s*\(.*?\)\s*ENGINE=.*?;/si',$schema,$tables);
-verify(count($tables[0])===11,'11 Tabellen');
+verify(count($tables[0])===18,'18 Tabellen');
 foreach(['vs_forderungen','vs_zahlungen','vs_zuordnungen'] as $name){verify(in_array($name,$tables[1],true),'Tabelle '.$name);}
 $upgrade=file_get_contents(__DIR__.'/../sql/finance_2_1_0.sql');
 preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`[a-z0-9_]+`\s*\(.*?\)\s*ENGINE=InnoDB.*?;/si',$upgrade,$m);

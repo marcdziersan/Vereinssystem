@@ -1,7 +1,14 @@
 <?php
+/**
+ * Vereinssystem 2.3.0 – Modul: finanzkonto.
+ * Pfad: finanzkonto.php
+ * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
+ * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
+ */
 require_once __DIR__.'/inc/connect.inc.php';
 require_once __DIR__.'/inc/checkuser.inc.php';
 require_once __DIR__.'/inc/finance.php';
+require_once __DIR__.'/inc/cash.php';
 $isStaff=(int)$user['rights']>=4;
 $memberId=$isStaff?max(1,(int)($_GET['mitglied']??$user['mitglieder_id'])):(int)$user['mitglieder_id'];
 try{$year=vf_year((string)($_GET['jahr']??date('Y')));}catch(DomainException $e){$year=(int)date('Y');}
@@ -29,6 +36,9 @@ require __DIR__.'/inc/head.inc.php';
 <p>Eine Zahlung wird erst der gewählten offenen Forderung und anschließend weiteren offenen Beiträgen dieses Mitglieds (älteste zuerst) zugeordnet. Nicht zugeordnete Beträge bleiben Guthaben.</p>
 <form method="post" action="finanzen_process.php">
 <input type="hidden" name="vs_csrf" value="<?=vf_escape($_SESSION['vs_csrf'])?>"><input type="hidden" name="nonce" value="<?=vf_escape($_SESSION['vf_nonce'])?>"><input type="hidden" name="action" value="payment"><input type="hidden" name="mitglied" value="<?=$memberId?>"><input type="hidden" name="jahr" value="<?=$year?>">
+<?php if (vk_ready()): ?>
+<div class="controls"><div class="field"><label for="konto">Eingang auf Konto</label><select name="konto" id="konto" required><option value="">Konto wählen</option><?php foreach(vk_accounts() as $k): ?><option value="<?=(int)$k['id']?>"><?=vf_escape($k['name'])?></option><?php endforeach; ?></select></div></div>
+<?php endif; ?>
 <div class="controls"><div class="field"><label for="betrag">Betrag (€)</label><input id="betrag" name="betrag" inputmode="decimal" placeholder="15,00" required maxlength="12"></div>
 <div class="field"><label for="datum">Zahlung erhalten am</label><input id="datum" type="date" name="datum" value="<?=date('Y-m-d')?>" required></div>
 <div class="field"><label for="weg">Zahlungsweg</label><select id="weg" name="weg"><option>Überweisung</option><option>Bar</option><option>Lastschrift</option><option>PayPal</option><option>Sonstiges</option></select></div></div>

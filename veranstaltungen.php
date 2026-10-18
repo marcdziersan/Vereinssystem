@@ -130,8 +130,8 @@ require_once ("inc/head.inc.php");
 	}
 	//Filter für eigene Veranstaltungen und eingetragene Dienste
 	if (isset($_GET['detail']) and $_GET['detail'] != "all") {
-		$detail4url = "&amp;detail=".$_GET['detail'];	
-		
+		$detail4url = "&amp;detail=".$_GET['detail'];
+
 		//Anfragesyntax muss unterscheiden ob es schon eine Bedingung gibt
 		$sql .= " AND ";
 		//Suchender User ist Veranstalter
@@ -181,7 +181,7 @@ require_once ("inc/head.inc.php");
 	}
 	// Festlegen, wie viele Einträge pro Seite angezeigt werden sollen
 	$proseite = 10;
-	
+
 	if (!isset($_GET['page'])) {
 		// Keine Seite übermittelt, dann erste Seite anzeigen
 		$page = 1;
@@ -218,7 +218,7 @@ require_once ("inc/head.inc.php");
 				//Variable anpassen
 				$new = FALSE;
 				//Tabellenkopf ausgeben
-				echo '<h3>Vergangene Veranstaltungen</h3>              
+				echo '<h3>Vergangene Veranstaltungen</h3>
                                      <table><colgroup>
                     <col width="22%" />
                     <col width="22%" />
@@ -244,7 +244,7 @@ require_once ("inc/head.inc.php");
                     <col width="22%" />
                     <col width="22%" />
                     <col width="22%" />
-                  </colgroup> <thead>                  
+                  </colgroup> <thead>
                     <tr>
                         <th>Veranstaltungsname</th>
                         <th>Veranstaltungsort</th>
@@ -266,7 +266,7 @@ require_once ("inc/head.inc.php");
                     <col width="22%" />
                     <col width="22%" />
                     <col width="22%" />
-                  </colgroup> <thead>               
+                  </colgroup> <thead>
                     <tr>
                         <th>Veranstaltungsname</th>
                         <th>Veranstaltungsort</th>
@@ -282,13 +282,13 @@ require_once ("inc/head.inc.php");
 				//Variable anpassen
 				$new = TRUE;
 				//Tabellenkopf ausgeben
-				echo '</tbody></table><br /><h3>Bevorstehende Veranstaltungen</h3>   
+				echo '</tbody></table><br /><h3>Bevorstehende Veranstaltungen</h3>
               <colgroup>
                     <col width="22%" />
                     <col width="22%" />
                     <col width="22%" />
                     <col width="22%" />
-                  </colgroup><table><thead>               
+                  </colgroup><table><thead>
                     <tr>
                         <th>Veranstaltungsname</th>
                         <th>Veranstaltungsort</th>

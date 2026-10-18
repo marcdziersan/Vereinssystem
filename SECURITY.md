@@ -9,3 +9,12 @@
 - Der Login nutzt eine begrenzte Session-basierte Rate-Limit-Sperre, keinen zentralen IP-Schutz. Vorgeschaltet kann eine serverseitige Login-Rate-Limit-Regel sinnvoll sein.
 - POST-Formulare verwenden CSRF-Tokens; die frühere Diensteverwaltung mit zustandsändernden GET-Aktionen wurde auf POST umgestellt.
 - Für Mitglieder-, Eltern-, Gesundheits- oder Bankdaten gelten entsprechende datenschutzrechtliche Pflichten. Nicht freigeben, bevor Datenschutz-/Rollenprüfung erfolgt ist.
+
+## Ergänzungen 2.3.0
+
+- Kassenrechte werden zusätzlich zum alten Rechtesystem serverseitig geprüft; nur Administrator-Level 5 kann diese delegieren.
+- Eigene Kassenbuchungen besitzen einen Auditdatensatz und eine Stornospur. Diese Protokolle sind **nicht** manipulationssicher gegen privilegierte Datenbankadministratoren.
+- CSV-Import hat eine Preview-Bestätigung und SHA-256-Duplikatserkennung. Fremde Bankbuchungen nur nach manueller Kontrolle aufnehmen.
+- `VS_PRIVATE_STORAGE_DIR` muss einen **absoluten Pfad außerhalb von `DOCUMENT_ROOT`** bezeichnen, andernfalls sind Uploads/Downloads deaktiviert. Bei jeder Ablage sind Berechtigungen und die PHP-FPM-/Webserver-Umgebung zu prüfen.
+- PDFs sind einfache automatisch erzeugte Auszüge und weder signierte Rechnungen noch beweiskräftige Bankdokumente.
+- MySQL-Integration, Upgradeablauf, Sitzungsrechte und Uploads müssen vor Betrieb mit Echtdaten unabhängig geprüft werden.

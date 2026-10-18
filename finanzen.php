@@ -1,4 +1,10 @@
 <?php
+/**
+ * Vereinssystem 2.3.0 – Modul: finanzen.
+ * Pfad: finanzen.php
+ * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
+ * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
+ */
 require_once __DIR__.'/inc/connect.inc.php';
 require_once __DIR__.'/inc/checkuser.inc.php';
 require_once __DIR__.'/inc/finance.php';

@@ -18,7 +18,7 @@ try {
         'usecaptchalogin'=>'0', 'beitrag_kinder'=>'0', 'beitrag_erwachsener'=>'0',
         'annualwork'=>'0', 'cakeworkcount'=>'0', 'lastcronrun'=>'0',
         'last_diensteabrechnung'=>'0', 'lastcronoutput'=>'', 'webmastermail'=>'',
-        'leitermail'=>'', 'version'=>'2.1.0',
+        'leitermail'=>'', 'version'=>'2.3.0',
     ];
     $result = db_query('SELECT `name`, `value` FROM `einstellungen`');
     if ($result === false) throw new RuntimeException('Datenbanktabelle einstellungen fehlt.');

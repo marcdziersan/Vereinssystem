@@ -22,7 +22,7 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
         echo "<h1>Dienstplan von \"".htmlspecialchars($veranstaltung['veranstaltungsname'])."\"</h1>";
 		$sql_dienste = "SELECT * FROM `dienste` LEFT JOIN `mitglieder` ON `dienste`.`person` = `mitglieder`.`mitglieder_id` WHERE `event` = ".intval($_GET['id']);
 		$dienste_result = db_query($sql_dienste);
-		
+
 		function belegt($startzeit,$endzeit,$stand){
 			global $dienste_result;
 			if(db_num_rows($dienste_result) != 0){
@@ -314,15 +314,15 @@ $sql = "SELECT * FROM `veranstaltungen` WHERE `veranstaltungs_id` = ".intval($_G
     <?php }else{?>
     		<h2>Dienste anzeigen</h2>
             <p class="message error">Es wurden keine vordefinierten Dienste gefunden!<br /><a href="veranstaltung_show.php?id=<?php echo $_GET['id'];?>" title="Übersicht der Veranstaltung anzeigen">Zu Veranstaltungsdetails</a></p>
-			
+
    	<?php
    	}
 	}else{
-	?> 
+	?>
             <h2>Dienste anzeigen</h2>
             <p class="message error">Es wurde keine Veranstaltung mit dieser ID gefunden!<br /><a href="veranstaltungen.php" title="Übersicht aller Veranstaltungen anzeigen">Zur Veranstaltungsverwaltung</a></p>
 
-<?php 
+<?php
 	 }
 }else{
  ?>

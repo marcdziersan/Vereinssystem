@@ -1,4 +1,10 @@
 <?php
+/**
+ * Vereinssystem 2.3.0 – Modul: login process.
+ * Pfad: login_process.php
+ * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
+ * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
+ */
 require_once __DIR__ . '/inc/connect.inc.php';
 vs_session_start();
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { header('Location: login.php'); exit; }

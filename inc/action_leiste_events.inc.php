@@ -1,5 +1,5 @@
                           <h2>Aktionen</h2>
-                          <ul class="nolistimg">                       
+                          <ul class="nolistimg">
                            <li><img src="images/show.png" alt="" title="Anzeigen" /> <a href="veranstaltung_show.php?id=<?php echo $veranstaltung['veranstaltungs_id'];?>" title="Die Veranstaltungsdetails von <?php echo htmlspecialchars($veranstaltung['veranstaltungsname'])?> anzeigen">Veranstaltungsdetails anzeigen</a></li>
                            <?php if($user['rights'] == 5){?>
                             <li><img src="images/edit.png" alt="" title="Bearbeiten" /> <a href="veranstaltung_edit.php?id=<?php echo ($veranstaltung['veranstaltungs_id']);?>" title="Die Veranstaltungsdetails von <?php echo htmlspecialchars($veranstaltung['veranstaltungsname'])?> bearbeiten">Veranstaltungsdetails bearbeiten</a></li>

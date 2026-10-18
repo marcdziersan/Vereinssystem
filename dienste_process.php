@@ -22,22 +22,22 @@ if (isset($_POST['action']) and isset($_POST['event'])) {
             if (isset($_POST['kuchen']) && (!ctype_digit((string)$_POST['kuchen']) || (int)$_POST['kuchen'] > 100)) {
                 header('Location: dienste_show.php?action=fail&id=' . intval($_POST['event'])); exit();
             }
-			
+
 											if(isset($_POST['person']) and $_POST['person'] == "other"){
 												if(empty($_POST['ansprechpartner_id'])){
 												//Variable die angibt ob es mehrere Personen desselben Namens gibt
 												$more_persons = FALSE;
 
-										
+
 													//Textfelder für Ansprechpartner sind ausgefüllt
 													if (!empty($_POST['vorname']) and !empty($_POST['nachname'])) {
 														//Test ob Ansprechpartner in der DB vorhanden
-										
+
 														$sql_test_person = "SELECT * FROM `mitglieder` WHERE `vorname` = '" . db_escape(vs_sanitize_text($_POST['vorname'])) . "' AND `nachname` = '" . db_escape(vs_sanitize_text($_POST['nachname'])) . "'";
 															$test_person_result = db_query($sql_test_person);
-															
+
 															$personen = db_fetch_assoc($test_person_result);
-											
+
 															//echo db_error();
 															//Wenn es nur eine Person mit diesem Namen gibt oder diese Person bereits in der DB steht
 															if (db_num_rows($test_person_result) == 1) {
@@ -52,7 +52,7 @@ if (isset($_POST['action']) and isset($_POST['event'])) {
 														} else {
 															$errors[] = "Ansprechpartner muss vorhanden sein";
 														}
-											
+
 													if ($more_persons == TRUE) {
 														$data = $_POST;
 														$data = array_merge($data, array("more_persons" => "true"));
@@ -60,11 +60,11 @@ if (isset($_POST['action']) and isset($_POST['event'])) {
 													if(isset($_POST['kuchen'])){
 														$get = "";
 													}else{
-														
+
 													}
 													if($errors != FALSE){
 														header('Location: dienste_add.php?action=fail&event=' . intval($_POST['event']) . '&data=' . base64_encode(json_encode($data)) . '&errors=' . base64_encode(json_encode($errors)));
-														exit();		
+														exit();
 													}
 												  }else{
 												  	$person = $_POST['ansprechpartner_id'];
@@ -73,10 +73,10 @@ if (isset($_POST['action']) and isset($_POST['event'])) {
 													$person = $user['mitglieder_id'];
 												}
 
-			
 
 
-			
+
+
 			//Personen die entweder die berechtigung besitzen oder ansprechpartner sind und auch eine entsprechende Person eingeben dürfen die Veranstaltung bearbeiten
 			if ($user['rights'] > 3 or ($user['rights'] == 3 and ($veranstaltung['startzeit'] - time()) > 259200) or $user['mitglieder_id'] == $veranstaltung['ansprechpartner']) {
 				$admin = TRUE;
@@ -182,7 +182,7 @@ if (isset($_POST['action']) and isset($_POST['event'])) {
 				$sql_dienste = "SELECT * FROM `dienste` WHERE `dienst_id` = " . intval($_POST['dienst_id']);
 				$dienste_result = db_query($sql_dienste);
 				$dienst = db_fetch_assoc($dienste_result);
-				
+
 					// Ohne Verwaltungsrechte nur eigene Dienste löschen.
                     if ((int)$user['rights'] < 4 && (int)$user['mitglieder_id'] !== (int)$veranstaltung['ansprechpartner'] && (int)($dienst['person'] ?? 0) !== (int)$user['mitglieder_id']) {
                         http_response_code(403); exit('Keine Berechtigung.');

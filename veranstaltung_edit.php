@@ -391,7 +391,7 @@ Vorname
 			              <?php
 						include ("inc/action_leiste_events.inc.php");
 			              ?>
-			    		  </div>		
+			    		  </div>
 			 				</div>
 						<?php }else{ ?>
 						<h2>Veranstaltung bearbeiten</h2>

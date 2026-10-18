@@ -6,7 +6,7 @@ require_once("inc/connect.inc.php");
 
 // Login-Status-Prüfung einbinden
 require_once("inc/checkuser.inc.php");
-require_once __DIR__."/inc/validation.php";
+require_once __DIR__ . "/inc/validation.php";
 
 function vs_password_matches(string $plain, string $stored): bool {
     return password_verify($plain, $stored)
@@ -188,11 +188,11 @@ function verify_mitgliedsdaten($input, $user = array("rights" => 1,"mitglieder_i
       unset($errors[count($errors)-1]);
     }
   }
-  if (!empty($input['telvorwahl']) && !empty($input['telnr']) && (preg_match("/^[0-9\+]{3,}$/", $input['telvorwahl']) != 1 && preg_match("/^[0-9]{4,}$/", $input['telnr']) != 1 )){
+  if ((!empty($input['telvorwahl']) || !empty($input['telnr'])) && (preg_match("/^[0-9\+]{3,}$/", (string)($input['telvorwahl'] ?? '')) != 1 || preg_match("/^[0-9]{4,}$/", (string)($input['telnr'] ?? '')) != 1)){
     // Telefonnummern dürfen nur aus Ziffern und einem eventuellen Plus bestehen (Alternativ sind beide String empty/leer, wenn keine Telefonnr. angegeben wird
     $errors[] = "Die eingegebene Telefonnummer ist ungültig";
   }
-  if (!empty($input['hdyvorwahl']) && !empty($input['handynr']) && (preg_match("/^[0-9\+]{3,}$/", $input['hdyvorwahl']) != 1 && preg_match("/^[0-9]{4,}$/", $input['handynr']) != 1 )){
+  if ((!empty($input['hdyvorwahl']) || !empty($input['handynr'])) && (preg_match("/^[0-9\+]{3,}$/", (string)($input['hdyvorwahl'] ?? '')) != 1 || preg_match("/^[0-9]{4,}$/", (string)($input['handynr'] ?? '')) != 1)){
     // Handynummern dürfen nur aus Ziffern und einem eventuellen Plus bestehen (Alternativ sind beide String empty/leer, wenn keine Handynr. angegeben wird
     $errors[] = "Die eingegebene Handynummer ist ungültig";
   }else{

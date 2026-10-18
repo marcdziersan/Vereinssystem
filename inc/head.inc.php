@@ -14,9 +14,12 @@
       <meta name="author" content="Nicolas Jourdan, Sebastian Fuss" />
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
       <link rel="stylesheet" type="text/css" href="css/main.css" />
-      <?php if (in_array(basename($_SERVER["SCRIPT_NAME"] ?? ""), ["finanzen.php","finanzkonto.php"], true)): ?>
-      <link rel="stylesheet" href="css/finance.css?v=2.1.0">
+      <?php if (in_array(basename($_SERVER["SCRIPT_NAME"] ?? ""), ["finanzen.php","finanzkonto.php","kasse.php","kasse_rechte.php","kasse_tarife.php","kasse_import.php","kasse_protokoll.php"], true)): ?>
+      <link rel="stylesheet" href="css/finance.css?v=2.3.0">
       <meta name="viewport" content="width=device-width,initial-scale=1">
+      <?php endif; ?>
+      <?php if (str_starts_with(basename($_SERVER["SCRIPT_NAME"] ?? ""), "kasse")): ?>
+      <link rel="stylesheet" href="css/cash.css?v=2.3.0">
       <?php endif; ?>
       <link rel="icon" href="images/favicon.ico" type="image/x-icon" />
       <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
@@ -50,6 +53,9 @@
 		<div id="header" class="textcenter">
             <a href="index.php"><img src="images/logo_head.png" title="VereinsSystem" alt="VereinsSystem" /></a>
 		</div>
+        <?php if (isset($user) && is_array($user) && !function_exists('vk_can')) {
+            require_once __DIR__ . '/cash.php';
+        } ?>
         <div id="navi">
 
         <?php
@@ -63,6 +69,9 @@
                 <li><a href="orte.php" title="Orte">Orte</a></li>
                 <li><a href="veranstaltungen.php" title="Veranstaltungen">Veranstaltungen</a></li>
                 <li><a href="<?php echo (int)$user['rights'] >= 4 ? 'finanzen.php' : 'finanzkonto.php'; ?>" title="Beitragskonto">Finanzen</a></li>
+                <?php if (function_exists('vk_can') && vk_can($user,'kasse.ansehen')): ?>
+                  <li><a href="kasse.php" title="Kassenbuch">Kasse</a></li>
+                <?php endif; ?>
                 <?php
                 if ($user['rights'] >= 5){
                   echo "<li><a href=\"einstellungen.php\" title=\"Einstellungen\">Einstellungen</a></li>\n";

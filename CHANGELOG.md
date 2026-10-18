@@ -1,40 +1,55 @@
 # Vereinssystem – Änderungsprotokoll
 
-## 2.1.0 – 18.10.2026
+## 2.3.0 – 18.10.2026
+
+**Gemeinsamer Release der ursprünglich geplanten Ausbaustufen 2.2.0 und 2.3.0.** Es wird keine separate Zwischenversion 2.2.0 benötigt.
 
 ### Neu
-- Eigenständige Beitragsbuchhaltung mit **Monatsforderungen** (`vs_forderungen`), **Zahlungseingängen** (`vs_zahlungen`) und **Zahlungszuordnungen** (`vs_zuordnungen`).
-- Verwaltungsübersicht mit Jahres-Soll/Ist, offenen Beiträgen, Guthaben und Mitgliedersuche (`finanzen.php`).
-- Persönliches Mitgliedskonto mit Beitragspositionen, Zahlungshistorie und Zahlungseingabe (`finanzkonto.php`).
-- Zahlungen als Teilzahlungen und als Verrechnung über mehrere Monate; unverrechnete Beträge als Guthaben.
-- Optionale Erfassung des tatsächlichen Zahlers (z. B. Elternteil), Zahlungsweg, Buchungsdatum, Referenz und Bemerkung.
-- Nachträgliche Guthabenverrechnung auf offene Forderungen.
-- Storno von Zahlungen und unbezahlten Forderungen mit Begründung, Bearbeiter und Zeitstempel; keine spurenlose Löschung.
-- Wiederholbare Schema-Migration für bestehende Installationen mit Admin-Login und POST-/CSRF-Schutz (`upgrade.php`).
-- Neue responsive Finanzmasken über `css/finance.css` (Altmasken bleiben unverändert).
-- Tests zu Betrags-, Datums-, Monats- und SQL-Schema-Validierung (`tests/finance_smoke.php`).
+
+- Frei anlegbare Kassenkonten beliebigen Typs (Bargeld, Bank, PayPal usw.), mit Anfangsbestand, Eröffnungsdatum und Aktivstatus.
+- Einnahmen, Ausgaben, über zwei Konten verknüpfte atomare Umbuchungen sowie Jahresendbestände je Konto.
+- Beitragszahlungen aus 2.1.0 können jetzt unmittelbar dem tatsächlich verwendeten Kassenkonto zugeordnet werden – **ohne Doppelbuchung**. Stornos sind gekoppelt.
+- Belegnummern, PDF-Buchungsnachweise, Kategorie- und Kontenauswertung als PDF-Jahresbericht sowie CSV-Einzelbuchungsexport.
+- PDF-/Bildbelege per geschütztem Upload/Download mit Content-Type-, Hash- und Pfadprüfung (privater Speicher **außerhalb** des Webroots erforderlich).
+- Zweistufiger CSV-Import mit Dateiprüfung, Vorschau, Bestätigung und SHA-256-Duplikatssperre.
+- Granulare Kassenrechte (Buchen, Storno, Konten, Import, Export, Belege, Audit) mit Administrator-Vergabe und vorhandenen Altrechten weiterhin intakt.
+- Prüfspur über `vs_audit` für Kassenänderungen, Rechte, Beitragssätze und gekoppelte Zahlungsvorgänge.
+- Beitragssätze mit Gültigkeitsbeginn für Erwachsene/Kinder und Abteilungsumlagen; bestehende Sollstellungen werden nicht rückwirkend überschrieben.
+- Additive 2.3.0-Migration (7 Tabellen, zusätzlich zu 2.1.0) und Erstinstaller mit insgesamt **18 Tabellen**.
+- Responsive Kassenoberflächen, zusätzliche `css/cash.css` und Navigationslink.
 
 ### Geändert
-- Vollständiger Erstinstaller enthält nun elf statt acht Tabellen; Version auf 2.1.0 angehoben.
-- Hauptnavigation enthält Finanzen, bestehende Mitgliederfinanzübersicht verweist zur Buchungsansicht.
-- Finanzabfragen mit vorbereiteten PDO-Statements; transaktionale Zahlungs-/Zuordnungslogik.
-- README um vollständige Buchungsanleitung, Rechte, Grenzen, Herkunft und Update-Pfad ergänzt.
 
-### Grenzen / Migration
-- Vor dem Upgrade **Backup** anlegen. Neue Forderungen werden nicht rückwirkend automatisch erzeugt.
-- Rückwirkend erzeugte Forderungen basieren auf **heutigen** Stammdaten/Beitragssätzen; historische Tarife sind noch nicht versioniert.
-- Buchungen werden manuell erfasst; kein Bankabgleich, SEPA-Mandat, Mehrkontenkassenbuch oder automatischer Mailversand für Rückstände.
-- Vollständiger Live-Test mit MySQL/MariaDB und Echthoster **noch nicht abgeschlossen**; PHP-Syntax und datenbankfreie Smoke-Checks sind ausgeführt.
+- README mit vollständiger Funktionsvorstellung, Installations-/Update-/Bedienungsanleitung und Lizenzherkunft überarbeitet.
+- Vollständiger PHP-Dateikatalog und Architektur-/Sicherheits-/Migrationsdokumentation ergänzt (`docs/`).
+- Alle PHP-Quelldateien auf LF-Zeilenenden und ohne nachfolgende Leerzeichen standardisiert; vorhandene Modulkommentare erhalten. Neue Komponenten dokumentiert. **Historische Inline-HTML-Mischmodule nicht risikoreich blind umformatiert.**
+- Finanzbuchhaltung mit Cash-Transaktionen verknüpft und Beitragsberechnung um tarifdatierte Werte ergänzt.
+- Regressionstests auf 18 Tabellen angepasst; zusätzliche Kassen- und PDF-Tests.
+
+### Einschränkungen
+
+- **Keine vollständige MySQL-/MariaDB-Liveintegration in dieser Entwicklungsumgebung**, da keine passende Datenbank und `pdo_mysql` bereitstanden. PHP-8.4-Syntaxprüfungen und datenbankfreie Tests ausgeführt.
+- Historische Mitgliederzahlungen werden nicht automatisch einem neuen Kassenkonto zugewiesen; es erfolgt keine fiktive Kontoaufwertung.
+- Keine Bankkonto-Anbindung, kein SEPA-Einzug, keine revisionssichere GoBD-/Steuerbuchhaltung und keine PDF-Signatur.
+- Hochgeladene Dokumente benötigen einen außerhalb des Webroots konfigurierten Speicherpfad.
+- Rechte und SQL-Logik historischer Module werden nicht vollständig durch das neue Rollensystem ersetzt.
+
+## 2.1.0 – 18.10.2026
+
+- Beitragsforderungen, Zahlungen, Teilzahlungen, automatische Zuordnung, Guthaben und Soll-/Ist-Jahresübersicht.
+- Storno und drei zusätzliche Tabellen, wiederholbare Schema-Migration.
+- Erstinstaller auf elf Tabellen und neue responsive Finanzmasken erweitert.
 
 ## 2.0.1 – 18.10.2026
-- PDO-Repositoryreparatur, sichere Session-Verwaltung, SQL-Schema und lokales jQuery ergänzt.
-- Numerische Wertebereichsprüfungen für Mitgliedsart, Abrechnung und Rechte korrigiert.
-- Technische Dokumentation und Konfigurationsschutz ergänzt.
+
+- Fehlende PDO-Dateien, Sitzungsverwaltung, SQL-Schema und lokales jQuery ergänzt.
+- Wertebereichsvalidierung verbessert und Repository-Struktur vervollständigt.
 
 ## 2.0.0 – 17.10.2026
-- Umstellung des ursprünglichen Systems auf PHP 8 und PDO-Kompatibilitätsschicht.
-- Geführte `install.php`, Passwortmigration von MD5 zu `password_hash`, Sessions, CSRF-Schutz.
 
-## 2012/2013 – Original
-- VereinsSystem von Nicolas Jourdan und Sebastian Fuss: Mitglieder, Abteilungen, Adressen, Veranstaltungen, Dienste und Nachrichten.
-- Historische Erlaubnis zur kostenlosen nichtkommerziellen Nutzung und Erweiterung bleibt gültig.
+- Migration der Originalanwendung auf PHP 8/PDO, geführte Installation, Passwortmigration und CSRF-/Session-Schutz.
+
+## 2012/2013 – Originalfassung
+
+- Vereinsverwaltung von Nicolas Jourdan und Sebastian Fuss: Mitglieder, Abteilungen, Veranstaltungen, Dienste, Nachrichten, E-Mail-Erinnerungen.
+- Historische kostenlose, nichtkommerzielle Nutzungserlaubnis bleibt bestehen.

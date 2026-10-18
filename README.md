@@ -1,128 +1,170 @@
-# Vereinssystem 2.1.0 – Vereinsverwaltung und Beitragsbuchhaltung
+# Vereinssystem 2.3.0 – Vereinsverwaltung, Beiträge und Kassenführung
 
-**Webbasierte Mitglieder- und Vereinsverwaltung für PHP 8 mit MySQL/MariaDB und PDO.**
+**Vereinssystem** ist eine klassische, selbst hostbare PHP-Vereinsverwaltung. Sie vereint Mitglieder, Abteilungen, Vereinsveranstaltungen, Helferdienste, Nachrichten, Beitragsforderungen und Zahlungseingänge mit einer mehrkontenfähigen Kassenverwaltung. Die Bedienung läuft im Browser. **Kein Node.js, kein React und kein verpflichtendes Cloud-Abonnement.**
 
-Das Vereinssystem führt Mitglieder, Abteilungen, Veranstaltungen, Helferdienste, Nachrichten und Vereinsbeiträge an einer zentralen Stelle zusammen. Die Version **2.1.0** erweitert die bisherige reine Beitragsberechnung erstmals um **tatsächliche Zahlungsbuchungen mit Soll-/Ist-Abgleich**, Teilzahlungen, Rückständen, Guthaben und nachvollziehbare Stornos. Die Anwendung läuft auf eigenem Webspace ohne Node.js, SPA-Framework oder Cloud-Abonnement.
+**Version:** 2.3.0 (18. Oktober 2026) · **PHP:** ab 8.0 · **Datenbank:** MySQL/MariaDB via PDO · **Nutzung:** nichtkommerziell nach den unten erläuterten Herkunfts- und Lizenzbedingungen.
 
-> **Teststand:** PHP-Syntax und datenbankfreie Smoke-Checks wurden ausgeführt. Ein vollständiger Browser- und Buchungstest mit produktionsnaher MySQL-/MariaDB-Instanz steht aus. Bei echten Mitgliederdaten – besonders bei Kindern und Bankdaten – zunächst ausschließlich eine gesicherte Testinstallation verwenden.
+> **Wichtiger Teststand:** Alle PHP-Dateien wurden mit PHP 8.4 auf Syntax geprüft; allgemeine, Finanz- und Kassen-Smoke-Checks laufen ohne Datenbank erfolgreich. **Ein vollständiger End-to-End-Test mit MySQL/MariaDB und echter Vereinsinstallation ist noch nicht erfolgt.** Vor dem Einsatz mit personenbezogenen Daten, besonders von Minderjährigen, ist eine Datenbank-, Berechtigungs- und Hostingabnahme erforderlich.
 
-## Herkunft und Rechte
+## Herkunft und Entwicklung
 
-Das ursprüngliche **Vereinssystem** entstand 2012/2013 als Abiturprojekt von **Nicolas Jourdan und Sebastian Fuss**. Die Originalautoren erlaubten die **kostenlose Nutzung und Erweiterung für nichtkommerzielle Zwecke**. Diese Erlaubnis bleibt bestehen und wird nicht durch eine andere Lizenz ersetzt.
+Das ursprüngliche Vereinssystem entstand **2012/2013** als Abiturprojekt von **Nicolas Jourdan und Sebastian Fuss**. Schon damals standen Mitglieder, Abteilungen, Veranstaltungen, Nachrichten und Vereinsdienste im Mittelpunkt. Der historische PHP-5-Code nutzte die später entfernten `mysql_*`-Funktionen. Die Originalautoren gestatteten die **kostenlose Nutzung und Erweiterung zu nichtkommerziellen Zwecken**.
 
-**Marcus Dziersan** führt die Anwendung seit 2026 technisch weiter. Die eigenen Erweiterungen werden, soweit die dafür notwendigen Rechte vorliegen, unter der **PolyForm Noncommercial License 1.0.0** bereitgestellt. Für fremde Programmteile, Bibliotheken, Icons und Schriftarten gelten deren jeweilige Rechte. Eine kommerzielle Verwendung des Gesamtprojekts ist **nicht pauschal erlaubt**. PolyForm Noncommercial ist aufgrund des Kommerzausschlusses keine OSI-Open-Source-Lizenz.
+**Marcus Dziersan** entwickelt die Anwendung seit **2026** weiter. Die Urheberschaft und Nutzungsbedingungen der ursprünglichen Autoren bleiben erhalten. Für neue eigene Beiträge, soweit die jeweiligen Rechte vorliegen, gilt **PolyForm Noncommercial 1.0.0**. Die Bedingungen von jQuery und anderen Drittkomponenten bleiben selbstständig gültig. Die Lizenzdokumente sind `LICENSE.md`, `LICENSE-POLYFORM-NONCOMMERCIAL.md`, `THIRD-PARTY-NOTICES.md` und `docs/ORIGINAL-README-2013.md`.
 
-Lizenzinformationen: `LICENSE.md`, `LICENSE-POLYFORM-NONCOMMERCIAL.md`, `THIRD-PARTY-NOTICES.md` und das historische `docs/ORIGINAL-README-2013.md`.
+## Funktionen nach Version
 
-## Funktionsumfang
+| Bereich | Stand in 2.3.0 |
+|---|---|
+| Mitglieder und Benutzer | Stammdaten, Familienbeziehungen, Status, Login |
+| Abteilungen | Zuordnungen, Abteilungsumlagen und Leitungen |
+| Vereinsalltag | Orte, Veranstaltungen, Arbeits-/Helferdienste, Kuchenleistungen, Nachrichten |
+| Beitragsbuchhaltung (2.1) | Monatsforderungen, Zahlungseingänge, Soll/Ist, Teilzahlungen, Guthaben, Rückstände, Storno |
+| **Beliebige Kassenkonten (2.3)** | Frei benennbare Konten, z. B. Bargeld, Bank, PayPal, Spendenkasse, weitere |
+| **Kassenbuch (2.3)** | Einnahmen, Ausgaben, Anfangsbestände, atomare Umbuchungen, nachvollziehbare Stornos |
+| **Beitragsanbindung (2.3)** | Neue Beitragszahlungen gleichzeitig auf einem gewählten Kassenkonto erfassen; gemeinsames Storno |
+| **Belege (2.3)** | Dokumentdateien sicher in einem explizit konfigurierten Speicher **außerhalb des Webroots** ablegen und herunterladen |
+| **Berichte (2.3)** | CSV-Export, Jahres-PDF nach Konto und Kategorie, PDF-Buchungsbelege |
+| **CSV-Import (2.3)** | Datei prüfen, Vorschau bestätigen, maximal 100 Positionen pro Import, Duplikaterkennung |
+| **Berechtigungen (2.3)** | Eigene Kassenrechte zusätzlich zu den fünf bisherigen Rechtestufen |
+| **Audit (2.3)** | Zeit, handelndes Mitglied, Objekt, Änderung und Stornogrund protokollieren |
+| **Beitragssätze mit Datum (2.3)** | Kind-/Erwachsenentarife und Abteilungsumlagen ab frei wählbarem Stichtag |
+| Responsive Darstellung | Neue Finanz-/Kassenmasken mobil nutzbar; Altmodule größtenteils noch im klassischen Layout |
 
-| Bereich | Funktionsumfang |
-| --- | --- |
-| Mitglieder | Stammdaten, Eintritt, Status, familiäre Zuordnung, Benutzerkonto |
-| Abteilungen | Verwaltung, Mitgliedszugehörigkeit, Aktivenumlagen |
-| Anschriften | Orts- und Adressverwaltung |
-| Veranstaltungen | Veranstaltungen und Helferdienste, Kuchen- und Dienstplanung |
-| Nachrichten | Vereinsinterne Mitteilungen |
-| Finanzen 2.1 | Monats-Sollstellungen, echte Zahlungsbuchungen, automatische Zuordnung, Restschuld, Guthaben, Teilzahlungen, Storno, Jahresübersicht |
-| Benutzerrechte | Klassische Stufen 1–5 (Finanzbuchungen ab Level 4, Sollstellung und Forderungsstorno nur ab Level 5) |
-| Hintergrundaufgaben | Erinnerungs-E-Mails und historische Diensteabrechnungen über Cronjob |
+### Kassenbeispiel
 
-**Nicht enthalten (geplant für spätere Versionen):** mehrere frei anlegbare Kassen-/Bankkonten mit Umbuchungen und Kassenabschlüssen; SEPA-Lastschriftmandate; Bank-CSV-Import; ein vollständig aufgabenbasiertes Berechtigungsmodell; vollständige mobile Neugestaltung.
+Ein Verein hat drei Konten: Vereinskonto **2.150,00 €**, Barkasse **385,50 €** und PayPal **310,00 €**. Der Gesamtbestand beträgt **2.845,50 €**. Eine Umbuchung von **100,00 €** von der Bank zur Kasse erfasst zwei korrespondierende Buchungen. Der Gesamtbestand bleibt **2.845,50 €**. Externe Einnahmen und Ausgaben erhöhen oder vermindern dagegen den Bestand.
 
-## Neu in 2.1.0 – Beitragsbuchhaltung
+### Beitragszahlungen im Kassenbuch
 
-### So arbeitet die Buchhaltung
+Eine Beitragszahlung über `finanzkonto.php` verlangt nach dem Upgrade ein Zielkonto. Die Zahlung wird in der Beitragsbuchhaltung verrechnet **und gleichzeitig** als Kasseneingang erfasst, nicht zweimal separat gebucht. Ein Storno im Beitragskonto storniert auch den verknüpften Kasseneingang in derselben Datenbanktransaktion.
 
-1. **Sollstellungen erzeugen:** Berechtigte Administratoren öffnen **Finanzen** und wählen einen Beitragsmonat. Die Anwendung legt für aktive Mitglieder mit Eintritt spätestens am Monatsende Monatsbeiträge sowie aktuell aktive Abteilungsumlagen an. Ruhende Mitglieder (`mitgliedschaft=2`) werden nicht automatisch abgerechnet. Für die Einstufung Kind/Erwachsener zählt das Alter **am Monatsersten**. Eintritt im Lauf des Monats löst den vollen Monatsbeitrag aus.
-2. **Zahlung buchen:** Im Beitragskonto eines Mitglieds können Vorstand/Verwaltung ab Level 4 einen Betrag, Zahlungsdatum, Zahlungsweg, Zahler, Verwendungszweck und Bemerkung eintragen. Zahlungen können dem Vereinsmitglied zugeordnet werden, auch wenn zum Beispiel ein Elternteil tatsächlich überwiesen hat.
-3. **Automatisch zuordnen:** Der Betrag begleicht auf Wunsch zuerst eine bestimmte offene Forderung, ansonsten die ältesten offenen Beiträge zuerst. Ein Zahlungseingang kann mehrere Monate ausgleichen. Nicht zugeordnete Restbeträge bleiben als **Guthaben** erhalten und können später mit neuen Forderungen verrechnet werden.
-4. **Soll/Ist ansehen:** Mitglieder sehen ausschließlich das eigene Beitragskonto. Benutzer ab Level 4 können andere Konten und die Verwaltungsübersicht öffnen. Offene Beiträge = Soll minus zugeordnete aktive Zahlungen. Zahlungen ohne Zuordnung sind **Guthaben**, nicht Ist.
-5. **Korrigieren:** Falsche Zahlungen lassen sich nur mit Stornogrund stornieren; Datensatz, Datum und Bearbeiter bleiben gespeichert. Sollstellungen können nur dann storniert werden, wenn keine aktive Zahlung darauf verrechnet wurde. Stornierte Zahlungen machen die betroffenen Forderungen wieder offen.
+**Bestehende Zahlungen aus 2.1.0 bleiben erhalten**, erhalten jedoch **keine erfundene rückwirkende Kontenzuordnung**. Frühere Zahlungseingänge müssen anhand der Originalbelege gesondert abgeglichen werden. Eine Bankdatei darf nicht ein zweites Mal als normale Einnahme importiert werden, wenn sie bereits über die Beitragsbuchhaltung verbucht ist.
 
-### Historische Daten und wichtige Grenzen
+## Systemvoraussetzungen
 
-- Beiträge werden bei der Monatserstellung **als feste Forderungen gespeichert**. Spätere Beitragssatzänderungen verändern diese Forderungen nicht. Für alte Monate gibt es keine vollständigen historischen Beitrags-/Zugehörigkeitsverläufe; zurückdatierte Sollstellungen verwenden deshalb **aktuelle** Stammdaten. Vor einer historischen Nachberechnung unbedingt prüfen.
-- Die Sollstellung ist **idempotent**: bereits erstellte Monatspositionen werden bei erneutem Durchlauf nicht dupliziert oder überschrieben. Einmal stornierte Positionen bleiben aus Nachvollziehbarkeitsgründen historisch erhalten und werden nicht unbemerkt wiederhergestellt.
-- Beträge werden ausschließlich als **ganze Cent** verarbeitet. Die Datenbank führt drei neue Tabellen mit Referenzen zwischen Forderungen, Zahlungen und Zuordnungen.
-- Es werden **keine** Zahlungsdaten von einer Bank automatisch abgerufen. Eine erfasste Zahlung ist eine manuelle Buchung, **kein Beweis** für einen tatsächlichen Geldeingang.
-- Abteilungsmitglieder mit geänderter Zugehörigkeit werden für frühere Monate nicht automatisch rückwirkend korrigiert.
-- Guthaben ist gesamtbezogen; die Jahressicht der Zahlungen zeigt Zahlungen nach Zahlungsdatum, während Ist-Beträge alle Zahlungen berücksichtigt, die Forderungen **dieses Beitragsjahres** begleichen.
+- PHP **8.0 oder neuer**; empfohlen 8.2–8.4.
+- PHP-Erweiterungen: `PDO`, **`pdo_mysql`**, `fileinfo`, `iconv`; `mbstring` empfohlen; `gd` nur für optionales Captcha.
+- MySQL 5.7+/8.x oder kompatibles MariaDB mit **InnoDB** und **utf8mb4**.
+- Eigener Webspace oder lokaler PHP-Server (z. B. WAMP), Schreibrechte bei der Installation.
+- Öffentlich ausschließlich über **HTTPS** ausliefern.
+- Optionaler privater Dateispeicher **außerhalb** des öffentlich erreichbaren Dokumentenstamms für Rechnungen und Kassenbelege.
 
-### Beispiel
+Die älteren PHP-Module nutzen weiterhin den PDO-Ergebnisadapter (`db_query`, `db_fetch_assoc`, `db_escape`). Noch nicht alle alten dynamischen SQL-Ausdrücke sind auf Parameterbindung umgestellt. Neu entwickelte Finanz- und Kassenmodule verwenden vorbereitete PDO-Statements.
 
-Für Januar, Februar und März liegen je 15,00 € Soll vor. Eine Zahlung von 20,00 € begleicht Januar vollständig und Februar zu 5,00 €. Damit sind **45,00 € Soll**, **20,00 € Ist**, **25,00 € offen** und **0,00 € Guthaben** vorhanden. Eine weitere Zahlung von 30,00 € begleicht Februar und März, die übrigen 5,00 € werden als Guthaben vorgemerkt.
+## Erstinstallation
 
-## Voraussetzungen
+1. Das vollständige Projekt als ZIP entpacken oder von [GitHub](https://github.com/marcdziersan/Vereinssystem) beziehen.
+2. Projektdateien in den Ordner der Anwendung auf dem Webspace laden (etwa `/verein/`).
+3. Beim Hoster eine **leere** MySQL-/MariaDB-Datenbank mit Benutzer anlegen.
+4. `https://domain.example/verein/install.php` aufrufen, Datenbankdaten und Vereinsnamen eingeben, Administratorkonto mit mindestens 12-stelligem Passwort einrichten.
+5. Der Assistent richtet **18 Tabellen** ein und erstellt bei leerem Mitgliederbestand ein Administrator-Konto.
+6. Über `login.php` anmelden, Grundeinstellungen und Beitragssätze prüfen, erst danach echte Sollstellungen erzeugen.
+7. In **Kasse → Konto anlegen** zuerst beliebig viele Zahlungskonten mit den belegten Anfangsbeständen einrichten.
+8. Nach der Einrichtung `install.php` entfernen; `inc/config.php` schützen und Backups aktivieren.
 
-- PHP **8.0 oder neuer**, empfohlen 8.2–8.4; Erweiterung **PDO + pdo_mysql** (und optional `mbstring`, `gd` für CAPTCHA).
-- MySQL 5.7+/8.x oder kompatible MariaDB mit InnoDB und `utf8mb4`.
-- Bestehende (anfangs leere) Datenbank samt Nutzer; PHP muss während der Erstinstallation `inc/config.php` schreiben dürfen.
-- Eigener Webspace oder lokale Umgebung (z. B. WAMP). Im öffentlichen Betrieb **HTTPS erforderlich**.
+### Updates auf 2.3.0 (von 2.0.x oder 2.1.0)
 
-Die alten Module nutzen einen PDO-basierten Ergebnisadapter (`db_query` usw.). Noch nicht alle historischen dynamischen Abfragen nutzen gebundene Parameter. Der derzeitige PDO-Kompatibilitätsmodus (`sql_mode = NO_ENGINE_SUBSTITUTION`) muss langfristig ersetzt werden.
+**Unbedingt Datenbank UND Dateien sichern!**
 
-## Installation – neue Datenbank
+1. Dateien in eine getrennte Testinstallation kopieren; bestehende `inc/config.php` behalten.
+2. Als Administrator (Rechtelevel **5**) anmelden.
+3. `upgrade.php` aufrufen, per POST die Datenbankmigration starten. Das Skript erzeugt nur fehlende Tabellen aus **2.1.0** (3 Tabellen) und **2.3.0** (7 Tabellen).
+4. Kassenkonten mit korrektem **Anfangsdatum und Anfangsbestand** anlegen; bereits importierte oder manuell erfasste Zahlungen prüfen.
+5. Testweise Buchung, Umbuchung, Storno, Mitgliedsbeitrag, Belegabruf und CSV-/PDF-Ausgaben durchführen.
+6. Erst danach auf Produktivdaten umstellen und `upgrade.php` vom Server **löschen**.
 
-1. Vollständiges Projekt auf den Webspace hochladen (zum Beispiel in den Ordner `/verein/`).
-2. Eine leere MySQL-/MariaDB-Datenbank und einen Datenbanknutzer im Hosting-Panel erstellen.
-3. `https://deine-domain.de/verein/install.php` öffnen, Verbindungsdaten und Verein eintragen.
-4. Administrator mit gültiger E-Mail, Geburtsdatum und einem Passwort von mindestens 12 Zeichen anlegen.
-5. Der Assistent legt **11 Tabellen** an (8 ursprüngliche + 3 neue Finanztabellen). Ein Admin (Rechtestufe 5) wird angelegt, sofern der Mitgliederbestand leer ist.
-6. Über `login.php` anmelden, die Beitragswerte in den Einstellungen eintragen und erst anschließend eine Sollstellung anlegen.
-7. **`install.php` löschen**, Konfigurationsdatei schützen und eine Datensicherung einrichten.
+**Keine rückwirkende automatische Kassenbuchung:** 2.1.0-Bestandszahlungen werden ausdrücklich nicht automatisch Konten zugeordnet. Das System löscht keine alten Finanzdatensätze. **Das Upgrade ist keine vollständige Migrationsengine für beliebig modifizierte Alt-Datenbankschemata.** Weitere Informationen: [UPGRADE-2.3.0.md](UPGRADE-2.3.0.md).
 
-## Update von 2.0.x auf 2.1.0 – bestehende Daten erhalten
+## Bedienung der neuen Kassenverwaltung
 
-1. **Vorher Datenbank und Dateien vollständig sichern.** Bestehende `inc/config.php` nicht überschreiben.
-2. Neue Projektdateien (ohne fremde `inc/config.php`) zunächst in einer Testumgebung hochladen.
-3. Als Administrator (Rechtestufe **5**) anmelden und `upgrade.php` öffnen.
-4. Auf **„Datenbankschema installieren / prüfen“** klicken: drei neue Tabellen werden ergänzt; bestehende acht Tabellen und Mitglieder werden nicht neu angelegt. Der Vorgang ist wiederholbar.
-5. `finanzen.php` öffnen und Monatssollstellungen für einen **Testmonat** anlegen. Beiträge und Berechtigungen prüfen, danach Zahlung, Teilzahlung, Storno und Guthaben mit Testdaten ausprobieren.
-6. Bei korrektem Verhalten die produktive Installation aktualisieren. **`upgrade.php` anschließend vom öffentlichen Webspace entfernen.**
+**Konten:** `kasse.php` öffnen, Konto mit beliebigem Namen, Typ, Eröffnungsdatum und belegtem Anfangsbestand anlegen. Konten lassen sich deaktivieren, ohne historische Buchungen zu löschen. Der Anfangsbestand ist **keine laufende Einnahme**.
 
-Ohne diese Migration zeigt die neue Finanzverwaltung einen Hinweis statt Buchungsfunktionen. Das Upgrade verändert keine alten Beitragsdatensätze (sie wurden im Original nicht als Sollstellungen gespeichert) und **erzeugt keine rückwirkenden Forderungen automatisch**.
+**Einnahme / Ausgabe:** Konto, Art, Betrag, Datum, Kategorie, Beschreibung und optionale Belegnummer eingeben. Geldbeträge als `15,00` oder `15.00` eingeben (keine Tausenderpunkte). Jede Buchung erhält eine fortlaufende ID und eine Audit-Spur.
 
-## Rollen und Datenschutz
+**Umbuchung:** Zwei verschiedene aktive Konten auswählen. Ein Ausgang und ein identisch hoher Eingang werden gemeinsam in einer Transaktion angelegt. Bei einer Stornierung werden **beide** Positionen storniert.
 
-- Level 1–3: eigenes Buchungskonto nur lesen (zusätzlich zu bisherigen Rechten).
-- Level 4: fremde Mitgliederkonten ansehen, Zahlungseingänge erfassen/zuordnen und Zahlungen stornieren.
-- Level 5: außerdem Monatsforderungen erzeugen, Forderungen stornieren und `upgrade.php` ausführen.
+**PDF-Beleg:** `kasse.php → PDF-Quittung`. Es handelt sich um einen einfachen automatisch generierten Buchungsnachweis, **nicht** um eine rechtsverbindlich signierte Rechnung oder einen Nachweis für tatsächliche Bankbewegungen.
 
-Finanzaktionen verwenden serverseitige Rechteprüfungen, CSRF-Tokens, eine einmalige Formular-Nonce zur Verringerung versehentlicher Doppelbuchungen und PDO-Parameter. Zuordnungen laufen innerhalb von Datenbanktransaktionen und sperren die jeweilige Mitgliedszeile. Das verhindert nicht sämtliche Fehlbedienungen: Buchungen müssen organisatorisch mit Kontoauszügen/Kassenbelegen abgeglichen werden.
+**Belegdokument hochladen:** `kasse.php → Anhänge`. Zulässig: PDF, JPEG, PNG und WebP, maximal 5 MB. Die Datei wird nur mit einer berechtigten Sitzung über `kasse_beleg.php` ausgeliefert.
 
-Der Altbestand enthält potenziell personenbezogene Daten, Bankdaten und Angaben von Minderjährigen. Ein Rollentest, Datenschutzkonzept und ein Live-Sicherheitstest bleiben Voraussetzung für den echten Vereinsbetrieb. Siehe `SECURITY.md`.
+**CSV-Import:** `kasse_import.php`, maximal 100 Buchungen pro Datei, Semikolon und UTF-8. Kopfzeile:
 
-## Projektstruktur
+```csv
+datum;art;betrag;kategorie;beschreibung;belegnummer
+2026-10-18;einnahme;15,00;Spenden;Spende Vereinsfest;S-007
+2026-10-18;ausgabe;24,50;Verpflegung;Getränke Vereinsabend;R-048
+```
+
+Datei prüfen → Vorschau vergleichen → Import bestätigen. Ein gespeicherter SHA-256-Schlüssel identifiziert wiederholt importierte Zeilen derselben Datei und desselben Zielkontos. **CSV-Import ist kein Bankabgleich** und ordnet nicht automatisch Mitgliedszahlungen zu.
+
+**Jahresbericht:** `kasse.php → Jahresbericht PDF` umfasst Kontosalden, Einnahmen/Ausgaben, interne Umbuchungen und Kategorien. Der CSV-Export umfasst die Einzelbuchungen des gewählten Jahres (derzeit maximal 10.000 Zeilen). Ein Jahresabschluss mit Bilanzrecht oder gemeinnützigkeitsrechtlicher Bewertung wird dadurch nicht automatisch erstellt.
+
+## Private Belegablage konfigurieren
+
+Die Variable **`VS_PRIVATE_STORAGE_DIR`** muss auf ein beschreibbares **absolutes Verzeichnis außerhalb von `DOCUMENT_ROOT`** zeigen. Beispiel auf Linux-Webhosting:
+
+```text
+VS_PRIVATE_STORAGE_DIR=/home/hosting-account/private/vereinssystem-belege
+```
+
+Der genaue Weg zur Einrichtung hängt vom Hoster ab (PHP-FPM-/Webserver-Umgebung). Ohne diese Variable bleiben **Datei-Uploads und -Downloads deaktiviert**, damit Bankbelege nicht versehentlich öffentlich abgelegt werden. PDF-Buchungsbelege werden unabhängig davon aus der Datenbank erzeugt. Bei Windows sind Uploads erst nach Anpassung an die unterstützte Server-Konfiguration möglich.
+
+## Rechte und Prüfung
+
+Die bisherigen Stufen 1–5 bleiben bestehen. **Level 5** erhält sämtliche zusätzlichen Kassenrechte automatisch. Andere Mitglieder können gezielt die Rechte **Ansehen**, **Buchen**, **Konten bearbeiten**, **Storno**, **CSV-Import**, **Export**, **Belegzugriff**, **Protokolleinsicht** und **Beitragstarife** erhalten. Nur Level 5 kann Zusatzrechte vergeben oder entziehen. Rechte werden in `kasse_admin.php` verwaltet; alle neuen mutierenden Endpunkte prüfen das passende Recht serverseitig.
+
+Beitragsbuchungen werden derzeit zusätzlich weiterhin über das historische Rechtelevel **4** freigegeben. Das bisherige gesamte Rechtesystem wurde bewusst **nicht** stillschweigend ersetzt. Ein vollständiges funktionsweises Rechtemodell für die Altmodule ist weiterer Entwicklungsbedarf.
+
+Das Audit unter `kasse_protokoll.php` führt Aktionen mit Benutzer-ID, Zeit und Details. Es ist ein **Anwendungsprotokoll**, kein manipulationssicheres externes revisionsrechtliches Journalsystem. Backups, abgesicherte Serverzugriffe und unabhängige Kontrollen bleiben erforderlich.
+
+## Historische Beitragstarife
+
+Unter **Kasse → Rechte & Beiträge** lassen sich neue Kind-/Erwachsenenbeiträge und Abteilungsumlagen mit Gültigkeitsbeginn erfassen. Bei **neuen** Monats-Sollstellungen wählt die Anwendung den zum Monatsersten gültigen Eintrag. Vor dem ersten definierten Stichtag gelten die bisherigen Beitragseinstellungen. Bereits erzeugte Forderungen werden **niemals automatisch überschrieben**. Frühere Abteilungszugehörigkeiten und Beitrittsstatus sind im alten Modell nicht vollständig historisiert.
+
+## Quellcode und Verzeichnisaufbau
 
 | Datei/Ordner | Aufgabe |
-| --- | --- |
-| `install.php` | Neue Datenbank mit 11 Tabellen einrichten |
-| `upgrade.php` | Bestehende Version auf Finanzschema 2.1.0 ergänzen |
-| `finanzen.php` | Gesamtübersicht und Monats-Sollstellung |
-| `finanzkonto.php` | Mitgliedskonto, Soll/Ist, Zahlungen und Stornos |
-| `finanzen_process.php` | Berechtigte POST-Buchungsaktionen |
-| `inc/finance.php` | Finanzlogik, Transaktionen und Cent-Berechnung |
-| `sql/finance_2_1_0.sql` | Idempotente Finanzmigration (3 Tabellen) |
-| `sql/schema.sql` | Neuinstallation einschließlich Finanzschema |
-| `css/finance.css` | Neue Finanzmasken (auch auf kleinen Bildschirmen bedienbar) |
-| `inc/database.php`, `inc/connect.inc.php` | PDO-Kern und Einstellungen |
-| `inc/checkuser.inc.php`, `inc/session.php` | Session, Anmeldung, CSRF |
-| `member_*.php`, `abteilung_*.php`, `veranstaltung_*.php` | Bestehende Vereinsmodule |
-| `tests/smoke.php`, `tests/finance_smoke.php` | Datenbankfreie Prüfungen |
-| `CHANGELOG.md` | Historie der Änderungen |
+|---|---|
+| `inc/database.php`, `inc/connect.inc.php` | Zentraler PDO-Adapter und Einstellungen |
+| `inc/finance.php` | Mitgliedsbeitrags-/Forderungs- und Zahlungskern |
+| `inc/cash.php` | Konten, Buchungen, Umbuchungen, Rechte, Audit, Tarife |
+| `inc/pdf.php` | Einfacher PDF-Renderer ohne Composer/Node-Abhängigkeit |
+| `finanzen.php`, `finanzkonto.php` | Beitragsübersicht und Zahlungseingabe |
+| `kasse.php`, `kasse_process.php` | Kassenmasken und geschützte Schreibaktionen |
+| `kasse_admin.php`, `kasse_protokoll.php` | Berechtigung, Tarifhistorie, Prüfspur |
+| `kasse_import.php`, `kasse_export.php` | CSV-Import, CSV-/PDF-Export |
+| `kasse_beleg.php` | Private PDF-/Bildbelege |
+| `sql/schema.sql` | Gesamtschema für Erstinstallation: 18 Tabellen |
+| `sql/finance_2_1_0.sql`, `sql/finance_2_3_0.sql` | Additive, wiederholbare Migrationen |
+| `install.php`, `upgrade.php` | Erstinstallation und Versionsupdate |
+| `docs/ARCHITECTURE.md` | Architektur, Geldflüsse und Schema |
+| `docs/SOURCE_REFERENCE.md` | Vollständiger PHP-Datei-/Funktionskatalog |
+| `docs/USER_GUIDE.md`, `UPGRADE-2.3.0.md` | Bedienung und Upgrade |
+| `tests/*_smoke.php` | Datenbankfreie Quell- und Schema-Checks |
 
-## Versionen und Ausblick
+Neue Module sind mit PHPDoc-Funktions- und Sicherheitskommentaren versehen; für die historischen PHP-/HTML-Mischdateien wurden die Zeilenenden vereinheitlicht und bestehende Funktionsabläufe bewusst nicht durch riskante automatische Neuformatierung beschädigt. Der gesamte Bestand ist unter [docs/SOURCE_REFERENCE.md](docs/SOURCE_REFERENCE.md) verzeichnet.
 
-| Version | Stand |
-| --- | --- |
-| **2012/2013** | Original-Vereinsverwaltung (Nicolas Jourdan / Sebastian Fuss) |
-| **2.0.0** · 17.10.2026 | PHP-8-/PDO-Migration, neuer Installer |
-| **2.0.1** · 18.10.2026 | Wartung, fehlende Kern-Dateien, Fehlerkorrekturen |
-| **2.1.0** · 18.10.2026 | Forderungen, Zahlungen, Soll/Ist, Guthaben, Storno, Upgrade |
-| **2.2.0** · geplant | Frei anlegbare Geldkonten, Umbuchungen und Kassenbuch |
-| **2.3.0** · geplant | Berechtigungen, Im-/Export, Berichte und Belege |
-| **2.4.0** · geplant | Umfangreiche responsive Modernisierung |
+## Versionsübersicht
 
-Anregungen und Fehlerberichte: [GitHub Issues](https://github.com/marcdziersan/Vereinssystem/issues). Bitte keine echten Bank-, Mitglieder- oder Zugangsdaten veröffentlichen.
+| Version | Inhalt |
+|---|---|
+| Original (2012/2013) | Grundlegende Vereinsverwaltung von Nicolas Jourdan und Sebastian Fuss |
+| 2.0.0 / 2.0.1 (2026) | PHP 8, PDO, Installer, Session-/Validierungskorrekturen |
+| 2.1.0 (2026) | Sollstellungen, Zahlungen, Teilzahlungen, Guthaben, Rückstände |
+| **2.3.0 (2026)** | Gemeinsamer Ausbau der geplanten **2.2.0 und 2.3.0**: Kasse, Rechte, Berichte, Import, Belege, Audit, Stichtagstarife |
+| 2.4.0 (geplant) | Vollständige responsive Modernisierung der älteren Verwaltungsmasken |
 
-**Nutzungsrecht:** kostenlose, nichtkommerzielle Nutzung und Erweiterung. Details in den Lizenzdokumenten. Für kommerzielle Nutzung ist die gesonderte Zustimmung sämtlicher betroffener Rechteinhaber erforderlich.
+Die beiden zuvor geplanten Versionsschritte **2.2.0 und 2.3.0 wurden in einem gemeinsamen Release 2.3.0 zusammengefasst**. Es ist keine eigenständig veröffentlichte Zwischenversion 2.2.0 erforderlich.
+
+## Sicherheit und Grenzen
+
+Dies ist eine modernisierte Altanwendung, **kein abschließend sicherheitsauditiertes Vereinsprodukt**. Die alten Masken verwenden teils historische Abfragen und den weniger strikten Datenbank-Kompatibilitätsmodus. Für die neuen Finanzmasken werden Prepared Statements, CSRF- und Rechteprüfungen, Sessions und Datenbanktransaktionen eingesetzt; eine unabhängige Prüfung aller Module bleibt notwendig. CSV-Daten und Belege sind vertraulich. Hinweise in `SECURITY.md` und `docs/ARCHITECTURE.md` beachten.
+
+Keine Bank- oder Steuerdaten als Beweis für eine tatsächliche Transaktion interpretieren, bevor eine Prüfung anhand von Belegen/Kontoauszügen erfolgt ist.
+
+## Lizenz, Urheber und Mitwirkung
+
+Ursprüngliche Urheber: **Nicolas Jourdan und Sebastian Fuss** (2012/2013). Weiterentwicklung: **Marcus Dziersan** (seit 2026). Die ursprüngliche kostenlose, nichtkommerzielle Nutzungserlaubnis bleibt unverändert. Eigene neue Beiträge stehen im Umfang der eigenen Rechte unter **PolyForm Noncommercial 1.0.0**. Drittanbieterbestandteile haben unabhängige Lizenzen. Eine kommerzielle Nutzung des Gesamtprojekts ist **nicht pauschal erlaubt**. Aufgrund des Kommerzausschlusses handelt es sich nicht um OSI-konform lizenzierte Open-Source-Software.
+
+Fehlermeldungen und Verbesserungen: [GitHub Issues](https://github.com/marcdziersan/Vereinssystem/issues). **Keine personenbezogenen Mitglieder-, Kinder- oder Bankdaten in Issues veröffentlichen.**

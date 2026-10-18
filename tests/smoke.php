@@ -27,5 +27,5 @@ ok(db_fetch_assoc($r)['id']===1,'Seek -> Assoc');
 ok(vs_sanitize_text('<b>Text</b>')==='Text','Textbereinigung');
 $schema = file_get_contents(__DIR__.'/../sql/schema.sql');
 preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`[^`]+`\s*\(.*?\)\s*ENGINE=.*?;/si', $schema, $matches);
-ok(count($matches[0])===11,'Elf installierbare Tabellen');
+ok(count($matches[0])===18,'18 installierbare Tabellen');
 echo "OK: $checks Smoke-Checks (ohne Datenbank)\n";
