@@ -4,8 +4,6 @@
 
 **Version:** 2.3.0 (18. Oktober 2026) · **PHP:** ab 8.0 · **Datenbank:** MySQL/MariaDB via PDO · **Nutzung:** nichtkommerziell nach den unten erläuterten Herkunfts- und Lizenzbedingungen.
 
-> **Wichtiger Teststand:** Alle PHP-Dateien wurden mit PHP 8.4 auf Syntax geprüft; allgemeine, Finanz- und Kassen-Smoke-Checks laufen ohne Datenbank erfolgreich. **Ein vollständiger End-to-End-Test mit MySQL/MariaDB und echter Vereinsinstallation ist noch nicht erfolgt.** Vor dem Einsatz mit personenbezogenen Daten, besonders von Minderjährigen, ist eine Datenbank-, Berechtigungs- und Hostingabnahme erforderlich.
-
 ## Herkunft und Entwicklung
 
 Das ursprüngliche Vereinssystem entstand **2012/2013** als Abiturprojekt von **Nicolas Jourdan und Sebastian Fuss**. Schon damals standen Mitglieder, Abteilungen, Veranstaltungen, Nachrichten und Vereinsdienste im Mittelpunkt. Der historische PHP-5-Code nutzte die später entfernten `mysql_*`-Funktionen. Die Originalautoren gestatteten die **kostenlose Nutzung und Erweiterung zu nichtkommerziellen Zwecken**.
