@@ -1,5 +1,31 @@
 # Vereinssystem – Änderungsprotokoll
 
+## 2.4.0 – 18.10.2026
+
+### Neu
+- Vollständige gemeinsame Mobile-First-Seitenhülle für **alle** bisherigen PHP-Seiten: Login, Dashboard, Mitglieder, Abteilungen, Orte, Veranstaltungen, Dienste, Nachrichten, Finanzen, Kassenverwaltung, Einstellungen und Berechtigungen.
+- Responsives Navigationssystem mit Desktop-Sidebar, mobilem Schubladenmenü, 5-fach Schnellnavigation, Fokusführung, Escape-Schließen und Tastaturfokus.
+- Zentrales UI-Modul `inc/ui.php` mit sicherer HTML-Ausgabe, fest definierten SVG-Icons und Dateizuordnung zu den Navigationsbereichen.
+- Einheitliche Buttons, Eingabefelder, Formularlayouts, Statusmeldungen, Listen, Aktionsleisten, Paginierung und Inhaltskarten über `css/app.css`.
+- Progressive Tabellenumwandlung: einfache Listen als beschriftete Karten bei schmalem Viewport, komplexe Tabellen als bedienbare Scrollcontainer.
+- Komplett neuer Anmeldebildschirm mit Passwortsichtbarkeit, Autofill-Hinweisen und ansprechend gestalteten Fehlermeldungen; serverseitige Anmeldung bleibt unverändert.
+- Neues Dashboard mit Schnellzugriffen unter Berücksichtigung der Benutzerrechte.
+- Separates responsives Setup-Stylesheet für `install.php` und `upgrade.php`.
+- Hell-/Dunkelschema mit lokaler Einstellung, kein Tracking und keine Framework-Abhängigkeit.
+- Mobile UX-Leitfaden, dokumentierte Breakpoints und UI-Struktur unter `docs/UX_UI_2.4.0.md`.
+
+### Geändert
+- Kopfleiste und Fußzeile vollständig auf semantische, responsive HTML-Struktur umgestellt. **Historische Original-Logos unverändert erhalten.**
+- jQuery-Abhängigkeit lokal weiterverwendet; alte `$appendjs`-Funktionen laufen nach `DOMContentLoaded` zur Wahrung der bisherigen Bedienlogik.
+- Sichtbare Versionsnummer im Bootstrap, Installer und Upgrade auf 2.4.0 aktualisiert.
+- CSS-Regeln der älteren Masken werden zentral überschrieben, ohne Formularnamen, POST-Endpunkte, Benutzerrechte oder Datenbanktabellen zu ändern.
+
+### Kompatibilität
+- **Keine Datenbankmigration erforderlich** von 2.3.1 auf 2.4.0.
+- Alte HTML-/PHP-Masken werden über die gemeinsame Hülle modernisiert und bleiben funktional unverändert; komplexe Tabellen behalten sämtliche Spalten.
+- Kein Buildprozess, kein Node.js/NPM beim Anwender, kein Remote-CDN erforderlich.
+
+
 ## 2.3.1 – 18.10.2026
 
 ### Behoben

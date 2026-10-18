@@ -1,8 +1,8 @@
-# Vereinssystem 2.3.1 – Vereinsverwaltung, Beiträge und Kassenführung
+# Vereinssystem 2.4.0 – Mobile-First Vereinsverwaltung, Beiträge und Kassenführung
 
 **Vereinssystem** ist eine klassische, selbst hostbare PHP-Vereinsverwaltung. Sie vereint Mitglieder, Abteilungen, Vereinsveranstaltungen, Helferdienste, Nachrichten, Beitragsforderungen und Zahlungseingänge mit einer mehrkontenfähigen Kassenverwaltung. Die Bedienung läuft im Browser. **Kein Node.js, kein React und kein verpflichtendes Cloud-Abonnement.**
 
-**Version:** 2.3.1 (18. Oktober 2026) · **PHP:** ab 8.0 · **Datenbank:** MySQL/MariaDB via PDO · **Nutzung:** nichtkommerziell nach den unten erläuterten Herkunfts- und Lizenzbedingungen.
+**Version:** 2.4.0 (18. Oktober 2026) · **PHP:** ab 8.0 · **Datenbank:** MySQL/MariaDB via PDO · **Nutzung:** nichtkommerziell nach den unten erläuterten Herkunfts- und Lizenzbedingungen.
 
 
 ## Herkunft und Entwicklung
@@ -13,7 +13,7 @@ Das ursprüngliche Vereinssystem entstand **2012/2013** als Abiturprojekt von **
 
 ## Funktionen nach Version
 
-| Bereich | Stand in 2.3.1 |
+| Bereich | Stand in 2.4.0 |
 |---|---|
 | Mitglieder und Benutzer | Stammdaten, Familienbeziehungen, Status, Login |
 | Abteilungen | Zuordnungen, Abteilungsumlagen und Leitungen |
@@ -40,6 +40,30 @@ Eine Beitragszahlung über `finanzkonto.php` verlangt nach dem Upgrade ein Zielk
 
 **Bestehende Zahlungen aus 2.1.0 bleiben erhalten**, erhalten jedoch **keine erfundene rückwirkende Kontenzuordnung**. Frühere Zahlungseingänge müssen anhand der Originalbelege gesondert abgeglichen werden. Eine Bankdatei darf nicht ein zweites Mal als normale Einnahme importiert werden, wenn sie bereits über die Beitragsbuchhaltung verbucht ist.
 
+## Mobile-First Bedienoberfläche seit 2.4.0
+
+**Alle vorhandenen Bedienbereiche nutzen seit 2.4.0 dieselbe responsive Hülle.** Die ursprünglichen Vereinslogos bleiben erhalten; Layout, Navigation, Abstände, Formulare, Statusmeldungen und Bedienelemente wurden vereinheitlicht. Die bestehende PHP/PDO-Geschäftslogik sowie Mitglieder- und Finanzdaten bleiben unangetastet.
+
+- **Anmeldung und Abmeldung:** neu gestaltete Loginseite mit eindeutig beschrifteten Feldern, Passwort-Anzeige-Umschalter und verständlichen Statusmeldungen; Abmeldung führt zurück zum Login.
+- **Navigation:** zentrale Seitenleiste auf großen Bildschirmen, ausklappbares Menü und untere Schnellnavigation auf Smartphones. Menüpunkte bleiben berechtigungsabhängig.
+- **Vereinsalltag:** Dashboard, Mitglieder, Abteilungen, Orte, Veranstaltungen/Dienste und Nachrichten in einem einheitlichen Layout. Die bestehenden PHP-Masken nutzen dieselben neuen Styles.
+- **Verwaltung:** Beitragskonten, Kasse, CSV-Importe, Belege, Protokolle, Einstellungen und Berechtigungsseiten mit konsistenten Formularen und Tabellen.
+- **Tabellen:** einfache Datentabellen erscheinen auf kleinen Bildschirmen als beschriftete Karten, komplexe Tabellen behalten eine horizontal scrollbar beschriftete Ansicht. JavaScript verändert **keine** Buchungsdaten.
+- **Bedienbarkeit:** gut erreichbare Bedienelemente, sichtbarer Tastaturfokus, Skip-Link, Dialog-/Menüsteuerung per Escape und optionales Hell-/Dunkelschema (nur lokal gespeichert).
+- **Installieren und Aktualisieren:** `install.php` und `upgrade.php` nutzen ein gemeinsames responsives Setup-Design.
+
+Für Darstellung und Verhalten sind `css/app.css`, `css/setup.css`, `assets/js/app.js` und `inc/ui.php` zuständig. Weitere Einzelheiten und Pflegehinweise: [docs/UX_UI_2.4.0.md](docs/UX_UI_2.4.0.md).
+
+### Update von 2.3.1 auf 2.4.0
+
+1. Dateien und Datenbank sichern.
+2. Neue Anwendung hochladen und die bestehende Datei `inc/config.php` behalten.
+3. Browser-Cache für CSS/JavaScript neu laden; Asset-Version ist `2.4.0`.
+4. Mit dem gewohnten Benutzerkonto anmelden und sämtliche Verwaltungsfunktionen weiterverwenden.
+5. **Es sind keine neuen Datenbanktabellen erforderlich.** Bestehende Daten und Rollen bleiben erhalten.
+
+[Ausführliche Upgrade-Anleitung](UPGRADE-2.4.0.md)
+
 ## Systemvoraussetzungen
 
 - PHP **8.0 oder neuer**; empfohlen 8.2–8.4.
@@ -62,7 +86,7 @@ Die älteren PHP-Module nutzen weiterhin den PDO-Ergebnisadapter (`db_query`, `d
 7. In **Kasse → Konto anlegen** zuerst beliebig viele Zahlungskonten mit den belegten Anfangsbeständen einrichten.
 8. Nach der Einrichtung `install.php` entfernen; `inc/config.php` schützen und Backups aktivieren.
 
-### Updates auf 2.3.1 (von 2.0.x, 2.1.0 oder 2.3.0)
+### Vorherige Schema-Updates (von 2.0.x, 2.1.0 oder 2.3.0)
 
 **Unbedingt Datenbank UND Dateien sichern!**
 
@@ -139,7 +163,10 @@ Unter **Kasse → Rechte & Beiträge** lassen sich neue Kind-/Erwachsenenbeiträ
 | `install.php`, `upgrade.php` | Erstinstallation und Versionsupdate |
 | `docs/ARCHITECTURE.md` | Architektur, Geldflüsse und Schema |
 | `docs/SOURCE_REFERENCE.md` | Vollständiger PHP-Datei-/Funktionskatalog |
-| `docs/USER_GUIDE.md`, `UPGRADE-2.3.1.md` | Bedienung und Upgrade |
+| `docs/USER_GUIDE.md`, `UPGRADE-2.4.0.md` | Bedienung und UI-Upgrade |
+| `inc/ui.php`, `inc/head.inc.php`, `inc/footer.inc.php` | Gemeinsame responsive Seitenstruktur |
+| `css/app.css`, `css/setup.css`, `assets/js/app.js` | Designsystem, Setup und Interaktion |
+| `docs/UX_UI_2.4.0.md` | Mobile UX, Breakpoints und Oberflächenstruktur |
 | `inc/security.php` | Sichere HTML-Darstellung historischer Nachrichten |
 
 Die Quelldateien sind im [Modul- und Funktionskatalog](docs/SOURCE_REFERENCE.md) verzeichnet. Neue Module nutzen dokumentierte Schnittstellen und einheitliche Formatierungsregeln gemäß [CODE_STYLE.md](docs/CODE_STYLE.md). Historische gemischte PHP/HTML-Templates behalten ihre gewachsene Struktur, bis sie funktional modernisiert werden.
@@ -153,7 +180,7 @@ Die Quelldateien sind im [Modul- und Funktionskatalog](docs/SOURCE_REFERENCE.md)
 | 2.1.0 (2026) | Sollstellungen, Zahlungen, Teilzahlungen, Guthaben, Rückstände |
 | **2.3.0 (2026)** | Gemeinsamer Ausbau der geplanten **2.2.0 und 2.3.0**: Kasse, Rechte, Berichte, Import, Belege, Audit, Stichtagstarife |
 | **2.3.1 (2026)** | Codehärtung, PDO-Suchabfragen, Schutz für Nachrichten-HTML und Cron-POST, Quellcodedokumentation |
-| 2.4.0 (geplant) | Vollständige responsive Modernisierung der älteren Verwaltungsmasken |
+| **2.4.0 (2026)** | Mobile-first UX/UI für Anmeldung, Verwaltungs- und Finanzseiten, Navigation, Formulare, Tabellen und Setup |
 
 Die beiden zuvor geplanten Versionsschritte **2.2.0 und 2.3.0 wurden in einem gemeinsamen Release 2.3.0 zusammengefasst**. Es ist keine eigenständig veröffentlichte Zwischenversion 2.2.0 erforderlich.
 

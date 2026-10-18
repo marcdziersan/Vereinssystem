@@ -9,9 +9,21 @@ require_once("inc/checkuser.inc.php");
 require_once("inc/head.inc.php");
 ?>
 <div id="content">
+<section class="vs-dashboard-intro" aria-labelledby="vs-dashboard-title">
+  <div><span class="vs-eyebrow">MEIN VEREIN · ÜBERSICHT</span>
+    <h1 id="vs-dashboard-title">Guten Tag, <?= vui_escape($user['vorname'] ?? '') ?>.</h1>
+    <p>Dein Verein auf einen Blick. Alle wichtigen Bereiche sind mit einem Klick erreichbar.</p>
+  </div>
+  <div class="vs-quicklinks" aria-label="Schnellzugriff">
+    <a href="members.php"><?= vui_icon('users',19) ?> Mitglieder</a>
+    <a href="veranstaltungen.php"><?= vui_icon('calendar',19) ?> Veranstaltungen</a>
+    <a href="<?= (int)($user['rights'] ?? 0) >= 4 ? 'finanzen.php' : 'finanzkonto.php' ?>"><?= vui_icon('chart',19) ?> Finanzen</a>
+    <?php if (function_exists('vk_can') && vk_can($user, 'kasse.ansehen')): ?><a href="kasse.php"><?= vui_icon('wallet',19) ?> Kasse</a><?php endif; ?>
+  </div>
+</section>
     <div class="boxsystem33">
         <div class="leftbox">
-            <h1>Hallo <?php echo $user['vorname'] . " " . $user['nachname']; ?></h1>
+            <h2>Was heute ansteht</h2>
             <?php
             if (($_SESSION["freshlogin"])) {
                 // Ist der Benutzer neu eingeloggt, dann Willkommensmeldung anzeigen

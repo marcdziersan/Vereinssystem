@@ -18,12 +18,12 @@ try {
         'usecaptchalogin'=>'0', 'beitrag_kinder'=>'0', 'beitrag_erwachsener'=>'0',
         'annualwork'=>'0', 'cakeworkcount'=>'0', 'lastcronrun'=>'0',
         'last_diensteabrechnung'=>'0', 'lastcronoutput'=>'', 'webmastermail'=>'',
-        'leitermail'=>'', 'version'=>'2.3.1',
+        'leitermail'=>'', 'version'=>'2.4.0',
     ];
     $result = db_query('SELECT `name`, `value` FROM `einstellungen`');
     if ($result === false) throw new RuntimeException('Datenbanktabelle einstellungen fehlt.');
     while ($setting = db_fetch_assoc($result)) $settings[$setting['name']] = $setting['value'];
-    $settings['version'] = '2.3.1';
+    $settings['version'] = '2.4.0';
 } catch (Throwable $e) {
     error_log('[Vereinssystem] Datenbankinitialisierung: '.$e->getMessage());
     http_response_code(503);

@@ -1,13 +1,13 @@
 <?php
 /**
- * Vereinssystem 2.3.1 – Modul: upgrade.
+ * Vereinssystem 2.4.0 – Modul: upgrade.
  * Pfad: upgrade.php
  * Historische Ablauflogik von 2013, behutsam für PHP 8/PDO weiterentwickelt.
  * Änderungen an der Originalfunktionalität sind in CHANGELOG.md dokumentiert.
  */
 declare(strict_types=1);
 /**
- * Versionierte Schema-Erweiterung von 2.0.x/2.1.x auf 2.3.1.
+ * Versionierte Schema-Erweiterung von 2.0.x/2.1.x auf 2.4.0.
  * Bestehende Vereins- und Zahlungsdatensätze werden nicht gelöscht.
  * MySQL-DDL autocommittet: vorab Backup anlegen und bei Fehlern erneut ausführen.
  */
@@ -28,15 +28,15 @@ if(($_SERVER['REQUEST_METHOD']??'')==='POST'){
             foreach($statements[0] as $statement)vf_db()->exec($statement);
         }
         if(!vk_ready())throw new RuntimeException('Prüfung der neu angelegten Tabellen fehlgeschlagen.');
-        vf_exec('INSERT INTO vs_schema_version (version) VALUES (?) ON DUPLICATE KEY UPDATE version=VALUES(version)',['2.3.1']);
-        vf_exec('INSERT INTO einstellungen (name,value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)',['version','2.3.1']);
-        vk_audit((int)$user['mitglieder_id'],'system.migration','schema',0,['version'=>'2.3.1']);
+        vf_exec('INSERT INTO vs_schema_version (version) VALUES (?) ON DUPLICATE KEY UPDATE version=VALUES(version)',['2.4.0']);
+        vf_exec('INSERT INTO einstellungen (name,value) VALUES (?,?) ON DUPLICATE KEY UPDATE value=VALUES(value)',['version','2.4.0']);
+        vk_audit((int)$user['mitglieder_id'],'system.migration','schema',0,['version'=>'2.4.0']);
         $status='Migration erfolgreich: alle 18 Tabellen vorhanden. Vorhandene Daten blieben erhalten.';
     }catch(Throwable $e){error_log('[VS Upgrade 2.3] '.$e->getMessage());$error='Migration gescheitert. Bitte PHP-Fehlerprotokoll prüfen; nach Behebung erneut ausführen.';}
 }
-?><!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vereinssystem 2.3.1 – Upgrade</title>
-<style>body{font-family:system-ui,Arial,sans-serif;background:#edf1f7;color:#1b2939;padding:2rem}main{max-width:770px;margin:auto;padding:2rem;background:#fff;border:1px solid #cbd5e1;border-radius:12px}p{line-height:1.6}button{background:#15568d;color:white;border:0;border-radius:6px;padding:12px 18px;cursor:pointer}.ok{color:green}.error{color:#a22}</style></head><body><main>
-<h1>Update auf Vereinssystem 2.3.1</h1><p>Ergänzt bei Bedarf drei Tabellen aus 2.1.0 und sieben Tabellen aus 2.3.1. Bestehende Mitglieder, Forderungen und Zahlungen werden nicht gelöscht. Die Migration ist wiederholbar.</p>
+?><!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vereinssystem 2.4.0 – Upgrade</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#edf1f7;color:#1b2939;padding:2rem}main{max-width:770px;margin:auto;padding:2rem;background:#fff;border:1px solid #cbd5e1;border-radius:12px}p{line-height:1.6}button{background:#15568d;color:white;border:0;border-radius:6px;padding:12px 18px;cursor:pointer}.ok{color:green}.error{color:#a22}</style><link rel="stylesheet" href="css/setup.css?v=2.4.0"></head><body class="vs-setup"><main><img class="vs-setup-brand" src="images/logo_head.png" alt="Vereinssystem">
+<h1>Update auf Vereinssystem 2.4.0</h1><p>Ergänzt bei Bedarf drei Tabellen aus 2.1.0 und sieben Tabellen aus 2.4.0. Bestehende Mitglieder, Forderungen und Zahlungen werden nicht gelöscht. Die Migration ist wiederholbar.</p>
 <p><strong>Vorher vollständige Datenbank- und Dateisicherung anlegen!</strong></p>
 <p>Status: <strong><?=vk_ready()?'Kassenverwaltung installiert':'Kassenverwaltung noch nicht vollständig installiert'?></strong></p>
 <?php if($status):?><p class="ok"><?=vf_escape($status)?></p><?php endif;?>
