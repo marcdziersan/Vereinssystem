@@ -1,0 +1,3 @@
+# Preserve folder only. Logs, uploads and session data must remain untracked.
+*
+!.gitignore

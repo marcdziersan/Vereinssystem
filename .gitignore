@@ -1,81 +1,18 @@
-# Created by http://gitignore.io
+# Secrets and environment-specific settings must never be committed.
+/config/database.local.php
+/.env
+/.env.*
+!/config/database.php.example
 
-### NetBeans ###
-nbproject/
-build/
-nbbuild/
-dist/
-nbdist/
-nbactions.xml
-nb-configuration.xml
-build.xml
-build.properties
-
-
-### Eclipse ###
-*.pydevproject
-.project
-.metadata
-bin/**
-tmp/**
-tmp/**/*
+# Private runtime data and editor/build noise.
+/storage/*
+!/storage/.gitignore
+*.log
 *.tmp
 *.bak
-*.swp
-*~.nib
-local.properties
-.classpath
-.settings/
-.loadpath
-
-# External tool builders
-.externalToolBuilders/
-
-# Locally stored "Eclipse launch configurations"
-*.launch
-
-# CDT-specific
-.cproject
-
-# PDT-specific
-.buildpath
-
-### Windows ###
-# Windows image file caches
-Thumbs.db
-ehthumbs.db
-
-# Folder config file
-Desktop.ini
-
-# Recycle Bin used on file shares
-$RECYCLE.BIN/
-
-### OSX ###
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
-
-
-# Thumbnails
-._*
-
-# Files that might appear on external disk
-.Spotlight-V100
-.Trashes
-# Vereinssystem: nie Zugangsdaten oder Installer-Reste committen
-/inc/config.php
-/inc/config.php.tmp.*
-.env
-*.log
-
-# No production backup, private uploads or member data in version control.
-/storage/
-/private-data/
-/backup/
-/backups/
-*.sql.gz
-*.csv
-*.log
-/inc/config.php
+Thumbs.db
+.idea/
+.vscode/
+/vendor/
+/node_modules/

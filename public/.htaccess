@@ -1,0 +1,8 @@
+# Optional clean URL routing on Apache; ?r=/status works without mod_rewrite.
+Options -Indexes -MultiViews
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+# The source tree, local secrets and logs must remain outside DocumentRoot.

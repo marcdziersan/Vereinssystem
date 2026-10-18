@@ -1,0 +1,14 @@
+<?php
+/**
+ * Copy to config/database.local.php for future database-backed modules.
+ * In alpha.1 the kernel intentionally never loads or connects to this file.
+ */
+declare(strict_types=1);
+
+return [
+    'host' => 'localhost',
+    'port' => 3306,
+    'database' => 'vereinssystem',
+    'username' => 'db_user',
+    'password' => 'insert-secret-locally',
+];
