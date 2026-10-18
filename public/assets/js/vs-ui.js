@@ -56,3 +56,12 @@
         init();
     }
 })();
+
+/** Optional password visibility for the login; native form works without JS. */
+document.addEventListener('change', (event) => {
+    const trigger = event.target;
+    if (!(trigger instanceof HTMLInputElement) || !trigger.matches('[data-vs-password-toggle]')) return;
+    const id = trigger.getAttribute('data-vs-password-toggle');
+    const field = id ? document.getElementById(id) : null;
+    if (field instanceof HTMLInputElement) field.type = trigger.checked ? 'text' : 'password';
+});

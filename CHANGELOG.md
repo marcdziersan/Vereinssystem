@@ -1,18 +1,26 @@
-# Changelog – MVC-Neuentwicklung
+# Änderungsverlauf – MVC-Entwicklung
 
-## 3.0.0-alpha.1 – Kernel-Grundlage (18.10.2026)
+## 3.0.0-alpha.2 – Login, Logout und Rechtesystem
 
 ### Neu
-- Eigenständige OOP-/MVC-Projektstruktur ohne historische PHP-Endpunkte.
-- PSR-4-artiger Autoloader ohne Composer; keine Frameworkpflicht.
-- Front Controller, feste HTTP-Routen, Request/Response und isolierte PHP-Templates.
-- Einheitliche Fehlerausgabe, HTML-Escaping, MIME-Header und JSON-Statusroute.
-- Session-/CSRF-Grundlagen und optionale PDO-Verbindungsfabrik ohne Alt-SQL-Modus.
-- Selbst entwickeltes Mobile-First-UI-Kit mit Formularklassen, Layout und Dark Mode.
-- Lokale jQuery-Kopie für spätere Module; nicht zum Start des Kernels erforderlich.
-- Dokumentation und eigenständige Kernel-Smoke-Checks.
+- Neues OOP-Domänenobjekt `User`, zentrale Rollenregeln `Roles` und `AuthService`.
+- `UserRepository`-Interface sowie PDO-Implementierung für das vorhandene `mitglieder`-Schema.
+- HTTP-Routen `/login`, `/logout`, `/account`, `/rights` und `/admin/roles` mit eigenständigen MVC-Views.
+- GET-/POST-Trennung, CSRF-geschützte Änderungen und Rechteprüfung auf dem Server.
+- Rechtestufen 0–5, Zugangsverwaltung für Level 5; Selbstsperre eines Administrators ausgeschlossen.
+- Passwortprüfung mit `password_verify()`; alte MD5-Passwörter werden erst bei erfolgreicher Anmeldung ersetzt.
+- Dateibasierter Login-Schutz mit Sperrfrist nach wiederholten Fehlversuchen.
+- Mobile-First-Komponenten für Zugangsformulare, Navigationsleisten und Rollenlisten.
+- CLI-Bootstrap einer kompatiblen Benutzertabelle und eines ersten Admins für neue, leere Datenbanken.
+- Isolierte OOP-Tests für Login, Logout, CSRF, Rollen, gesperrte Bereiche und Althash-Umstellung.
 
-### Bewusste Abgrenzung
-- Kein Login, Dashboard, Mitglieder, Rechte-, Beitrags- oder Kassenmodul.
-- Keine Legacy-Links, keine übernommenen PHP-Formulare und keine SQL-Migration.
-- `master` bleibt unverändert; diese Neuentwicklung findet allein auf `refactor/mvc-architecture` statt.
+### Geändert
+- Das MVC-Root führt nun zum Login beziehungsweise zum eigenen Zugang.
+- Session-Lebenszyklus und Redirect-Antworten erweitert; PDO-Verbindung bleibt lazy.
+- UI-Kit und Dokumentation auf alpha.2 ergänzt.
+
+### Nicht Teil dieses Meilensteins
+- Dashboard, Mitglieder-Stammdatenverwaltung und weitere ursprüngliche Vereinsmodule.
+
+## 3.0.0-alpha.1 – Kernel
+- Eigenständiger MVC-Kern ohne Legacy-Routing, neues UI-Kit, Router, Views, Session- und PDO-Basis.

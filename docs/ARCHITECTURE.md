@@ -1,54 +1,31 @@
-# MVC-Kernarchitektur – 3.0.0-alpha.1
+# MVC-Architektur – 3.0.0-alpha.2
 
-## Ausgangspunkt und Abgrenzung
+## Schichten und Abhängigkeiten
 
-Der Branch ist ein echter Neuanfang. Die MVC-Ordner ersetzen den alten Wurzeldateibaum, statt ihn durch eine zweite Oberfläche zu ergänzen. Der alte Code bleibt über den `master`-Branch als Referenz verfügbar. Im ersten Meilenstein werden keine alten PHP-Dateien, Datenbanktabellen oder Mitglieder-/Kassenfunktionen ausgeführt.
+1. **`public/index.php`** ist der einzige öffentliche PHP-Einstieg und erzeugt eine `Request`-Instanz.
+2. **`app/Core/Application.php`** bildet die Composition Root und registriert die Services und Controllers.
+3. **`routes/web.php`** definiert feste, menschenlesbare Routen (GET/POST).
+4. **Controllers** übersetzen HTTP-Anfragen in Aufrufe fachlicher Services und Views.
+5. **`AuthService` und `Roles`** kapseln Anmeldung und Berechtigungen unabhängig von der Datenbank.
+6. **`UserRepository` und `PdoUserRepository`** isolieren Abfragen an die bestehende `mitglieder`-Tabelle.
+7. **`resources/views`** rendern ausschließlich HTML; alle dynamischen Werte werden escaped.
 
-## HTTP-Datenfluss
+Die Verträge erlauben es, für die Entwicklungschecks ein Fake-Repository einzusetzen, ohne die reale Datenbank zu verändern.
 
-```text
-Browser
-  │  GET /
-  ▼
-public/index.php (Front Controller)
-  │
-bootstrap.php → Autoloader → Application
-  │
-Request → Router (routes/web.php)
-  │
-KernelController → View (resources/views/*)
-  │
-Response → Browser
-```
+## Konfiguration und Sicherheit
 
-Ein zweiter Pfad `GET /status` liefert JSON. Ein unbekannter Pfad liefert 404, eine falsche Methode auf einer bekannten Route 405. Ausnahmen werden zentral protokolliert und als generische 500-Seite ausgegeben.
+`config/app.php` enthält keine Geheimnisse. `config/database.local.php` ist die private lokale Konfiguration und wird nicht versioniert. Die PDO-Verbindung entsteht erst beim ersten Datenbankzugriff (lazy connection) mit Fehlerausnahmen, `utf8mb4` und nativen Prepared Statements.
 
-## Bausteine
+Der Webroot ist ausschließlich `public/`. Sessions und Login-Versuchsdateien liegen geschützt auf dem Server. Formulare erfordern CSRF-Prüfung. Zugriffsschutz wird im Controller geprüft, nicht allein durch verborgene Navigation.
 
-- **Core:** kleine Klassen für HTTP, Routing, Templates, Konfiguration, Session, CSRF und optionale PDO-Verbindungen. Keine Kenntnis von Mitgliedern oder Konten.
-- **Controller:** entscheidet, welche Anwendungsaktion auf einen HTTP-Request folgt. `KernelController` ist derzeit das einzige Beispiel.
-- **Services:** Geschäftsregeln und transaktionale Abläufe kommen in späteren Releases hierher.
-- **Repositories:** kapseln ausschließlich Datenzugriffe über PDO/Prepared Statements.
-- **Models:** repräsentieren Fachobjekte; Kern und View sollen sie nicht selbst speichern.
-- **Views:** reine HTML-Ausgabe auf Basis übergebener Variablen, kein SQL und keine Schreibaktionen.
-- **Middleware:** später Berechtigungen, CSRF und Änderungsprotokoll pro Route.
+## Datenmodell
 
-## Betrieb und Sicherheit
+Alpha.2 verwendet nur die für Anmeldung und Rechtestufen nötigen Spalten der historisch vorhandenen Tabelle `mitglieder`. Für eine **neue** Datenbank kann `bin/bootstrap-auth.php` die kompatible Tabelle initialisieren, ohne die übrigen 17 Tabellen der alten Anwendung einzurichten. Die alten Fachmodule werden nicht übernommen.
 
-1. Nur `public/` ist Webroot. `app/`, `config/`, `resources/`, `database/`, `storage/` dürfen nicht direkt im Browser geöffnet werden.
-2. Die erste Ansicht nutzt keine Datenbank; `Database::connection()` wird erst von späteren Repositories angefordert.
-3. Session-Funktionen sind vorbereitet, starten aber nicht ohne Bedarf.
-4. Die statischen Routes werden niemals aus dem URL-Pfad als Klassennamen oder PHP-Dateipfade berechnet.
-5. Ausgaben mit variablen Werten erfolgen über `View::escape()`; rohe HTML-Ausgabe ist nur für explizit intern erstellte Teil-Views erlaubt.
-6. PDO setzt Exception-Modus und native Prepared Statements; kein `sql_mode=NO_ENGINE_SUBSTITUTION`.
-7. Kein PHP-Fehlertext oder SQL-Stacktrace wird absichtlich im Browser ausgegeben.
-8. `.htaccess` ermöglicht saubere Apache-URLs; die `?r=`-Fallback-Routen funktionieren auch ohne Rewrite.
+## Frontend
 
-## Hosting ohne Framework
+CSS-Komponenten mit `vs-`-Prefix, zentrales Token-System, progressive Verbesserungen durch Vanilla-JavaScript. Das ursprüngliche Vereinslogo bleibt enthalten. jQuery ist optional verfügbar, jQuery Mobile und Bootstrap sind nicht nötig.
 
-Für PHP-CLI: `php -S 127.0.0.1:8080 -t public public/router.php`.
-Für WAMP/Apache: DocumentRoot auf `…/Vereinssystem-MVC-3.0.0-kernel/public/`, Rewrite-Regeln optional.
+## Nächster Meilenstein
 
-## Datenbankkompatibilität der künftigen Fachmodule
-
-Beim Neuaufbau werden Feld- und Tabellennamen der bestehenden Datenstruktur einzeln aus dem `master`-Branch übernommen, ihre Anforderungen dokumentiert und danach **als eigener Repository- und Service-Code** umgesetzt. Die 18 Tabellen werden nicht blind im ersten Schritt kopiert. Datenbankmigrationen werden versioniert angelegt, sobald ein Fachmodul sie benötigt.
+Zunächst Dashboard, dann Mitglieder-Stammdatenverwaltung als neues MVC-Modul mit fachlichem Service und dediziertem Repository. Keine alten `member_process.php`-Seiten und keine Legacy-Routen.

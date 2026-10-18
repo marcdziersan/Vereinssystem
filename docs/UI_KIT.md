@@ -29,3 +29,15 @@ Die eigenständige CSS-/JavaScript-Basis ist als kleines internes Bootstrap-ähn
 ## JavaScript
 
 `public/assets/js/vs-ui.js` ist eine kleine, selbständige IIFE. Sie steuert ausschließlich den Dark-Mode-Schalter. Jedes weitere UI-Element erhält klar abgegrenzte Funktionen, JSDoc-Kommentare und einen Fallback ohne JavaScript. jQuery 3.6.1 liegt bereit, ist aber im Kernel bewusst nicht geladen.
+
+## Neu ab alpha.2 – Zugänge und Rechte
+
+- `.vs-auth`/`.vs-auth__panel`: zweispaltiges Login ab 720px, einspaltig auf Mobilgeräten.
+- `.vs-input` und `.vs-select`: vereinheitlichte native Eingabefelder und Auswahlmenüs.
+- `.vs-alert` und `.vs-alert--error`: verständliche Status- und Fehlermeldungen mit `role="alert"`.
+- `.vs-nav`: scrollbar-fähige, auf kleinen Displays vollständig bedienbare Navigation.
+- `.vs-role-list` und `.vs-role-entry`: Rollenverwaltung als Karten statt zu breiter Tabelle.
+- `.vs-table-wrap`: horizontale Berechtigungsmatrix mit eigener zugänglicher Scrollregion.
+- `data-vs-password-toggle`: progressive Option zum Anzeigen eines Passworts ohne JavaScript-Pflicht.
+
+Views erhalten keine Inline-Events; Interaktionen stehen dokumentiert unter `public/assets/js/vs-ui.js`.

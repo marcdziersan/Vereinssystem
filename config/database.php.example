@@ -1,7 +1,7 @@
 <?php
 /**
- * Copy to config/database.local.php for future database-backed modules.
- * In alpha.1 the kernel intentionally never loads or connects to this file.
+ * Copy to config/database.local.php for login and role management.
+ * Copy to database.local.php and enter credentials for the existing VereinsSystem database.
  */
 declare(strict_types=1);
 

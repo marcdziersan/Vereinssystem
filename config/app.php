@@ -1,9 +1,4 @@
 <?php
-/** Public application configuration (no credentials or secrets). */
+/** Non-secret application configuration. */
 declare(strict_types=1);
-
-return [
-    'name' => 'Vereinssystem',
-    'version' => '3.0.0-alpha.1',
-    'timezone' => 'Europe/Berlin',
-];
+return ['name'=>'Vereinssystem','version'=>'3.0.0-alpha.2','timezone'=>'Europe/Berlin'];

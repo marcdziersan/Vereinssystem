@@ -124,3 +124,44 @@ a { color: inherit; }
 @media (min-width: 940px) {
     .vs-grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* 9. Alpha.2: Mobile-first authentication, role listing and navigation. */
+.vs-auth { display:grid; gap:24px; align-items:start; max-width:1000px; margin-inline:auto; }
+.vs-auth__panel { padding:clamp(22px,4vw,42px); }
+.vs-auth h1, .vs-section h1 { font-size:clamp(1.8rem,5vw,2.65rem); margin:10px 0; letter-spacing:-.03em; }
+.vs-auth__aside { padding:24px; background:var(--vs-hero); color:var(--vs-hero-text); border-radius:var(--vs-radius); }
+.vs-auth__aside h2 { font-size:clamp(1.4rem,4vw,2rem); line-height:1.2; }
+.vs-auth__aside p { color:#d2deeb; }
+.vs-muted { color:var(--vs-muted); }
+.vs-eyebrow--light { color:var(--vs-accent); }
+.vs-button--wide { width:100%; }
+.vs-button:disabled { opacity:.5; cursor:not-allowed; }
+.vs-alert--error { color:#8f2222; background:#fff0f0; border-color:#f6c4c4; }
+.vs-check { display:flex; align-items:center; gap:10px; font-size:.9rem; color:var(--vs-muted); }
+.vs-check input { width:19px; height:19px; accent-color:var(--vs-accent); }
+.vs-mini-title { font-size:.8rem; font-weight:650; text-transform:uppercase; letter-spacing:.04em; }
+.vs-account-grid h2 { margin:8px 0 0; font-size:clamp(1rem,3vw,1.25rem); overflow-wrap:anywhere; }
+.vs-nav { border-bottom:1px solid var(--vs-border); background:var(--vs-surface); }
+.vs-nav__inner { display:flex; gap:4px; align-items:stretch; overflow-x:auto; scrollbar-width:thin; padding-block:8px; }
+.vs-nav__inner a,.vs-nav__link { display:flex; align-items:center; white-space:nowrap; min-height:42px; padding:8px 12px; border:0; background:transparent; color:var(--vs-text); border-radius:10px; font-weight:600; text-decoration:none; cursor:pointer; }
+.vs-nav__inner a:hover,.vs-nav__link:hover { background:var(--vs-accent-soft); }
+.vs-nav__logout { margin-left:auto; display:flex; }
+.vs-table-wrap { width:100%; overflow-x:auto; border-radius:var(--vs-radius); border:1px solid var(--vs-border); }
+.vs-table { width:100%; border-collapse:collapse; min-width:610px; background:var(--vs-surface); }
+.vs-table th,.vs-table td { text-align:left; padding:13px 14px; border-bottom:1px solid var(--vs-border); }
+.vs-table thead { background:var(--vs-accent-soft); }
+.vs-table td { text-align:center; }
+.vs-role-list { display:grid; gap:12px; }
+.vs-role-entry { display:flex; flex-direction:column; gap:18px; justify-content:space-between; }
+.vs-role-entry h2 { margin:0; font-size:1.08rem; }
+.vs-role-entry p { margin:4px 0 0; }
+.vs-role-form { display:grid; grid-template-columns:1fr; gap:10px; align-items:end; width:100%; }
+.vs-role-form .vs-label { grid-column:1/-1; }
+.vs-role-form .vs-select { min-width:0; }
+.vs-help { line-height:1.6; }
+@media(min-width:720px) {
+ .vs-auth { grid-template-columns:minmax(0,1.1fr) minmax(250px,.9fr); }
+ .vs-auth__aside { padding:38px; align-self:stretch; display:flex; flex-direction:column; justify-content:center; }
+ .vs-role-entry { flex-direction:row; align-items:center; }
+ .vs-role-form { grid-template-columns:minmax(170px,240px) auto; width:auto; }
+}

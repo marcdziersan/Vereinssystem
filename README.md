@@ -1,75 +1,94 @@
-# Vereinssystem MVC – Kernel (3.0.0-alpha.1)
+# Vereinssystem MVC – 3.0.0-alpha.2
 
-**Eigenständiger PHP-8-MVC-Neubau auf dem Branch `refactor/mvc-architecture`.** Das bisherige Vereinssystem 2.4.0 bleibt unverändert auf `master` und dient ausschließlich als Referenz für Fachregeln, Datenbankstruktur und die Herkunft der grafischen Elemente.
+**OOP/MVC-Neuentwicklung in klassischem PHP 8, MySQL/MariaDB (PDO), HTML, CSS und JavaScript.** Diese Version erweitert den Kernel aus `3.0.0-alpha.1` um **Login, Logout und ein eigenständiges Rechtesystem**. Der MVC-Branch enthält keine übernommenen PHP-Endpunkte und kein Legacy-Routing.
 
-Dieses erste Release enthält **nur den Kernel**. Es gibt absichtlich **keinen Login, kein Dashboard, keine Mitgliederverwaltung, keine Kassenführung und keine Legacy-Links**. Die Anwendung startet im Browser und demonstriert die HTTP-Verarbeitung, die wir anschließend Schritt für Schritt für echte Fachmodule nutzen.
+Das ursprüngliche Vereinssystem (Nicolas Jourdan und Sebastian Fuss, 2012/2013) liegt weiterhin auf `master` als fachliche Vorlage. Der Branch [`refactor/mvc-architecture`](https://github.com/marcdziersan/Vereinssystem/tree/refactor/mvc-architecture) wird bewusst Modul für Modul neu aufgebaut.
 
-## Technische Basis
+## Vorhandene Funktionen
 
-- PHP 8.2+ empfohlen (Core verwendet Features ab PHP 8.1), OOP mit Namespaces und eigenem Autoloader.
-- MVC-Struktur mit Front Controller, Router, Request, Response, View und KernelController.
-- PDO-Verbindungsfabrik bereits vorhanden, **aber keine Datenbankverbindung beim Start erforderlich**.
-- Session und CSRF-Kern vorbereitet; Authentifizierung kommt in einem späteren Meilenstein.
-- Eigenes Mobile-First-UI-Kit (`vs-ui.css`, `vs-ui.js`) als schlanke Alternative zu Bootstrap/jQuery Mobile.
-- Das historische VereinsSystem-Logo ist als wiedererkennbares Markenzeichen enthalten.
-- Lokales jQuery 3.6.1 liegt als optionaler Drittanbieterbaustein bereit, wird vom Kernel aber nicht benötigt.
-- Kein Composer, Node, NPM, Laravel, React oder Vue.
+- **OOP-Kernel:** expliziter Router, Front Controller, Request/Response, Fehlerbehandlung und serverseitiges View-System.
+- **Login:** Benutzername **oder Mitgliedsnummer**, Passwortprüfung mit `password_verify()` und einmaliger MD5-Altpasswortmigration nach erfolgreichem Login.
+- **Logout:** ausschließlich über ein CSRF-geschütztes POST-Formular; Session und Session-Cookie werden beendet.
+- **Benutzerstatus:** gesperrte und inaktive Konten dürfen sich nicht anmelden; Berechtigungen werden bei jeder geschützten Anfrage neu gelesen.
+- **Rechteverwaltung:** sechs Stufen (0 gesperrt, 1 Mitglied, 2 Moderator, 3 Abteilungsleitung, 4 Vorstand, 5 Administration). Zentraler Berechtigungsdienst statt verstreuter Zahlenprüfungen.
+- **Administrator:** aktive Konten und Rechtestufen einsehen, andere Konten entsperren/sperren oder Rollen vergeben. Eigene Administratorrolle lässt sich dabei nicht ändern.
+- **Sicherheit:** PDO-Parameterbindung, CSRF, sichere Cookies, Session-ID-Wechsel, dateibasierte Limitierung fehlgeschlagener Logins und HTML-Escaping.
+- **Mobile First:** responsives Login, Kontoübersicht, Rechtematrix und Administration auf Basis des eigenen UI-Kits – ohne CSS-/JS-Frameworkzwang.
 
-## Lokaler Start (Windows/WAMP oder PHP-CLI)
+**Noch nicht integriert:** Dashboard, vollständige Mitgliederprofile, Abteilungen, Veranstaltungen, Finanzen und Kasse. Diese Module kommen jeweils mit eigenen Controllern, Services, Repositories und Views zurück. Die Zugangsadministration in alpha.2 ist **keine vollständige Mitgliederverwaltung**.
 
-In einer Konsole im Projektordner:
+## Voraussetzungen
 
-```powershell
+- PHP **8.1 oder neuer**, empfohlen 8.2–8.4, PHP-PDO-Erweiterung `pdo_mysql`.
+- MySQL 5.7+/8.x oder kompatible MariaDB mit einer vorhandenen Vereinsdatenbank **oder** einer leeren Datenbank.
+- HTTPS bei öffentlichen Installationen.
+- Webroot **ausschließlich `public/`**. `app/`, `config/`, `storage/` usw. dürfen nicht öffentlich erreichbar sein.
+- Schreibrecht des PHP-Prozesses für `storage/rate_limits/`.
+
+Keine externen PHP- oder JavaScript-Paketmanager erforderlich. jQuery 3.6.1 liegt optional lokal vor, wird für Authentifizierung und UI nicht benötigt.
+
+## Einrichtung
+
+1. Projektdateien entpacken und in der Webserver-Konfiguration nur `public/` freigeben.
+2. `config/database.php.example` **kopieren** nach `config/database.local.php` und die Zugangsdaten eintragen. Die lokale Datei ist von Git ausgeschlossen.
+3. **Bestehende Vereinsdatenbank:** keine neue Tabelle erforderlich. Bereits angelegte aktive Benutzer können sich mit ihrem Namen oder ihrer Mitgliedsnummer und Passwort anmelden. Niemals ungesichert auf Produktivdaten ausprobieren.
+4. **Neue leere Datenbank:** zuerst über `php bin/bootstrap-auth.php` die kompatible Kontotabelle und das erste Administratorkonto anlegen. Das Skript läuft nur über CLI, überschreibt keine vorhandenen Benutzer und verlangt ein Passwort von mindestens 12 Zeichen.
+5. Die Webanwendung öffnen und anmelden.
+
+### Lokaler Start
+
+```sh
 php -S 127.0.0.1:8080 -t public public/router.php
 ```
 
-Danach im Browser **http://127.0.0.1:8080/** öffnen. Der JSON-Endpunkt steht unter **http://127.0.0.1:8080/status**. Ein absichtlich ungültiger Pfad zeigt eine 404-Seite.
+Browser: `http://127.0.0.1:8080/login`. Die Startseite `/` leitet zum Login oder nach der Anmeldung zu `/account` weiter.
 
-Unter Apache/WAMP muss das öffentlich erreichbare Verzeichnis **`public/`** sein (etwa über einen VirtualHost). Falls kein Umschreiben von URLs verfügbar ist, funktionieren die Routen trotzdem über `public/index.php?r=/status`.
+Auf WAMP/Apache auf das `public`-Verzeichnis als DocumentRoot achten. Ohne URL-Rewrite sind alle Routen über `index.php?r=/login`, `index.php?r=/rights` usw. erreichbar.
 
-**Wichtig:** Nicht den gesamten Projektordner ungeschützt ins DocumentRoot legen. `config/`, `storage/`, `app/` und `resources/` dürfen nicht aus dem Browser erreichbar sein.
+## Seiten und Zugriffsregeln
 
-## Dateien und Zuständigkeiten
+| Route | Methode | Zugriff | Zweck |
+| --- | --- | --- | --- |
+| `/login` | GET / POST | Öffentlich | Anmeldeformular und Zugangskontrolle |
+| `/logout` | POST | CSRF-Tokens | Sitzung sicher beenden |
+| `/account` | GET | Angemeldet | Eigene Zugangsdaten und Rolle anzeigen |
+| `/rights` | GET | Angemeldet | Implementierte Berechtigungen ansehen |
+| `/admin/roles` | GET / POST | Administration (Level 5) | Rechtestufen anderer Konten ändern |
+| `/status` | GET | Öffentlich | Technischer Kernel-Status ohne private Daten |
 
-| Ort | Funktion |
+**Grundsatz:** Der Zugriff wird auf dem Server geprüft. Das Ausblenden einer Schaltfläche allein ist keine Berechtigungsprüfung. Ein anderer Benutzer kann sich nicht durch die Änderung von HTML-Formularwerten zusätzliche Rechte erteilen.
+
+## Projektstruktur
+
+| Verzeichnis | Verantwortung |
 | --- | --- |
-| `bootstrap.php` | Autoloader und Application-Factory |
-| `app/Core/Application.php` | Komposition, HTTP-Dispatch und Fehlerbehandlung |
-| `app/Core/Router.php` | Explizite Routing-Tabelle inklusive 404/405 |
-| `app/Core/Request.php`, `Response.php` | HTTP-Anfrage/-Antwort als Objekte |
-| `app/Core/View.php` | Gekapselte PHP-Views und HTML-Escaping |
-| `app/Core/Database.php` | Optionale PDO-Fabrik mit parametrisierungstauglicher Verbindung |
-| `app/Core/Session.php`, `Csrf.php` | Vorbereiteter Schutz für spätere Formulare |
-| `app/Controllers/KernelController.php` | Nur Kernel-Startansicht und JSON-Status |
-| `routes/web.php` | Routenregistrierung (ohne dynamisches PHP-Include) |
-| `resources/views/` | Layouts und Kernel-Views |
-| `public/` | Einziger Webroot mit Front Controller und statischen Assets |
-| `public/assets/css/vs-ui.css` | Eigenes Mobile-First-Komponentensystem |
-| `public/assets/js/vs-ui.js` | Barrierearme, optionale UI-Interaktionen |
-| `config/` | Öffentliches App-Setup und DB-Konfigurationsvorlage |
-| `tests/kernel_smoke.php` | Datenbankfreie Kernprüfungen |
+| `app/Core/` | Kernel, Router, Request/Response, Session, CSRF und PDO-Verbindung |
+| `app/Auth/` | Benutzerobjekt, Authentifizierungsservice, Login-Sperre, Rollenregeln |
+| `app/Repositories/` | Benutzer-Repository-Interface und PDO-Implementierung |
+| `app/Controllers/` | Login-/Logout-Controller, Zugangskonto, Rollenverwaltung |
+| `resources/views/` | Deutsche, serverseitig gerenderte HTML-Views und Layouts |
+| `public/assets/` | Kommentierte mobile CSS-/JS-Komponenten, Original-Logo und optional jQuery |
+| `routes/web.php` | Festes Register aller HTTP-Routen |
+| `config/` | Öffentliche App-Einstellungen und nicht versionierte DB-Konfiguration |
+| `database/migrations/` | SQL-Struktur für die Erstinbetriebnahme einer leeren Kontodatenbank |
+| `bin/bootstrap-auth.php` | CLI-only Initialisierung des ersten Administrators |
+| `tests/` | OOP-, Routing-, Authentifizierungs- und Berechtigungsprüfungen |
+| `docs/` | Architektur, Rechtesystem, Codekonventionen und UI-Kit |
 
-Die Architektur ist ausführlich unter [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) beschrieben, die UI-Bausteine unter [docs/UI_KIT.md](docs/UI_KIT.md) und die Code-Kommentarregeln unter [docs/CODE_STYLE.md](docs/CODE_STYLE.md).
+## Dokumentation
 
-## Prüfungen
+- [Architektur](docs/ARCHITECTURE.md)
+- [Authentifizierung und Rechte](docs/AUTHORIZATION.md)
+- [UI-Kit](docs/UI_KIT.md)
+- [Stil- und Kommentarregeln](docs/CODE_STYLE.md)
+- [Änderungsverlauf](CHANGELOG.md)
 
-```sh
-php tests/kernel_smoke.php
-```
+## Versionierung und nächster Schritt
 
-Die einzelnen Quelldateien enthalten Docblocks und Kommentare zum **Warum** jeder Infrastrukturkomponente. Neue Fachmodule erhalten in Folgeschritten dieselbe Struktur.
-
-## Geplante Reihenfolge
-
-1. **Kernel** – dieser Entwicklungsstand.
-2. Login/Logout und Rechteverwaltung neu implementieren.
-3. Dashboard und Mitgliederverwaltung.
-4. Abteilungen, Orte, Veranstaltungen, Dienste, Nachrichten.
-5. Beitragsbuchhaltung und Kasse unter dem neuen MVC-Service-Layer.
-6. Installation/Updates, Migration und vollständige fachliche Abnahme.
-
-Alle Module werden *neu* in die MVC-Struktur übertragen. Es findet keine automatische Übernahme der alten `*_process.php`-Seiten statt.
+- **3.0.0-alpha.1** – eigenständiger MVC-Kernel, Routing, Views, UI-Basis.
+- **3.0.0-alpha.2** – Anmeldung, Abmeldung, Benutzerstatus und zentrale Rechtevergabe.
+- **3.0.0-alpha.3 (geplant)** – Dashboard und anschließend die vollständige MVC-Mitgliederverwaltung.
 
 ## Herkunft und Lizenz
 
-Originalprojekt **Nicolas Jourdan und Sebastian Fuss (2012/2013)**, Weiterentwicklung **Marcus Dziersan (seit 2026)**. Die historischen nichtkommerziellen Nutzungsbedingungen bleiben für übernommene Bestandteile maßgeblich. Eigenständige neue Beiträge stehen – soweit die nötigen Rechte vorhanden sind – unter der **PolyForm Noncommercial License 1.0.0**. Details in [LICENSE.md](LICENSE.md), [LICENSE-POLYFORM-NONCOMMERCIAL.md](LICENSE-POLYFORM-NONCOMMERCIAL.md) und [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Das Originalprojekt stammt von **Nicolas Jourdan und Sebastian Fuss** (2012/2013), die technische Weiterentwicklung seit 2026 von **Marcus Dziersan**. Die ursprünglichen Bedingungen zur kostenlosen nichtkommerziellen Nutzung bleiben für übernommene Bestandteile bestehen. Eigene Ergänzungen sind im Umfang der verfügbaren Rechte unter **PolyForm Noncommercial 1.0.0** verfügbar. Fremde Bibliotheken und Grafiken unterliegen ihren jeweils eigenen Rechten. Details in `LICENSE.md` und `THIRD-PARTY-NOTICES.md`.

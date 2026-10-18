@@ -1,62 +1,72 @@
 <?php
-/**
- * MVC composition root. Bootstraps infrastructure, registers the first routes,
- * and centralizes error handling without exposing stack traces to the browser.
- */
+/** Composition root: create pure OOP services and register explicitly named routes. */
 declare(strict_types=1);
-
 namespace Vereinssystem\Core;
 
 use Throwable;
+use Vereinssystem\Auth\AuthService;
+use Vereinssystem\Auth\LoginLimiter;
+use Vereinssystem\Auth\Roles;
+use Vereinssystem\Controllers\AccessController;
+use Vereinssystem\Controllers\AuthController;
 use Vereinssystem\Controllers\KernelController;
+use Vereinssystem\Repositories\PdoUserRepository;
+use Vereinssystem\Repositories\UserRepository;
 
 final class Application
 {
     private readonly Router $router;
     private readonly View $views;
-    private readonly Config $config;
 
-    private function __construct(string $root)
+    private function __construct(string $root,?UserRepository $override)
     {
-        $this->config = new Config(require $root . '/config/app.php');
-        $this->router = new Router();
-        $this->views = new View($root . '/resources/views');
-        $controller = new KernelController($this->views, $this->config);
-        // Fixed routes; the first milestone intentionally has no domain routes.
-        $register = require $root . '/routes/web.php';
-        $register($this->router, $controller);
+        $config=new Config(require $root.'/config/app.php');
+        $this->router=new Router();
+        $this->views=new View($root.'/resources/views');
+        $session=new Session();
+        $csrf=new Csrf($session);
+        $dbConfig=$root.'/config/database.local.php';
+        $users=$override;
+        if ($users===null && is_file($dbConfig)) {
+            $settings=require $dbConfig;
+            if (!is_array($settings)) throw new DatabaseUnavailable('Invalid configuration');
+            $users=new PdoUserRepository(new Database($settings));
+        }
+        $auth=$users ? new AuthService($users,$session,new LoginLimiter($root.'/storage/rate_limits')) : null;
+        $kernel=new KernelController($this->views,$config);
+        $authController=new AuthController($this->views,$csrf,$auth);
+        $accessController=new AccessController($this->views,$csrf,$auth,$users,new Roles(),$session);
+        $register=require $root.'/routes/web.php';
+        $register($this->router,$kernel,$authController,$accessController);
     }
 
-    public static function fromProjectRoot(string $root): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null): self
     {
-        return new self($root);
+        return new self($root,$users);
     }
 
-    /** Handle a request without global output, enabling low-cost CLI smoke tests. */
     public function handle(Request $request): Response
     {
         try {
-            $response = $this->router->dispatch($request);
-            if ($response->status === 404 || $response->status === 405) {
-                $body = $this->views->render('errors/status', [
-                    'status' => $response->status,
-                    'message' => $response->status === 405 ? 'Methode nicht erlaubt' : 'Seite nicht gefunden',
-                    'url' => $request->url('/'),
-                    'asset' => $request->asset('css/vs-ui.css'),
+            $response=$this->router->dispatch($request);
+            if ($response->status===404 || $response->status===405) {
+                $html=$this->views->render('errors/status',[
+                    'status'=>$response->status,
+                    'message'=>$response->status===405?'Methode nicht erlaubt':'Seite nicht gefunden',
+                    'url'=>$request->url('/'),'asset'=>$request->asset('css/vs-ui.css'),
                 ]);
-                return new Response($body, $response->status, $response->headers + ['Content-Type' => 'text/html; charset=utf-8']);
+                return new Response($html,$response->status,$response->headers+['Content-Type'=>'text/html; charset=utf-8']);
             }
             return $response;
-        } catch (Throwable $exception) {
-            // Real deployments configure PHP error_log outside of public/.
-            error_log('[Vereinssystem/MVC] ' . $exception::class . ': ' . $exception->getMessage());
-            $body = $this->views->render('errors/status', [
-                'status' => 500,
-                'message' => 'Interner Fehler',
-                'url' => $request->url('/'),
-                'asset' => $request->asset('css/vs-ui.css'),
+        } catch (Throwable $e) {
+            error_log('[Vereinssystem/MVC] '.$e::class.': '.$e->getMessage());
+            $code=$e instanceof \PDOException || $e instanceof DatabaseUnavailable ? 503 : 500;
+            $html=$this->views->render('errors/status',[
+                'status'=>$code,
+                'message'=>$code===503?'Datenbank derzeit nicht verfügbar':'Interner Fehler',
+                'url'=>$request->url('/'),'asset'=>$request->asset('css/vs-ui.css'),
             ]);
-            return new Response($body, 500);
+            return new Response($html,$code,['Content-Type'=>'text/html; charset=utf-8','Cache-Control'=>'no-store']);
         }
     }
 }
