@@ -10,6 +10,7 @@ namespace Vereinssystem\Controllers;
 use Vereinssystem\Auth\{AuthService, Roles, User};
 use Vereinssystem\Core\{Csrf, Request, Response, Session, View};
 use Vereinssystem\Members\{MemberRepository, MemberService, MemberValidationException};
+use Vereinssystem\Places\PlaceRepository;
 
 final class MemberController extends Controller
 {
@@ -19,6 +20,7 @@ final class MemberController extends Controller
         private readonly ?MemberRepository $members,
         private readonly Roles $roles,
         private readonly Session $session,
+        private readonly ?PlaceRepository $places = null,
     ) { parent::__construct($views, $csrf); }
 
     private function person(): ?User { return $this->auth?->currentUser(); }
@@ -117,6 +119,7 @@ final class MemberController extends Controller
         $values=$values+$defaults;
         return $this->page($r,$member?'Mitglied bearbeiten':'Mitglied anlegen','members/form',[
             'member'=>$member,'values'=>$values,'errors'=>$errors,
+            'places'=>$this->places?->all(true) ?? [],
             'csrfToken'=>$this->csrf->token(),
             'saveUrl'=>$r->url($member?'/members/update':'/members/store'),
             'cancelUrl'=>$member?$r->url('/members/view').'&id='.$member->id:$r->url('/members'),

@@ -48,3 +48,7 @@ Mobile Mitgliederkarten (`.vs-member-card`), responsives Suchformular
 (`.vs-searchbar`), persönliche Datenblätter (`.vs-details`), gefelderte
 Mitgliederformulare (`.vs-fieldset`) und statistikbasierte Dashboardkarten.
 Alle Komponenten nutzen die zentralen `--vs-*`-Tokens.
+
+## alpha.4 – Abteilungs- und Adresskarten
+
+`.vs-directory-grid` stellt Einträge standardmäßig einspaltig dar und ab 760px zweispaltig; `.vs-directory-card` ist responsiv und verwendet bestehende UI-Farb- und Abstandsvariablen. Formulare nutzen `.vs-field-grid`, `.vs-input`, `.vs-select`, `.vs-textarea` und `.vs-button` ohne zusätzliche UI-Bibliothek.

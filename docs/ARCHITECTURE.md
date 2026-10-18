@@ -46,3 +46,15 @@ Die vorhandene Tabelle `mitglieder` bleibt kompatibel. Die erste Mitgliederanlag
 setzt zwingende historische Felder ausdrücklich und erstellt ein Konto mit Level 1.
 Zugangsrechte bleiben ausschließlich im Rechte-Controller änderbar. Passwörter und
 Bankinformationen werden in Profil-Queries nie abgefragt oder gerendert.
+
+## alpha.4 – Neue Fachmodule und Installer
+
+`app/Places` und `app/Departments` besitzen jeweils einen Repository-Vertrag, ein PDO-Repository und einen Fachservice zur Eingabevalidierung. Controllers nehmen ausschließlich explizit erlaubte Formularfelder entgegen, prüfen Rollen und CSRF, rufen den Service auf und rendern Views ohne SQL. Die Tabellenbezeichnungen und Integer-Cent-Beträge entsprechen der Originaldatenbank von 2013.
+
+Der Installer unter `app/Install/` ist ein eigenständiger Verwaltungsdienst. Er erzeugt die vier Tabellen über zwei deklarative SQL-Migrationen und speichert die lokale Datenbankkonfiguration erst nach erfolgreicher Initialisierung. Bestehende Mitglieder werden nicht überschrieben. Eine bereits vorhandene lokale Konfiguration blockiert eine erneute Installation.
+
+### Apache/WAMP ohne public-DocumentRoot
+
+Die `.htaccess` im Projektroot schreibt Anfragen intern nach `public/` um, sperrt private Ordner und schützt Konfiguration und Bootstrap. `public/index.php` bleibt der einzige HTTP-Front-Controller; der Router verarbeitet nur explizit definierte Routen. `Request::fromGlobals()` erkennt ein Apache-internes `/verein/public/index.php`, erzeugt aber externe Verweise auf `/verein/?r=...`, sodass Unterordnerinstallationen funktionieren. Der PHP-Entwicklungsserver nutzt weiterhin `public/router.php`.
+
+`bin/migrate-directories.php` führt auf bereits eingerichteten Installationen ausschließlich `CREATE TABLE IF NOT EXISTS` aus. Es ist kein automatischer Migrations- oder Datenlöschprozess über GET-Routen zugänglich.

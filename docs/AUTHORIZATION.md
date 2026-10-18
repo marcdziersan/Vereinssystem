@@ -52,3 +52,15 @@ Dieser Meilenstein enthält noch keine komplexe Rechtehistorie oder ein vollwert
 - `members.create` und `members.status` ausschließlich Level 5.
 - Administratorprofile sind gegen Bearbeitung durch Vorstand gesperrt.
 - Zugangsrechte werden nicht im Mitgliederformular vergeben.
+
+## alpha.4 – Zusätzliche Berechtigungen
+
+| Funktion | Erforderliche Stufe |
+| --- | ---: |
+| Abteilungen auflisten und Detail ansehen | 1 |
+| Abteilungen anlegen, bearbeiten, Mitglied zuordnen/entfernen | 4 |
+| Abteilungen deaktivieren oder reaktivieren | 5 |
+| Orte und Anschriften anzeigen, anlegen und bearbeiten | 4 |
+| Orte deaktivieren oder reaktivieren | 5 |
+
+Die Überprüfung geschieht im Controller **vor** jeder Datenbankänderung. CSRF-Schutz wird auf allen POST-Routen erzwungen. Die grafische Navigation ist kein Rechteersatz.

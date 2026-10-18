@@ -1,88 +1,101 @@
-# Vereinssystem MVC – 3.0.0-alpha.3
+# Vereinssystem MVC – 3.0.0-alpha.4
 
-**Modularer Vereinsmanager in klassischem PHP 8, OOP/MVC, PDO, HTML, CSS und JavaScript.** Die Neuentwicklung läuft unter [`refactor/mvc-architecture`](https://github.com/marcdziersan/Vereinssystem/tree/refactor/mvc-architecture). Der historische Entwicklungsstand **2.4.0 auf `master`** dient ausschließlich als fachliche Vorlage. Es gibt kein Legacy-Routing und keine alten PHP-Endpunkte im MVC-Branch.
+**Die eigenständige Neuentwicklung der Vereinsverwaltung mit PHP 8, OOP, MVC, PDO, HTML, CSS und JavaScript.**
 
-## Was alpha.3 enthält
+Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Altskripte als paralleles System weiterzuführen. Die Anwendung auf [master](https://github.com/marcdziersan/Vereinssystem/tree/master) bleibt die fachliche Referenz. Die MVC-Entwicklung findet auf [refactor/mvc-architecture](https://github.com/marcdziersan/Vereinssystem/tree/refactor/mvc-architecture) statt.
 
-- **MVC-Kernel:** klarer Autoloader, Request/Response, feste Routen, Fehlerseiten, Views, Session und CSRF.
-- **Login/Logout:** Benutzername oder Mitgliedsnummer, PHP-Passworthashes, automatische Ablösung alter MD5-Hashes, Sitzungsverwaltung und Login-Begrenzung.
-- **Rechtesystem:** sechs zentrale Stufen, geschützte Rollenänderungen ausschließlich durch die Administration.
-- **Dashboard:** persönliche Einstiegsseite; Vorstand und Administration sehen zusätzlich aktive Mitgliederzahlen nach Mitgliedschaftsart.
-- **Mitgliederverzeichnis:** mobile Suche nach Name, Mitgliedsnummer und Benutzername, begrenzte Seitennavigation und Aktiv-/Inaktiv-Filter für die Administration.
-- **Mitgliedsprofil:** Informationen zu Mitgliedschaft, Kontakt, Eintritt und Geburtstag; interne Notizen nur für Verwaltungsberechtigte.
-- **Mitglieder anlegen:** Stammdaten und Initialzugang anlegen; neue Konten erhalten **immer** die niedrigste aktive Rechtestufe 1.
-- **Mitglieder bearbeiten:** Stammdaten validiert speichern; Passwörter, Rechte, Zugangsnamen und Bankdaten sind bewusst nicht über diesen Vorgang änderbar.
-- **Statusverwaltung:** Administration kann nichtadministrative Mitglieder deaktivieren und reaktivieren, ohne Datensätze zu löschen. Eigene oder fremde Administratorkonten sind vor diesem Vorgang geschützt.
-- **Mobile-First-UI:** ein eigenes, kommentiertes CSS-/JavaScript-UI-Kit mit Karten, Formularen, Navigation und Hell-/Dunkelschema.
+## Funktionen dieser Entwicklungsfassung
 
-Noch nicht Bestandteil der MVC-Neuentwicklung sind Abteilungen, Orte, Veranstaltungen, Dienste, Nachrichten, Beitrags-/Kassenbuchhaltung und der vollständige historische Benutzerprofil-/Bankdateneditor. Diese Module werden in späteren Meilensteinen **neu aufgebaut**, nicht als alte PHP-Skripte mitgeführt.
-
-## Rechte für das neue Mitglieder-Modul
-
-| Funktion | Berechtigt |
+| Bereich | Umsetzung |
 | --- | --- |
-| Dashboard, eigenes Mitgliedsprofil | Aktive Benutzer ab Stufe 1 |
-| Mitglieder suchen und Profile ansehen | Vorstand (4), Administration (5) |
-| Stammdaten anderer nichtadministrativer Mitglieder bearbeiten | Vorstand (4), Administration (5) |
-| Administratorprofile bearbeiten | Ausschließlich Administration (5) |
-| Mitglieder anlegen | Ausschließlich Administration (5) |
-| Mitglieder deaktivieren/reaktivieren | Ausschließlich Administration (5); keine Adminkonten |
-| Rechte anderer Konten ändern | Ausschließlich Administration (5), über die getrennte Rechteverwaltung |
+| Kernel | Klassen-Autoloader, Router, Request/Response, Views, Fehlerseiten, PDO-Fabrik |
+| Login und Logout | Geschützte Sitzungen, Passwort-Hashes und Übernahme historischer MD5-Konten |
+| Rechtesystem | Zentrale Rollenmatrix; Administrationsmaske für die Rechtevergabe |
+| Dashboard | Persönliche Startseite, Vereinskennzahlen für berechtigte Rollen |
+| Mitglieder | Suche, Stammdaten, Detailansichten, Anlage, Bearbeitung und Statusverwaltung |
+| **Orte und Anschriften** | Neue MVC-Masken zum Anlegen, Bearbeiten und Deaktivieren von Anschriften und Veranstaltungsorten |
+| **Abteilungen** | Neue MVC-Verwaltung mit Umlagen und Mitgliedszugehörigkeiten (aktiv/passiv) |
+| **Installer** | Browsergestützte Ersteinrichtung mit Datenbanktabellen und erstem Administrator |
+| **WAMP im Unterordner** | Root-`.htaccess` für Start ohne eigenen `public/`-DocumentRoot |
+| Frontend | Eigenes kommentiertes Mobile-First-UI-Kit, lokal bereitgestelltes jQuery optional |
 
-Bei jedem geschützten Request werden Zugang und Rechte erneut aus der Datenbank gelesen. Das Ausblenden von Links ersetzt keine serverseitige Zugriffsprüfung.
+Veranstaltungen, Dienste, Nachrichten, Beiträge und Kasse folgen in den nächsten MVC-Meilensteinen. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
 
-## Installation und lokaler Start
+## Installation unter WAMP – ohne public als Standardverzeichnis
 
-Voraussetzungen: PHP **8.1+**, MySQL/MariaDB und die PHP-Erweiterung `pdo_mysql`. Apache, WAMP oder ein vergleichbarer Webserver; bei öffentlich zugänglichen Installationen HTTPS.
+1. Projektdateien beispielsweise nach `C:\wamp64\www\verein\` entpacken.
+2. Apache `mod_rewrite` aktivieren und für diesen Ordner `AllowOverride All` zulassen.
+3. In phpMyAdmin eine **leere MySQL- oder MariaDB-Datenbank** mit einem Datenbanknutzer anlegen.
+4. Im Browser **`http://localhost/verein/`** öffnen. Die Root-`.htaccess` leitet intern in `public/` um.
+5. Den Installationsassistenten ausfüllen. Er richtet die vier Tabellen `mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit` ein und legt bei einer leeren Mitgliedertabelle einen Administrator an.
+6. Danach über den Login anmelden. Die Datei `config/database.local.php` wird vom Installer automatisch erstellt und bleibt privat.
 
-1. Projekt in ein eigenes Verzeichnis entpacken; **Webroot ausschließlich auf `public/`** legen.
-2. `config/database.php.example` nach `config/database.local.php` kopieren und die Zugangsdaten zur Vereinsdatenbank hinterlegen (diese Datei wird nicht versioniert).
-3. Vorhandene Vereinsdatenbank: Die Mitglieder-Tabelle `mitglieder` des alten Vereinssystems wird weitergenutzt, ohne eine automatische Migration oder Änderung an den bisherigen Finanzdaten.
-4. Neue leere Datenbank: `php bin/bootstrap-auth.php` aufrufen, um die kompatible Mitgliedertabelle und das erste Administratorkonto anzulegen.
-5. Anwendung unter `/login` öffnen, anmelden und das Dashboard unter `/dashboard` aufrufen.
+Die Installerroute lautet `/install`, etwa `http://localhost/verein/?r=%2Finstall`. Eine separate `install.php` im Root ist nicht notwendig – sämtliche HTTP-Aufrufe laufen über den MVC-Front-Controller `public/index.php`.
 
-Lokaler Entwicklungsserver:
+### Bestehende alpha.3-Datenbank
+
+Ist `config/database.local.php` bereits vorhanden, bleibt sie unverändert. Die ergänzenden Tabellen werden einmalig über die PHP-Konsole angelegt:
+
+```sh
+php bin/migrate-directories.php
+```
+
+Die Migration ist wiederholbar und löscht keine vorhandenen Vereins- oder Mitgliederdatensätze. Vor Änderungen an echten Vereinsdaten empfiehlt sich ein Datenbankbackup.
+
+### Alternativ: PHP-Entwicklungsserver
 
 ```sh
 php -S 127.0.0.1:8080 -t public public/router.php
 ```
 
-Browser: `http://127.0.0.1:8080/login`. Für Apache ohne URL-Rewrite steht `index.php?r=/login` zur Verfügung. Der `/status`-Endpunkt liefert den technischen Kernel-Status ohne private Mitgliederdaten.
+Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.htaccess`.
 
-**Achtung bei alten Mitgliedsdaten:** Die MVC-Formulare schreiben in die ursprüngliche `mitglieder`-Tabelle. Vor Änderungen an einem bestehenden Verein den Datenbankbestand sichern. Kein automatisch erzeugter Admin darf vorhandene Logins überschreiben.
+## Bedienung
 
-## Architektur
+- `/dashboard`: Persönliche Startseite.
+- `/members`: Mitgliederübersicht für Vorstand und Administration; im Mitgliederformular kann eine hinterlegte Anschrift ausgewählt werden.
+- `/places`: Orte/Anschriften (Verwaltung ab Rechtestufe 4).
+- `/departments`: Abteilungen ansehen (ab Rechtestufe 1); Bearbeiten und Zuordnen ab Stufe 4.
+- `/rights`, `/admin/roles`: Rechtesystem und Rechtevergabe.
+
+Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gültigen CSRF-Token. Deaktivierte Datensätze bleiben erhalten; Vorgänge der Mitgliedszuordnung verwenden transaktionale PDO-Abfragen.
+
+## Ordnerstruktur
 
 ```text
 app/
-  Auth/               # Authentifizierung, Rollen und Identitätsmodell
-  Controllers/        # HTTP-Controller; Zugriffs- und CSRF-Grenzen
-  Core/               # Kernel, Routing, Datenbankfabrik, Sessions, View
-  Members/            # Mitgliedsdatenmodell, Verträge, PDO-Repository, Fachservice
-  Repositories/       # Login-Repository und zugehöriger Vertrag
-config/               # Versionskontrollierte Defaults und lokale DB-Konfiguration
-database/migrations/  # SQL-Basis für eine leere Mitgliedertabelle
-resources/views/      # PHP-Views, ohne SQL-Logik
-  auth/ dashboard/ members/ rights/ layouts/ errors/
-public/               # Einziger öffentlicher Webroot
-  assets/css/         # Eigenes Bootstrap-artiges UI-System
-  assets/js/          # Interaktionslogik ohne Frameworkzwang
-routes/web.php        # Alle Routen explizit registriert
-tests/                # Isolierte Kernel-, Auth- und Fachlogikchecks
-docs/                 # Architektur, Berechtigungen und UI-Konventionen
+  Auth/             Benutzeridentitäten, Authentifizierung, Rollen
+  Controllers/      HTTP-Endpunkte und serverseitige Zugriffsprüfungen
+  Core/             MVC-Kernel, Datenbank, Routing, Session, View
+  Departments/      Abteilungen, Zuordnungen, Services, Repositories
+  Install/          Sicherer Erstinstallationsservice
+  Members/          Mitgliederverwaltung
+  Places/           Orte und Anschriften
+  Repositories/     Authentifizierungszugriffe auf PDO
+bin/                CLI-Werkzeuge für Migration und Administration
+config/             Allgemeine und lokale Konfiguration (geheim)
+database/migrations/ SQL-Schemas für Neuinstallation und Upgrade
+docs/               Architektur, Rollen, UI, Installation
+public/             Front-Controller und öffentliche Assets
+resources/views/    Getrennte serverseitige PHP-Templates
+routes/web.php      Explizite MVC-Routen
+storage/            Private Runtime-Daten
+tests/              PHP-Prüfprogramme
+.htaccess           WAMP-Root-Rewrite und Zugriffsschutz
 ```
 
-Alle Abfragen der neuen Mitgliederverwaltung verwenden vorbereitete PDO-Statements mit gebundenen Parametern. Es gibt **keine** Übernahme historischer `mysql_*`-Funktionen, `db_escape()`-Hilfen oder des alten SQL-Kompatibilitätsmodus.
+Intern bleibt die MySQL-Datenstruktur der früheren Vereinsverwaltung kompatibel. Die neuen Module verwenden ausschließlich native PDO-Parameterbindungen und keine `mysql_*`-Funktionsaufrufe.
 
-## Weitere Dokumentation
+## Dokumentation
 
-- [Architektur und Datenflüsse](docs/ARCHITECTURE.md)
-- [Mitgliedermodul: Felder und Berechtigungen](docs/MEMBERS.md)
-- [Rollen und Zugriff](docs/AUTHORIZATION.md)
-- [UI-Kit](docs/UI_KIT.md)
-- [Code-Stil](docs/CODE_STYLE.md)
+- [Erstinstallation, WAMP-Root und Migration](docs/ALPHA4.md)
+- [MVC-Architektur](docs/ARCHITECTURE.md)
+- [Rollen und Berechtigungen](docs/AUTHORIZATION.md)
+- [Mitgliederverwaltung](docs/MEMBERS.md)
+- [UI-Kit und Breakpoints](docs/UI_KIT.md)
+- [Code-Stil und Kommentarregeln](docs/CODE_STYLE.md)
 - [Versionsgeschichte](CHANGELOG.md)
 
-## Herkunft und Lizenz
+## Herkunft und Nutzungsbedingungen
 
-Original: **Nicolas Jourdan und Sebastian Fuss**, 2012/2013. Technische Weiterentwicklung seit 2026: **Marcus Dziersan**. Die nichtkommerzielle Nutzungserlaubnis des Originals bleibt für übernommene Bestandteile gültig. Eigene Erweiterungen stehen, soweit entsprechende Rechte bestehen, unter **PolyForm Noncommercial 1.0.0**. Fremde Ressourcen haben eigene Nutzungsbedingungen. Details: `LICENSE.md`, `LICENSE-POLYFORM-NONCOMMERCIAL.md` und `THIRD-PARTY-NOTICES.md`.
+Das ursprüngliche Vereinssystem wurde 2012/2013 von **Nicolas Jourdan und Sebastian Fuss** entwickelt. Die kostenlose, nichtkommerzielle Nutzung und Erweiterung des ursprünglichen Projekts bleibt maßgeblich. Die eigenen Weiterentwicklungen von **Marcus Dziersan** ab 2026 stehen im Umfang der jeweiligen Rechte unter der **PolyForm Noncommercial License 1.0.0**. Für jQuery und historische Grafiken gelten die jeweiligen Drittanbieterrechte; eine kommerzielle Nutzung ist nicht allgemein freigegeben. Details: [LICENSE.md](LICENSE.md) und [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

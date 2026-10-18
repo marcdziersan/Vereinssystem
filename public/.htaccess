@@ -6,3 +6,8 @@ Options -Indexes -MultiViews
     RewriteRule ^ index.php [L,QSA]
 </IfModule>
 # The source tree, local secrets and logs must remain outside DocumentRoot.
+
+# The development-server adapter is not a browser endpoint on Apache.
+<Files "router.php">
+    Require all denied
+</Files>

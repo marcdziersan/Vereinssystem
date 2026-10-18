@@ -1,0 +1,16 @@
+# WAMP / Apache: DocumentRoot may point to the project root instead of public/.
+# Enable mod_rewrite and AllowOverride All for the project directory.
+Options -Indexes -MultiViews
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Application source, credentials, logs, migrations and documentation are NEVER public.
+    RewriteRule ^(?:app|bin|config|database|docs|resources|routes|storage|tests)(?:/|$) - [F,NC]
+    RewriteRule ^(?:\.git|\.env|\.htaccess|bootstrap\.php|README\.md|CHANGELOG\.md|LICENSE(?:-[^/]*)?\.md|THIRD-PARTY-NOTICES\.md)(?:$|/) - [F,NC]
+    # Do not prepend public/ a second time for image / CSS / JS requests.
+    RewriteRule ^public/ - [L]
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>
+# Independently refuse commonly exposed root files when mod_rewrite is disabled.
+<FilesMatch "^(?:bootstrap\.php|database\.local\.php|\.env|\.gitignore)$">
+    Require all denied
+</FilesMatch>

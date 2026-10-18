@@ -26,7 +26,7 @@ use Vereinssystem\Auth\Roles;
             <a href="<?= View::escape($homeUrl) ?>" class="vs-brand" aria-label="Vereinssystem, Startseite">
                 <img src="<?= View::escape($logoUrl) ?>" alt="Vereinssystem" width="900" height="131">
             </a>
-            <span class="vs-header__tag">MVC alpha.3</span>
+            <span class="vs-header__tag">MVC alpha.4</span>
             <button type="button" class="vs-icon-button" data-vs-theme-toggle aria-label="Farbschema ändern" title="Farbschema ändern">◐</button>
         </div>
     </header>
@@ -35,7 +35,8 @@ use Vereinssystem\Auth\Roles;
         <div class="vs-container vs-nav__inner">
             <a href="<?= View::escape($dashboardUrl) ?>">Dashboard</a>
             <a href="<?= View::escape($accountUrl) ?>">Mein Zugang</a>
-            <?php if($user->rights >= 4): ?><a href="<?= View::escape($membersUrl) ?>">Mitglieder</a><?php endif; ?>
+            <?php if($user->rights >= 4): ?><a href="<?= View::escape($membersUrl) ?>">Mitglieder</a><a href="<?= View::escape($placesUrl) ?>">Orte</a><?php endif; ?>
+            <a href="<?= View::escape($departmentsUrl) ?>">Abteilungen</a>
             <a href="<?= View::escape($rightsUrl) ?>">Rechtesystem</a>
             <?php if($user->rights===5): ?><a href="<?= View::escape($adminUrl) ?>">Zugänge verwalten</a><?php endif; ?>
             <form class="vs-nav__logout" method="post" action="<?= View::escape($logoutUrl) ?>">

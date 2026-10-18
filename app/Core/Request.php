@@ -19,6 +19,9 @@ final class Request
             $rawPath=parse_url((string)($_SERVER['REQUEST_URI']??'/'),PHP_URL_PATH);
             $path=is_string($rawPath)?rawurldecode($rawPath):'/';
             $base=rtrim(str_replace('\\','/',dirname($script)),'/');
+            // Apache/WAMP may internally rewrite /verein/* to /verein/public/index.php.
+            // REQUEST_URI keeps the original /verein/* URL, so strip the project base.
+            if (str_ends_with($base,'/public')) $base=substr($base,0,-7);
             if($base!==''&&$base!=='.'&&str_starts_with($path,$base.'/'))$path=substr($path,strlen($base));
             if($path==='/index.php')$path='/';
         }
@@ -36,7 +39,12 @@ final class Request
     public function inputString(string $key,string $fallback=''): string
     { $v=$this->body[$key]??$fallback; return is_string($v)?$v:$fallback; }
     public function url(string $route='/'): string
-    { return $this->scriptName.'?r='.rawurlencode(self::normalizePath($route)); }
+    {
+        // Root .htaccess deployment: link to /verein/?r=... rather than /verein/public/index.php.
+        $base=rtrim(str_replace('\\','/',dirname($this->scriptName)),'/');
+        if (str_ends_with($base,'/public')) return substr($base,0,-7).'/?r='.rawurlencode(self::normalizePath($route));
+        return $this->scriptName.'?r='.rawurlencode(self::normalizePath($route));
+    }
     public function asset(string $relativePath): string
     {
         if(!preg_match('~^[a-z0-9][a-z0-9/._-]*$~iD',$relativePath)||str_contains($relativePath,'..'))

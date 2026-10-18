@@ -12,6 +12,12 @@ use Vereinssystem\Controllers\AuthController;
 use Vereinssystem\Controllers\KernelController;
 use Vereinssystem\Controllers\DashboardController;
 use Vereinssystem\Controllers\MemberController;
+use Vereinssystem\Controllers\PlaceController;
+use Vereinssystem\Controllers\DepartmentController;
+use Vereinssystem\Controllers\InstallController;
+use Vereinssystem\Install\InstallationService;
+use Vereinssystem\Places\{PdoPlaceRepository,PlaceRepository};
+use Vereinssystem\Departments\{PdoDepartmentRepository,DepartmentRepository};
 use Vereinssystem\Members\MemberRepository;
 use Vereinssystem\Members\PdoMemberRepository;
 use Vereinssystem\Repositories\PdoUserRepository;
@@ -21,8 +27,9 @@ final class Application
 {
     private readonly Router $router;
     private readonly View $views;
+    private readonly bool $installed;
 
-    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride)
+    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride)
     {
         $config=new Config(require $root.'/config/app.php');
         $this->router=new Router();
@@ -30,6 +37,7 @@ final class Application
         $session=new Session();
         $csrf=new Csrf($session);
         $dbConfig=$root.'/config/database.local.php';
+        $this->installed=is_file($dbConfig) || $override !== null; // Injected repositories represent an installed test application.
         $users=$override;
         $members=$memberOverride;
         $database=null;
@@ -48,19 +56,29 @@ final class Application
         $roles=new Roles();
         $accessController=new AccessController($this->views,$csrf,$auth,$users,$roles,$session);
         $dashboard=new DashboardController($this->views,$csrf,$auth,$members,$roles);
-        $memberController=new MemberController($this->views,$csrf,$auth,$members,$roles,$session);
+        $places=$placeOverride ?? ($database ? new PdoPlaceRepository($database) : null);
+        $departments=$departmentOverride ?? ($database ? new PdoDepartmentRepository($database) : null);
+        $memberController=new MemberController($this->views,$csrf,$auth,$members,$roles,$session,$places);
+        $placeController=new PlaceController($this->views,$csrf,$auth,$places,$roles,$session);
+        $departmentController=new DepartmentController($this->views,$csrf,$auth,$departments,$roles,$session);
+        $installer=new InstallController($this->views,$csrf,new InstallationService($root));
         $register=require $root.'/routes/web.php';
-        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController);
+        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer);
     }
 
-    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null): self
     {
-        return new self($root,$users,$members);
+        return new self($root,$users,$members,$places,$departments);
     }
 
     public function handle(Request $request): Response
     {
         try {
+            // An unconfigured deployment is allowed to expose only the installer
+            // and the stateless status endpoint until credentials are written.
+            if (!$this->installed && !in_array($request->path,['/install','/status'],true)) {
+                return Response::redirect($request->url('/install'));
+            }
             $response=$this->router->dispatch($request);
             if ($response->status===404 || $response->status===405) {
                 $html=$this->views->render('errors/status',[

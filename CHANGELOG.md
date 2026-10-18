@@ -1,3 +1,19 @@
+# Änderungsprotokoll
+
+## 3.0.0-alpha.4 – 19.10.2026
+
+### Neu
+- Eigenständiges MVC-Modul Orte/Anschriften mit PDO, mobilen Views, Verwaltung und Rechteprüfung.
+- Eigenständiges MVC-Modul Abteilungen mit aktiven/passiven Zugehörigkeiten, Umlagen in Cent, Status und mobiler Oberfläche.
+- Neuer Browser-Installer `/install` für eine leere Datenbank mit erstem Administrator.
+- Wiederholbare CLI-Migration für vorhandene Installationen.
+- Root-`.htaccess` für WAMP-Verzeichnisse ohne `public` als DocumentRoot, mit Zugriffssperren für interne Ordner.
+- Neue Berechtigungen und Anschriften-Dropdown im Mitgliederformular.
+
+### Geändert
+- MVC-Core und Routing umfassen die neuen Fachmodule; alte PHP-Endpunkte bleiben ausgeschlossen.
+- Konfiguration meldet Version 3.0.0-alpha.4.
+
 # Änderungsverlauf – MVC-Entwicklung
 
 ## 3.0.0-alpha.3 – Dashboard und Mitgliederverwaltung (18.10.2026)
