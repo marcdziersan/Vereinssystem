@@ -1,94 +1,88 @@
-# Vereinssystem MVC – 3.0.0-alpha.2
+# Vereinssystem MVC – 3.0.0-alpha.3
 
-**OOP/MVC-Neuentwicklung in klassischem PHP 8, MySQL/MariaDB (PDO), HTML, CSS und JavaScript.** Diese Version erweitert den Kernel aus `3.0.0-alpha.1` um **Login, Logout und ein eigenständiges Rechtesystem**. Der MVC-Branch enthält keine übernommenen PHP-Endpunkte und kein Legacy-Routing.
+**Modularer Vereinsmanager in klassischem PHP 8, OOP/MVC, PDO, HTML, CSS und JavaScript.** Die Neuentwicklung läuft unter [`refactor/mvc-architecture`](https://github.com/marcdziersan/Vereinssystem/tree/refactor/mvc-architecture). Der historische Entwicklungsstand **2.4.0 auf `master`** dient ausschließlich als fachliche Vorlage. Es gibt kein Legacy-Routing und keine alten PHP-Endpunkte im MVC-Branch.
 
-Das ursprüngliche Vereinssystem (Nicolas Jourdan und Sebastian Fuss, 2012/2013) liegt weiterhin auf `master` als fachliche Vorlage. Der Branch [`refactor/mvc-architecture`](https://github.com/marcdziersan/Vereinssystem/tree/refactor/mvc-architecture) wird bewusst Modul für Modul neu aufgebaut.
+## Was alpha.3 enthält
 
-## Vorhandene Funktionen
+- **MVC-Kernel:** klarer Autoloader, Request/Response, feste Routen, Fehlerseiten, Views, Session und CSRF.
+- **Login/Logout:** Benutzername oder Mitgliedsnummer, PHP-Passworthashes, automatische Ablösung alter MD5-Hashes, Sitzungsverwaltung und Login-Begrenzung.
+- **Rechtesystem:** sechs zentrale Stufen, geschützte Rollenänderungen ausschließlich durch die Administration.
+- **Dashboard:** persönliche Einstiegsseite; Vorstand und Administration sehen zusätzlich aktive Mitgliederzahlen nach Mitgliedschaftsart.
+- **Mitgliederverzeichnis:** mobile Suche nach Name, Mitgliedsnummer und Benutzername, begrenzte Seitennavigation und Aktiv-/Inaktiv-Filter für die Administration.
+- **Mitgliedsprofil:** Informationen zu Mitgliedschaft, Kontakt, Eintritt und Geburtstag; interne Notizen nur für Verwaltungsberechtigte.
+- **Mitglieder anlegen:** Stammdaten und Initialzugang anlegen; neue Konten erhalten **immer** die niedrigste aktive Rechtestufe 1.
+- **Mitglieder bearbeiten:** Stammdaten validiert speichern; Passwörter, Rechte, Zugangsnamen und Bankdaten sind bewusst nicht über diesen Vorgang änderbar.
+- **Statusverwaltung:** Administration kann nichtadministrative Mitglieder deaktivieren und reaktivieren, ohne Datensätze zu löschen. Eigene oder fremde Administratorkonten sind vor diesem Vorgang geschützt.
+- **Mobile-First-UI:** ein eigenes, kommentiertes CSS-/JavaScript-UI-Kit mit Karten, Formularen, Navigation und Hell-/Dunkelschema.
 
-- **OOP-Kernel:** expliziter Router, Front Controller, Request/Response, Fehlerbehandlung und serverseitiges View-System.
-- **Login:** Benutzername **oder Mitgliedsnummer**, Passwortprüfung mit `password_verify()` und einmaliger MD5-Altpasswortmigration nach erfolgreichem Login.
-- **Logout:** ausschließlich über ein CSRF-geschütztes POST-Formular; Session und Session-Cookie werden beendet.
-- **Benutzerstatus:** gesperrte und inaktive Konten dürfen sich nicht anmelden; Berechtigungen werden bei jeder geschützten Anfrage neu gelesen.
-- **Rechteverwaltung:** sechs Stufen (0 gesperrt, 1 Mitglied, 2 Moderator, 3 Abteilungsleitung, 4 Vorstand, 5 Administration). Zentraler Berechtigungsdienst statt verstreuter Zahlenprüfungen.
-- **Administrator:** aktive Konten und Rechtestufen einsehen, andere Konten entsperren/sperren oder Rollen vergeben. Eigene Administratorrolle lässt sich dabei nicht ändern.
-- **Sicherheit:** PDO-Parameterbindung, CSRF, sichere Cookies, Session-ID-Wechsel, dateibasierte Limitierung fehlgeschlagener Logins und HTML-Escaping.
-- **Mobile First:** responsives Login, Kontoübersicht, Rechtematrix und Administration auf Basis des eigenen UI-Kits – ohne CSS-/JS-Frameworkzwang.
+Noch nicht Bestandteil der MVC-Neuentwicklung sind Abteilungen, Orte, Veranstaltungen, Dienste, Nachrichten, Beitrags-/Kassenbuchhaltung und der vollständige historische Benutzerprofil-/Bankdateneditor. Diese Module werden in späteren Meilensteinen **neu aufgebaut**, nicht als alte PHP-Skripte mitgeführt.
 
-**Noch nicht integriert:** Dashboard, vollständige Mitgliederprofile, Abteilungen, Veranstaltungen, Finanzen und Kasse. Diese Module kommen jeweils mit eigenen Controllern, Services, Repositories und Views zurück. Die Zugangsadministration in alpha.2 ist **keine vollständige Mitgliederverwaltung**.
+## Rechte für das neue Mitglieder-Modul
 
-## Voraussetzungen
+| Funktion | Berechtigt |
+| --- | --- |
+| Dashboard, eigenes Mitgliedsprofil | Aktive Benutzer ab Stufe 1 |
+| Mitglieder suchen und Profile ansehen | Vorstand (4), Administration (5) |
+| Stammdaten anderer nichtadministrativer Mitglieder bearbeiten | Vorstand (4), Administration (5) |
+| Administratorprofile bearbeiten | Ausschließlich Administration (5) |
+| Mitglieder anlegen | Ausschließlich Administration (5) |
+| Mitglieder deaktivieren/reaktivieren | Ausschließlich Administration (5); keine Adminkonten |
+| Rechte anderer Konten ändern | Ausschließlich Administration (5), über die getrennte Rechteverwaltung |
 
-- PHP **8.1 oder neuer**, empfohlen 8.2–8.4, PHP-PDO-Erweiterung `pdo_mysql`.
-- MySQL 5.7+/8.x oder kompatible MariaDB mit einer vorhandenen Vereinsdatenbank **oder** einer leeren Datenbank.
-- HTTPS bei öffentlichen Installationen.
-- Webroot **ausschließlich `public/`**. `app/`, `config/`, `storage/` usw. dürfen nicht öffentlich erreichbar sein.
-- Schreibrecht des PHP-Prozesses für `storage/rate_limits/`.
+Bei jedem geschützten Request werden Zugang und Rechte erneut aus der Datenbank gelesen. Das Ausblenden von Links ersetzt keine serverseitige Zugriffsprüfung.
 
-Keine externen PHP- oder JavaScript-Paketmanager erforderlich. jQuery 3.6.1 liegt optional lokal vor, wird für Authentifizierung und UI nicht benötigt.
+## Installation und lokaler Start
 
-## Einrichtung
+Voraussetzungen: PHP **8.1+**, MySQL/MariaDB und die PHP-Erweiterung `pdo_mysql`. Apache, WAMP oder ein vergleichbarer Webserver; bei öffentlich zugänglichen Installationen HTTPS.
 
-1. Projektdateien entpacken und in der Webserver-Konfiguration nur `public/` freigeben.
-2. `config/database.php.example` **kopieren** nach `config/database.local.php` und die Zugangsdaten eintragen. Die lokale Datei ist von Git ausgeschlossen.
-3. **Bestehende Vereinsdatenbank:** keine neue Tabelle erforderlich. Bereits angelegte aktive Benutzer können sich mit ihrem Namen oder ihrer Mitgliedsnummer und Passwort anmelden. Niemals ungesichert auf Produktivdaten ausprobieren.
-4. **Neue leere Datenbank:** zuerst über `php bin/bootstrap-auth.php` die kompatible Kontotabelle und das erste Administratorkonto anlegen. Das Skript läuft nur über CLI, überschreibt keine vorhandenen Benutzer und verlangt ein Passwort von mindestens 12 Zeichen.
-5. Die Webanwendung öffnen und anmelden.
+1. Projekt in ein eigenes Verzeichnis entpacken; **Webroot ausschließlich auf `public/`** legen.
+2. `config/database.php.example` nach `config/database.local.php` kopieren und die Zugangsdaten zur Vereinsdatenbank hinterlegen (diese Datei wird nicht versioniert).
+3. Vorhandene Vereinsdatenbank: Die Mitglieder-Tabelle `mitglieder` des alten Vereinssystems wird weitergenutzt, ohne eine automatische Migration oder Änderung an den bisherigen Finanzdaten.
+4. Neue leere Datenbank: `php bin/bootstrap-auth.php` aufrufen, um die kompatible Mitgliedertabelle und das erste Administratorkonto anzulegen.
+5. Anwendung unter `/login` öffnen, anmelden und das Dashboard unter `/dashboard` aufrufen.
 
-### Lokaler Start
+Lokaler Entwicklungsserver:
 
 ```sh
 php -S 127.0.0.1:8080 -t public public/router.php
 ```
 
-Browser: `http://127.0.0.1:8080/login`. Die Startseite `/` leitet zum Login oder nach der Anmeldung zu `/account` weiter.
+Browser: `http://127.0.0.1:8080/login`. Für Apache ohne URL-Rewrite steht `index.php?r=/login` zur Verfügung. Der `/status`-Endpunkt liefert den technischen Kernel-Status ohne private Mitgliederdaten.
 
-Auf WAMP/Apache auf das `public`-Verzeichnis als DocumentRoot achten. Ohne URL-Rewrite sind alle Routen über `index.php?r=/login`, `index.php?r=/rights` usw. erreichbar.
+**Achtung bei alten Mitgliedsdaten:** Die MVC-Formulare schreiben in die ursprüngliche `mitglieder`-Tabelle. Vor Änderungen an einem bestehenden Verein den Datenbankbestand sichern. Kein automatisch erzeugter Admin darf vorhandene Logins überschreiben.
 
-## Seiten und Zugriffsregeln
+## Architektur
 
-| Route | Methode | Zugriff | Zweck |
-| --- | --- | --- | --- |
-| `/login` | GET / POST | Öffentlich | Anmeldeformular und Zugangskontrolle |
-| `/logout` | POST | CSRF-Tokens | Sitzung sicher beenden |
-| `/account` | GET | Angemeldet | Eigene Zugangsdaten und Rolle anzeigen |
-| `/rights` | GET | Angemeldet | Implementierte Berechtigungen ansehen |
-| `/admin/roles` | GET / POST | Administration (Level 5) | Rechtestufen anderer Konten ändern |
-| `/status` | GET | Öffentlich | Technischer Kernel-Status ohne private Daten |
+```text
+app/
+  Auth/               # Authentifizierung, Rollen und Identitätsmodell
+  Controllers/        # HTTP-Controller; Zugriffs- und CSRF-Grenzen
+  Core/               # Kernel, Routing, Datenbankfabrik, Sessions, View
+  Members/            # Mitgliedsdatenmodell, Verträge, PDO-Repository, Fachservice
+  Repositories/       # Login-Repository und zugehöriger Vertrag
+config/               # Versionskontrollierte Defaults und lokale DB-Konfiguration
+database/migrations/  # SQL-Basis für eine leere Mitgliedertabelle
+resources/views/      # PHP-Views, ohne SQL-Logik
+  auth/ dashboard/ members/ rights/ layouts/ errors/
+public/               # Einziger öffentlicher Webroot
+  assets/css/         # Eigenes Bootstrap-artiges UI-System
+  assets/js/          # Interaktionslogik ohne Frameworkzwang
+routes/web.php        # Alle Routen explizit registriert
+tests/                # Isolierte Kernel-, Auth- und Fachlogikchecks
+docs/                 # Architektur, Berechtigungen und UI-Konventionen
+```
 
-**Grundsatz:** Der Zugriff wird auf dem Server geprüft. Das Ausblenden einer Schaltfläche allein ist keine Berechtigungsprüfung. Ein anderer Benutzer kann sich nicht durch die Änderung von HTML-Formularwerten zusätzliche Rechte erteilen.
+Alle Abfragen der neuen Mitgliederverwaltung verwenden vorbereitete PDO-Statements mit gebundenen Parametern. Es gibt **keine** Übernahme historischer `mysql_*`-Funktionen, `db_escape()`-Hilfen oder des alten SQL-Kompatibilitätsmodus.
 
-## Projektstruktur
+## Weitere Dokumentation
 
-| Verzeichnis | Verantwortung |
-| --- | --- |
-| `app/Core/` | Kernel, Router, Request/Response, Session, CSRF und PDO-Verbindung |
-| `app/Auth/` | Benutzerobjekt, Authentifizierungsservice, Login-Sperre, Rollenregeln |
-| `app/Repositories/` | Benutzer-Repository-Interface und PDO-Implementierung |
-| `app/Controllers/` | Login-/Logout-Controller, Zugangskonto, Rollenverwaltung |
-| `resources/views/` | Deutsche, serverseitig gerenderte HTML-Views und Layouts |
-| `public/assets/` | Kommentierte mobile CSS-/JS-Komponenten, Original-Logo und optional jQuery |
-| `routes/web.php` | Festes Register aller HTTP-Routen |
-| `config/` | Öffentliche App-Einstellungen und nicht versionierte DB-Konfiguration |
-| `database/migrations/` | SQL-Struktur für die Erstinbetriebnahme einer leeren Kontodatenbank |
-| `bin/bootstrap-auth.php` | CLI-only Initialisierung des ersten Administrators |
-| `tests/` | OOP-, Routing-, Authentifizierungs- und Berechtigungsprüfungen |
-| `docs/` | Architektur, Rechtesystem, Codekonventionen und UI-Kit |
-
-## Dokumentation
-
-- [Architektur](docs/ARCHITECTURE.md)
-- [Authentifizierung und Rechte](docs/AUTHORIZATION.md)
+- [Architektur und Datenflüsse](docs/ARCHITECTURE.md)
+- [Mitgliedermodul: Felder und Berechtigungen](docs/MEMBERS.md)
+- [Rollen und Zugriff](docs/AUTHORIZATION.md)
 - [UI-Kit](docs/UI_KIT.md)
-- [Stil- und Kommentarregeln](docs/CODE_STYLE.md)
-- [Änderungsverlauf](CHANGELOG.md)
-
-## Versionierung und nächster Schritt
-
-- **3.0.0-alpha.1** – eigenständiger MVC-Kernel, Routing, Views, UI-Basis.
-- **3.0.0-alpha.2** – Anmeldung, Abmeldung, Benutzerstatus und zentrale Rechtevergabe.
-- **3.0.0-alpha.3 (geplant)** – Dashboard und anschließend die vollständige MVC-Mitgliederverwaltung.
+- [Code-Stil](docs/CODE_STYLE.md)
+- [Versionsgeschichte](CHANGELOG.md)
 
 ## Herkunft und Lizenz
 
-Das Originalprojekt stammt von **Nicolas Jourdan und Sebastian Fuss** (2012/2013), die technische Weiterentwicklung seit 2026 von **Marcus Dziersan**. Die ursprünglichen Bedingungen zur kostenlosen nichtkommerziellen Nutzung bleiben für übernommene Bestandteile bestehen. Eigene Ergänzungen sind im Umfang der verfügbaren Rechte unter **PolyForm Noncommercial 1.0.0** verfügbar. Fremde Bibliotheken und Grafiken unterliegen ihren jeweils eigenen Rechten. Details in `LICENSE.md` und `THIRD-PARTY-NOTICES.md`.
+Original: **Nicolas Jourdan und Sebastian Fuss**, 2012/2013. Technische Weiterentwicklung seit 2026: **Marcus Dziersan**. Die nichtkommerzielle Nutzungserlaubnis des Originals bleibt für übernommene Bestandteile gültig. Eigene Erweiterungen stehen, soweit entsprechende Rechte bestehen, unter **PolyForm Noncommercial 1.0.0**. Fremde Ressourcen haben eigene Nutzungsbedingungen. Details: `LICENSE.md`, `LICENSE-POLYFORM-NONCOMMERCIAL.md` und `THIRD-PARTY-NOTICES.md`.

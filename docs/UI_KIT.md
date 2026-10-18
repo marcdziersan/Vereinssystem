@@ -41,3 +41,10 @@ Die eigenständige CSS-/JavaScript-Basis ist als kleines internes Bootstrap-ähn
 - `data-vs-password-toggle`: progressive Option zum Anzeigen eines Passworts ohne JavaScript-Pflicht.
 
 Views erhalten keine Inline-Events; Interaktionen stehen dokumentiert unter `public/assets/js/vs-ui.js`.
+
+## Neu ab alpha.3 – Mitglieder und Dashboard
+
+Mobile Mitgliederkarten (`.vs-member-card`), responsives Suchformular
+(`.vs-searchbar`), persönliche Datenblätter (`.vs-details`), gefelderte
+Mitgliederformulare (`.vs-fieldset`) und statistikbasierte Dashboardkarten.
+Alle Komponenten nutzen die zentralen `--vs-*`-Tokens.

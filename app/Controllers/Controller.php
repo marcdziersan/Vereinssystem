@@ -23,7 +23,8 @@ abstract class Controller
             'jsUrl'=>$request->asset('js/vs-ui.js'),
             'logoUrl'=>$request->asset('images/logo_head.png'),
             'user'=>$user,'csrfToken'=>$user!==null?$this->csrf->token():null,
-            'accountUrl'=>$request->url('/account'),'rightsUrl'=>$request->url('/rights'),
+            'accountUrl'=>$request->url('/account'),'dashboardUrl'=>$request->url('/dashboard'),
+            'membersUrl'=>$request->url('/members'),'rightsUrl'=>$request->url('/rights'),
             'adminUrl'=>$request->url('/admin/roles'),'logoutUrl'=>$request->url('/logout'),
         ]);
         return new Response($html,$status,['Content-Type'=>'text/html; charset=utf-8','Cache-Control'=>'no-store']);

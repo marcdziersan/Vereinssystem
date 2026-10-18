@@ -10,6 +10,10 @@ use Vereinssystem\Auth\Roles;
 use Vereinssystem\Controllers\AccessController;
 use Vereinssystem\Controllers\AuthController;
 use Vereinssystem\Controllers\KernelController;
+use Vereinssystem\Controllers\DashboardController;
+use Vereinssystem\Controllers\MemberController;
+use Vereinssystem\Members\MemberRepository;
+use Vereinssystem\Members\PdoMemberRepository;
 use Vereinssystem\Repositories\PdoUserRepository;
 use Vereinssystem\Repositories\UserRepository;
 
@@ -18,7 +22,7 @@ final class Application
     private readonly Router $router;
     private readonly View $views;
 
-    private function __construct(string $root,?UserRepository $override)
+    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride)
     {
         $config=new Config(require $root.'/config/app.php');
         $this->router=new Router();
@@ -27,22 +31,31 @@ final class Application
         $csrf=new Csrf($session);
         $dbConfig=$root.'/config/database.local.php';
         $users=$override;
+        $members=$memberOverride;
+        $database=null;
         if ($users===null && is_file($dbConfig)) {
             $settings=require $dbConfig;
             if (!is_array($settings)) throw new DatabaseUnavailable('Invalid configuration');
-            $users=new PdoUserRepository(new Database($settings));
+            $database=new Database($settings);
+            $users=new PdoUserRepository($database);
+        }
+        if ($members===null && $database!==null) {
+            $members=new PdoMemberRepository($database);
         }
         $auth=$users ? new AuthService($users,$session,new LoginLimiter($root.'/storage/rate_limits')) : null;
         $kernel=new KernelController($this->views,$config);
         $authController=new AuthController($this->views,$csrf,$auth);
-        $accessController=new AccessController($this->views,$csrf,$auth,$users,new Roles(),$session);
+        $roles=new Roles();
+        $accessController=new AccessController($this->views,$csrf,$auth,$users,$roles,$session);
+        $dashboard=new DashboardController($this->views,$csrf,$auth,$members,$roles);
+        $memberController=new MemberController($this->views,$csrf,$auth,$members,$roles,$session);
         $register=require $root.'/routes/web.php';
-        $register($this->router,$kernel,$authController,$accessController);
+        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController);
     }
 
-    public static function fromProjectRoot(string $root,?UserRepository $users=null): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null): self
     {
-        return new self($root,$users);
+        return new self($root,$users,$members);
     }
 
     public function handle(Request $request): Response

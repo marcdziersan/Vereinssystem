@@ -29,7 +29,7 @@ use Vereinssystem\Core\View;
         </form>
     </div>
     <aside class="vs-auth__aside" aria-label="Entwicklungsstand">
-        <span class="vs-chip vs-chip--outline">MVC 3.0.0-alpha.2</span>
+        <span class="vs-chip vs-chip--outline">MVC 3.0.0-alpha.3</span>
         <h2>Ein System, ein Zugang.</h2>
         <p>Neuer OOP-Login auf Basis der bestehenden Vereinsdatenbank. Mitglieder, Finanzen und weitere Module werden in späteren Meilensteinen hinzugefügt.</p>
     </aside>

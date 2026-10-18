@@ -1,5 +1,22 @@
 # Änderungsverlauf – MVC-Entwicklung
 
+## 3.0.0-alpha.3 – Dashboard und Mitgliederverwaltung (18.10.2026)
+
+### Neu
+- Authentifiziertes MVC-Dashboard mit personalisierten Links und rollenabhängigen Mitgliederstatistiken.
+- Mitglieder-Modul als strikt getrennte OOP-Komponenten: `Member`, `MemberRepository`, `PdoMemberRepository`, `MemberService` und `MemberController`.
+- Mitgliederliste mit vorbereiteten PDO-Suchabfragen, sicheren LIKE-Wildcards, Filterung und serverseitig begrenzter Pagination.
+- Mitgliedsprofile mit an Berechtigungen gebundenen internen Notizen, vollständige Neuanlage und bearbeitbare Stammdaten.
+- Soft-Deaktivierung und Reaktivierung für Administratoren ohne physischen Datenverlust; Admin-Konten geschützt.
+- Mobile Views für Dashboard, Suche, Profil und mehrteilige Formulare sowie neue UI-Komponenten für diese Ansichten.
+- Fachmodultests mit in-memory Repositories, ohne Altcode-PHP-Endpunkte.
+
+### Geändert
+- Nach erfolgreicher Anmeldung zum Dashboard statt ausschließlich zur Zugangsseite weiterleiten.
+- Rollenmatrix um Member-Lesen, Member-Bearbeiten, Erstellen und Statusverwaltung ergänzt.
+- Projektdokumentation auf 3.0.0-alpha.3 angehoben.
+- Keine Änderung am 2013er Datenbankschema; neue Mitglieder werden mit allen erforderlichen Nicht-NULL-Feldern geschrieben.
+
 ## 3.0.0-alpha.2 – Login, Logout und Rechtesystem
 
 ### Neu

@@ -19,6 +19,13 @@ final class Roles
         'account.view' => 1,
         'rights.view' => 1,
         'rights.assign' => 5,
+        'dashboard.view' => 1,
+        'members.self' => 1,
+        'members.list' => 4,
+        'members.view' => 4,
+        'members.edit' => 4,
+        'members.create' => 5,
+        'members.status' => 5,
     ];
 
     public function allows(User $user, string $permission): bool

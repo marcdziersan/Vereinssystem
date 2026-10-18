@@ -44,3 +44,11 @@ Dieser Meilenstein enthält noch keine komplexe Rechtehistorie oder ein vollwert
 ## Tests
 
 `php tests/kernel_smoke.php` und `php tests/auth_smoke.php`.
+
+## Rechte ab alpha.3
+
+- `dashboard.view` und `members.self` für aktive Mitglieder ab Level 1.
+- `members.list`, `members.view` und `members.edit` ab Level 4.
+- `members.create` und `members.status` ausschließlich Level 5.
+- Administratorprofile sind gegen Bearbeitung durch Vorstand gesperrt.
+- Zugangsrechte werden nicht im Mitgliederformular vergeben.

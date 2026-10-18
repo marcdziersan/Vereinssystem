@@ -1,4 +1,4 @@
-# MVC-Architektur – 3.0.0-alpha.2
+# MVC-Architektur – 3.0.0-alpha.3
 
 ## Schichten und Abhängigkeiten
 
@@ -20,7 +20,7 @@ Der Webroot ist ausschließlich `public/`. Sessions und Login-Versuchsdateien li
 
 ## Datenmodell
 
-Alpha.2 verwendet nur die für Anmeldung und Rechtestufen nötigen Spalten der historisch vorhandenen Tabelle `mitglieder`. Für eine **neue** Datenbank kann `bin/bootstrap-auth.php` die kompatible Tabelle initialisieren, ohne die übrigen 17 Tabellen der alten Anwendung einzurichten. Die alten Fachmodule werden nicht übernommen.
+Alpha.3 verwendet für Anmeldung und Mitgliederverwaltung jeweils sorgfältig ausgewählte Spalten der historisch vorhandenen Tabelle `mitglieder`. Für eine **neue** Datenbank kann `bin/bootstrap-auth.php` die kompatible Tabelle initialisieren, ohne die übrigen 17 Tabellen der alten Anwendung einzurichten. Die alten Fachmodule werden nicht übernommen.
 
 ## Frontend
 
@@ -28,4 +28,21 @@ CSS-Komponenten mit `vs-`-Prefix, zentrales Token-System, progressive Verbesseru
 
 ## Nächster Meilenstein
 
-Zunächst Dashboard, dann Mitglieder-Stammdatenverwaltung als neues MVC-Modul mit fachlichem Service und dediziertem Repository. Keine alten `member_process.php`-Seiten und keine Legacy-Routen.
+Abteilungen und Orts-/Adressverwaltung als eigenständige MVC-Fachmodule. Die abgeschlossenen Dashboard- und Mitgliederfunktionen bleiben dabei unverändert integriert.
+
+## Alpha.3 – Mitgliederdomäne
+
+Die Anmeldung verwendet weiterhin `UserRepository`, das nur Authentifizierungsdaten
+liefert. Fachliche Mitgliedsdaten gehören unabhängig davon zum `MemberRepository`.
+
+`MemberController` → `MemberService` (Validierung/Geschäftsregeln) →
+`MemberRepository` (Vertrag) → `PdoMemberRepository` (parametrisierte SQL-Abfragen).
+
+`DashboardController` nutzt dasselbe Repository für aggregierte Kennzahlen. Die
+Repository-Verbindung wird vom Composition Root (`Application`) erstellt; HTTP,
+Services und Views greifen niemals direkt auf eine PDO-Instanz zu.
+
+Die vorhandene Tabelle `mitglieder` bleibt kompatibel. Die erste Mitgliederanlage
+setzt zwingende historische Felder ausdrücklich und erstellt ein Konto mit Level 1.
+Zugangsrechte bleiben ausschließlich im Rechte-Controller änderbar. Passwörter und
+Bankinformationen werden in Profil-Queries nie abgefragt oder gerendert.

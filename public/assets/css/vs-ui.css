@@ -165,3 +165,61 @@ a { color: inherit; }
  .vs-role-entry { flex-direction:row; align-items:center; }
  .vs-role-form { grid-template-columns:minmax(170px,240px) auto; width:auto; }
 }
+
+/* === alpha.3: mobile-first member management and dashboard ===
+ * All module rules use the existing --vs-* theme tokens. Layout begins at one
+ * column; wider viewports gain columns rather than relying on fixed widths.
+ */
+.vs-section--first { margin-top:0; }
+.vs-toolbar { display:flex; align-items:start; justify-content:space-between; flex-wrap:wrap; gap:18px; margin-bottom:24px; }
+.vs-toolbar h1 { font-size:clamp(1.7rem,5.8vw,2.6rem); margin:0 0 4px; letter-spacing:-.035em; }
+.vs-kicker { color:var(--vs-accent); font-weight:750; text-transform:uppercase; font-size:.72rem; letter-spacing:.12em; margin:0 0 7px; }
+.vs-dashboard-hero .vs-button:not(.vs-button--primary) { color:#e6fff4; border-color:#53716c; background:#23463d; }
+.vs-card--link { text-decoration:none; display:block; transition:border-color .16s,transform .16s; }
+.vs-card--link:hover { border-color:var(--vs-accent); transform:translateY(-2px); }
+.vs-stat { display:flex; flex-direction:column; gap:7px; }
+.vs-stat__label { color:var(--vs-muted); font-size:.94rem; }
+.vs-stat__number { font-size:clamp(1.9rem,4vw,2.9rem); line-height:1.15; }
+.vs-stats-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.vs-searchbar { display:flex; flex-wrap:wrap; align-items:end; gap:12px; padding:16px; background:var(--vs-surface); border:1px solid var(--vs-border); border-radius:var(--vs-radius); margin-bottom:20px; }
+.vs-searchbar .vs-field { min-width:130px; flex:1 1 150px; }
+.vs-searchbar .vs-field--grow { flex:3 1 210px; }
+.vs-searchbar .vs-button { width:100%; }
+.vs-member-grid { display:grid; grid-template-columns:1fr; gap:12px; }
+.vs-member-card { display:grid; grid-template-columns:48px minmax(0,1fr); align-items:center; gap:14px; padding:18px; }
+.vs-avatar { display:grid; place-items:center; width:48px; height:48px; border-radius:16px; background:var(--vs-accent-soft); color:var(--vs-accent); font-weight:800; }
+.vs-member-card__content { min-width:0; }
+.vs-member-card h2 { margin:0 0 2px; font-size:1.05rem; overflow-wrap:anywhere; }
+.vs-member-card p { margin:0 0 8px; }
+.vs-member-card__meta { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.vs-member-card__email { color:var(--vs-muted); overflow-wrap:anywhere; font-size:.86rem; }
+.vs-member-card>.vs-button { grid-column:1 / -1; }
+.vs-pager { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:16px; padding-block:22px; }
+.vs-grid--2 { grid-template-columns:1fr; }
+.vs-details { margin:0; display:grid; gap:0; }
+.vs-details>div { padding:10px 0; border-bottom:1px solid var(--vs-border); display:grid; grid-template-columns:minmax(95px,.4fr) minmax(0,1fr); gap:14px; }
+.vs-details>div:last-child { border-bottom:0; }
+.vs-details dt { color:var(--vs-muted); }
+.vs-details dd { margin:0; overflow-wrap:anywhere; }
+.vs-pre-line { white-space:pre-wrap; }
+.vs-status-card { margin-top:20px; }
+.vs-status-card h2 { margin-top:0; }
+.vs-back { display:inline-flex; min-height:44px; align-items:center; margin-bottom:12px; color:var(--vs-accent); font-weight:650; text-decoration:none; }
+.vs-empty { padding:24px; color:var(--vs-muted); }
+.vs-member-form { max-width:970px; }
+.vs-fieldset { min-width:0; margin:0; }
+.vs-fieldset legend { font-size:1.2rem; font-weight:750; padding:0 12px 0 0; }
+.vs-field-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+.vs-field--full { grid-column:1 / -1; }
+.vs-textarea { resize:vertical; }
+.vs-field-error { color:#bd3030; font-weight:700; font-size:.82rem; }
+@media (min-width:640px) {
+  .vs-searchbar .vs-button { width:auto; }
+  .vs-member-card { grid-template-columns:48px minmax(0,1fr) auto; }
+  .vs-member-card>.vs-button { grid-column:auto; }
+  .vs-field-grid, .vs-grid--2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (min-width:900px) {
+  .vs-member-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .vs-stats-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+}

@@ -16,12 +16,12 @@ final class AuthController extends Controller
 
     public function home(Request $request): Response
     {
-        return Response::redirect($request->url($this->auth?->currentUser() ? '/account' : '/login'));
+        return Response::redirect($request->url($this->auth?->currentUser() ? '/dashboard' : '/login'));
     }
 
     public function form(Request $request): Response
     {
-        if ($this->auth?->currentUser()) return Response::redirect($request->url('/account'));
+        if ($this->auth?->currentUser()) return Response::redirect($request->url('/dashboard'));
         return $this->loginPage($request);
     }
 
@@ -40,7 +40,7 @@ final class AuthController extends Controller
         if (!$this->csrf->verify($request->inputString('_csrf'))) return $this->badToken($request);
         if ($this->auth === null) return $this->loginPage($request,'Die Datenbank ist noch nicht konfiguriert.',503);
         if ($this->auth->login($request->inputString('identifier'),$request->inputString('password'),$request->remoteIp)) {
-            return Response::redirect($request->url('/account'));
+            return Response::redirect($request->url('/dashboard'));
         }
         return $this->loginPage($request,'Anmeldung fehlgeschlagen. Bitte Zugangsdaten prüfen.',401);
     }

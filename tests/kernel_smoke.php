@@ -1,5 +1,5 @@
 <?php
-/** Kernel smoke checks for milestone 2: routes still work without configured DB. */
+/** Kernel smoke checks for milestone 3: routes still work without configured DB. */
 declare(strict_types=1);
 require dirname(__DIR__).'/bootstrap.php';
 use Vereinssystem\Core\{Application,Request,View};
@@ -16,7 +16,7 @@ check(str_contains($login->body,'logo_head.png'),'Original logo used');
 $json=$app->handle(new Request('GET','/status'));
 check($json->status===200,'Status returns 200');
 $data=json_decode($json->body,true,512,JSON_THROW_ON_ERROR);
-check($data['version']==='3.0.0-alpha.2','Version reported');
+check($data['version']==='3.0.0-alpha.3','Version reported');
 check($app->handle(new Request('GET','/account'))->status===303,'Protected account requires login');
 check($app->handle(new Request('GET','/rights'))->status===303,'Protected roles require login');
 check($app->handle(new Request('POST','/status'))->status===405,'405 enforced');
