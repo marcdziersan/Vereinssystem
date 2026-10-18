@@ -10,7 +10,7 @@
 - Einnahmen, Ausgaben, über zwei Konten verknüpfte atomare Umbuchungen sowie Jahresendbestände je Konto.
 - Beitragszahlungen aus 2.1.0 können jetzt unmittelbar dem tatsächlich verwendeten Kassenkonto zugeordnet werden – **ohne Doppelbuchung**. Stornos sind gekoppelt.
 - Belegnummern, PDF-Buchungsnachweise, Kategorie- und Kontenauswertung als PDF-Jahresbericht sowie CSV-Einzelbuchungsexport.
-- PDF-/Bildbelege per geschütztem Upload/Download mit Content-Type-, Hash- und Pfadprüfung (privater Speicher **außerhalb** des Webroots erforderlich).
+- PDF-/Bildbelege per geschütztem Upload/Download mit Content-Type-, Hash- und Pfadprüfung (privater Speicher **außerhalb** des Webroots erforderlich; absolute Linux-/Windows-Pfade unterstützt).
 - Zweistufiger CSV-Import mit Dateiprüfung, Vorschau, Bestätigung und SHA-256-Duplikatssperre.
 - Granulare Kassenrechte (Buchen, Storno, Konten, Import, Export, Belege, Audit) mit Administrator-Vergabe und vorhandenen Altrechten weiterhin intakt.
 - Prüfspur über `vs_audit` für Kassenänderungen, Rechte, Beitragssätze und gekoppelte Zahlungsvorgänge.

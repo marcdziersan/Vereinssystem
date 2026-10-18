@@ -18,10 +18,22 @@ if(!$entry){http_response_code(404);exit('Buchung nicht vorhanden.');}
 function vk_private_dir(): string
 {
     $path=getenv('VS_PRIVATE_STORAGE_DIR');
-    if(!is_string($path)||$path===''||$path[0]!=='/')throw new DomainException('Für Beleguploads bitte VS_PRIVATE_STORAGE_DIR als absoluten Pfad außerhalb des Webroots konfigurieren.');
+    // Unix (/srv/private) und Windows (C:\private) werden unterstützt.
+    $absolute = is_string($path) && ($path !== '') && (
+        str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $path) === 1
+    );
+    if (!$absolute) throw new DomainException('VS_PRIVATE_STORAGE_DIR muss ein absoluter Pfad außerhalb des Webroots sein.');
     if(!is_dir($path) && !mkdir($path,0700,true) && !is_dir($path))throw new RuntimeException('Belegspeicher kann nicht angelegt werden.');
     $real=realpath($path);$root=realpath((string)($_SERVER['DOCUMENT_ROOT']??''));
-    if($real===false || ($root!==false && ($real===$root || str_starts_with($real,$root.DIRECTORY_SEPARATOR))))throw new DomainException('Belegspeicher darf nicht im öffentlich erreichbaren Webroot liegen.');
+    if ($real === false) throw new DomainException('Privater Belegspeicher nicht erreichbar.');
+    $normalize = static fn(string $v): string => strtolower(str_replace('\\', '/', rtrim($v, '/\\')));
+    if ($root !== false) {
+        $safeRoot = $normalize($root);
+        $safeReal = $normalize($real);
+        if ($safeReal === $safeRoot || str_starts_with($safeReal, $safeRoot . '/')) {
+            throw new DomainException('Belegspeicher darf nicht im öffentlich erreichbaren Webroot liegen.');
+        }
+    }
     return $real;
 }
 if(isset($_GET['download'])){

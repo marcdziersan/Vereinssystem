@@ -108,7 +108,7 @@ Die Variable **`VS_PRIVATE_STORAGE_DIR`** muss auf ein beschreibbares **absolute
 VS_PRIVATE_STORAGE_DIR=/home/hosting-account/private/vereinssystem-belege
 ```
 
-Der genaue Weg zur Einrichtung hängt vom Hoster ab (PHP-FPM-/Webserver-Umgebung). Ohne diese Variable bleiben **Datei-Uploads und -Downloads deaktiviert**, damit Bankbelege nicht versehentlich öffentlich abgelegt werden. PDF-Buchungsbelege werden unabhängig davon aus der Datenbank erzeugt. Bei Windows sind Uploads erst nach Anpassung an die unterstützte Server-Konfiguration möglich.
+Der genaue Weg zur Einrichtung hängt vom Hoster ab (PHP-FPM-/Webserver-Umgebung). Ohne diese Variable bleiben **Datei-Uploads und -Downloads deaktiviert**, damit Bankbelege nicht versehentlich öffentlich abgelegt werden. PDF-Buchungsbelege werden unabhängig davon aus der Datenbank erzeugt. Unter Windows/WAMP kann ein absoluter Pfad wie `C:\\Vereinssystem-Privat\\Belege` verwendet werden; dieser muss ebenfalls außerhalb des Webroots liegen.
 
 ## Rechte und Prüfung
 

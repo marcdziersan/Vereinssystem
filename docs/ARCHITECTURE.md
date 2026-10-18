@@ -18,7 +18,7 @@
 7. **Rechte:** numerische Altrechte bleiben bestehen; Kassenrechte werden separat vergeben. Nur Level 5 darf delegieren, er selbst darf alle Kassenaktionen.
 8. **Beitragstarife:** `vs_tarife` nach `gueltig_ab`. Ein neuer Stichtag wirkt nur auf zukünftige Neuberechnungen; existierende Monatsforderungen bleiben unverändert.
 9. **Historische Daten:** kein automatisches Erfinden früherer Kassenbuchungen aus 2.1-Zahlungen. Alte Bankdaten und tatsächliche Buchungen sind separat abzugleichen.
-10. **Belege:** Der Dateispeicher liegt außerhalb des Webroots und ist nur über den authentifizierten Download mit Berechtigungsprüfung abrufbar. MIME + SHA256 werden geprüft.
+10. **Belege:** Der Dateispeicher liegt unter Windows oder Linux außerhalb des Webroots und ist nur über den authentifizierten Download mit Berechtigungsprüfung abrufbar. MIME + SHA256 werden geprüft.
 
 ## SQL-Transaktionen
 
