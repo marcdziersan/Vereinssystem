@@ -2,8 +2,10 @@
 /** Explicit route registration; no legacy PHP endpoint or dynamic file routing. */
 declare(strict_types=1);
 
-use Vereinssystem\Core\Router;
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController};
+use Vereinssystem\Core\{Router,Csrf};
+use Vereinssystem\Auth\{AuthService,Roles};
+use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController};
 
 return static function (
     Router $router,
@@ -15,6 +17,8 @@ return static function (
     PlaceController $places,
     DepartmentController $departments,
     InstallController $install,
+    EventController $events,
+    ?AuthService $authService, Roles $roles, Csrf $csrf,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
     $router->add('GET', '/install', [$install, 'form']);
@@ -52,4 +56,24 @@ return static function (
     $router->add('POST', '/departments/assign', [$departments,'assign']);
     $router->add('POST', '/departments/remove', [$departments,'remove']);
     $router->add('POST', '/departments/status', [$departments,'status']);
+    // Alpha.5: Events/tasks are registered with explicit composable middleware.
+    // Authenticated -> permission -> CSRF for each POST. No legacy endpoints.
+    $eventRoutes = [
+        ['GET','/events','index','events.list'],
+        ['GET','/events/view','show','events.view'],
+        ['GET','/events/create','create','events.create'],
+        ['GET','/events/edit','edit','events.edit'],
+        ['POST','/events/store','save','events.create'],
+        ['POST','/events/update','save','events.edit'],
+        ['POST','/events/status','status','events.status'],
+        ['GET','/events/tasks/create','createTask','events.tasks.manage'],
+        ['GET','/events/tasks/edit','editTask','events.tasks.manage'],
+        ['POST','/events/tasks/save','saveTask','events.tasks.manage'],
+        ['POST','/events/tasks/archive','archiveTask','events.tasks.manage'],
+    ];
+    foreach ($eventRoutes as [$method,$path,$methodName,$capability]) {
+        $guards = [new Authenticated($authService), new Permission($authService,$roles,$capability)];
+        if ($method === 'POST') $guards[] = new VerifyCsrf($csrf);
+        $router->add($method,$path,Stack::wrap([$events,$methodName],...$guards));
+    }
 };

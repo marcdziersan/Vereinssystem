@@ -10,6 +10,10 @@ declare(strict_types=1);
 
 const VS_ROOT = __DIR__;
 
+// Web and CLI always display original Unix event timestamps in local German time.
+$appSettings = require VS_ROOT . '/config/app.php';
+date_default_timezone_set((string)($appSettings['timezone'] ?? 'Europe/Berlin'));
+
 spl_autoload_register(static function (string $class): void {
     $prefix = 'Vereinssystem\\';
     if (!str_starts_with($class, $prefix)) {

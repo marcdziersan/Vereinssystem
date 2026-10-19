@@ -1,5 +1,22 @@
 # Änderungsprotokoll
 
+## 3.0.0-alpha.5 – 20.10.2026
+
+### Neu
+- MVC-Veranstaltungen mit Übersicht, Terminformularen, Ansprechpartnern und Orten.
+- Frei definierbare Aufgaben mit Titel, Beschreibung, Datum/Uhrzeit, Einsatzort und mehrfacher Mitgliederauswahl.
+- Echte OOP-Models (`Event`, `EventTask`, `TaskAssignment`), Services (`EventService`, `TaskService`) und PDO-Repository.
+- Tatsächlich an die Routen angeschlossene Middleware für Anmeldung, Rollen und CSRF.
+- Mehrfachzuteilung mit serverseitiger Prüfung aktiver Mitglieder und zeitlicher Überschneidungen.
+- SQL-Migration `003_events_tasks.sql`, CLI-Update `bin/migrate-events.php` und Browser-Installer mit sieben Tabellen.
+- Mobile-First-Aufgabenformular mit durchsuchbaren Mitgliedernamen, ohne JavaScript-Pflicht.
+
+### Geändert
+- Keine Standdienst-/Kuchen- oder Pflichtslot-Felder im neuen Fachmodul. Die historische Tabelle `dienste` bleibt unberührt.
+- Dokumentation zu Model, Service, Repository und Middleware ergänzt.
+- WAMP-Root-`.htaccess` bleibt erhalten; `master` bleibt unabhängig.
+
+
 ## 3.0.0-alpha.4 – 19.10.2026
 
 ### Neu

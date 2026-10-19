@@ -1,4 +1,4 @@
-# Vereinssystem MVC – 3.0.0-alpha.4
+# Vereinssystem MVC – 3.0.0-alpha.5
 
 **Die eigenständige Neuentwicklung der Vereinsverwaltung mit PHP 8, OOP, MVC, PDO, HTML, CSS und JavaScript.**
 
@@ -16,10 +16,12 @@ Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Alt
 | **Orte und Anschriften** | Neue MVC-Masken zum Anlegen, Bearbeiten und Deaktivieren von Anschriften und Veranstaltungsorten |
 | **Abteilungen** | Neue MVC-Verwaltung mit Umlagen und Mitgliedszugehörigkeiten (aktiv/passiv) |
 | **Installer** | Browsergestützte Ersteinrichtung mit Datenbanktabellen und erstem Administrator |
+| **Veranstaltungen und Aufgaben** | Termine mit frei definierbaren Aufgaben (Datum, Uhrzeit, Ort, Mitgliederauswahl); mehrfache Zuweisung; Konfliktprüfung |
+| **MVC-Schichten** | Neue `Models`, `Services`, `Repositories` und aktiv verwendete `Middleware` für Veranstaltungen und Aufgaben |
 | **WAMP im Unterordner** | Root-`.htaccess` für Start ohne eigenen `public/`-DocumentRoot |
 | Frontend | Eigenes kommentiertes Mobile-First-UI-Kit, lokal bereitgestelltes jQuery optional |
 
-Veranstaltungen, Dienste, Nachrichten, Beiträge und Kasse folgen in den nächsten MVC-Meilensteinen. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
+Nachrichten, Beiträge und Kasse folgen in den nächsten MVC-Meilensteinen. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
 
 ## Installation unter WAMP – ohne public als Standardverzeichnis
 
@@ -27,7 +29,7 @@ Veranstaltungen, Dienste, Nachrichten, Beiträge und Kasse folgen in den nächst
 2. Apache `mod_rewrite` aktivieren und für diesen Ordner `AllowOverride All` zulassen.
 3. In phpMyAdmin eine **leere MySQL- oder MariaDB-Datenbank** mit einem Datenbanknutzer anlegen.
 4. Im Browser **`http://localhost/verein/`** öffnen. Die Root-`.htaccess` leitet intern in `public/` um.
-5. Den Installationsassistenten ausfüllen. Er richtet die vier Tabellen `mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit` ein und legt bei einer leeren Mitgliedertabelle einen Administrator an.
+5. Den Installationsassistenten ausfüllen. Er richtet sieben Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
 6. Danach über den Login anmelden. Die Datei `config/database.local.php` wird vom Installer automatisch erstellt und bleibt privat.
 
 Die Installerroute lautet `/install`, etwa `http://localhost/verein/?r=%2Finstall`. Eine separate `install.php` im Root ist nicht notwendig – sämtliche HTTP-Aufrufe laufen über den MVC-Front-Controller `public/index.php`.
@@ -38,6 +40,7 @@ Ist `config/database.local.php` bereits vorhanden, bleibt sie unverändert. Die 
 
 ```sh
 php bin/migrate-directories.php
+php bin/migrate-events.php
 ```
 
 Die Migration ist wiederholbar und löscht keine vorhandenen Vereins- oder Mitgliederdatensätze. Vor Änderungen an echten Vereinsdaten empfiehlt sich ein Datenbankbackup.
@@ -57,6 +60,7 @@ Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.h
 - `/places`: Orte/Anschriften (Verwaltung ab Rechtestufe 4).
 - `/departments`: Abteilungen ansehen (ab Rechtestufe 1); Bearbeiten und Zuordnen ab Stufe 4.
 - `/rights`, `/admin/roles`: Rechtesystem und Rechtevergabe.
+- `/events`: Veranstaltungen und Aufgaben; anlegen/bearbeiten ab Rechtestufe 4.
 
 Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gültigen CSRF-Token. Deaktivierte Datensätze bleiben erhalten; Vorgänge der Mitgliedszuordnung verwenden transaktionale PDO-Abfragen.
 
@@ -65,7 +69,11 @@ Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gül
 ```text
 app/
   Auth/             Benutzeridentitäten, Authentifizierung, Rollen
-  Controllers/      HTTP-Endpunkte und serverseitige Zugriffsprüfungen
+  Controllers/      HTTP-Endpunkte, Darstellung und Service-Aufrufe
+  Models/           Domänenmodelle der alpha.5-Aufgabenplanung
+  Services/         Geschäftslogik und Validierungsregeln
+  Http/Middleware/  Authentifizierung, Rollen, CSRF für Event-Routen
+  Events/           Repository-Verträge und native PDO-Persistenz
   Core/             MVC-Kernel, Datenbank, Routing, Session, View
   Departments/      Abteilungen, Zuordnungen, Services, Repositories
   Install/          Sicherer Erstinstallationsservice
@@ -88,6 +96,7 @@ Intern bleibt die MySQL-Datenstruktur der früheren Vereinsverwaltung kompatibel
 
 ## Dokumentation
 
+- [Veranstaltungen, Aufgaben und MVC-Schichten](docs/EVENTS_TASKS.md)
 - [Erstinstallation, WAMP-Root und Migration](docs/ALPHA4.md)
 - [MVC-Architektur](docs/ARCHITECTURE.md)
 - [Rollen und Berechtigungen](docs/AUTHORIZATION.md)

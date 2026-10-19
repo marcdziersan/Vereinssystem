@@ -38,6 +38,17 @@ final class Request
     { $v=$this->query[$key]??$fallback; return is_string($v)?$v:$fallback; }
     public function inputString(string $key,string $fallback=''): string
     { $v=$this->body[$key]??$fallback; return is_string($v)?$v:$fallback; }
+    /**
+     * Obtain a multi-select list without interpreting browser input as SQL or PHP code.
+     * Invalid nested values remain visible to the domain validator and are rejected there.
+     * @return array<mixed>
+     */
+    public function inputList(string $key): array
+    {
+        $input = $this->body[$key] ?? [];
+        return is_array($input) ? array_values($input) : [];
+    }
+
     public function url(string $route='/'): string
     {
         // Root .htaccess deployment: link to /verein/?r=... rather than /verein/public/index.php.

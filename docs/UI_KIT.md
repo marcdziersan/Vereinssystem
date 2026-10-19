@@ -52,3 +52,7 @@ Alle Komponenten nutzen die zentralen `--vs-*`-Tokens.
 ## alpha.4 – Abteilungs- und Adresskarten
 
 `.vs-directory-grid` stellt Einträge standardmäßig einspaltig dar und ab 760px zweispaltig; `.vs-directory-card` ist responsiv und verwendet bestehende UI-Farb- und Abstandsvariablen. Formulare nutzen `.vs-field-grid`, `.vs-input`, `.vs-select`, `.vs-textarea` und `.vs-button` ohne zusätzliche UI-Bibliothek.
+
+## alpha.5 – Aufgabenplanung
+
+Mehrfachauswahl über echte, beschriftete Checkboxen. Ein JavaScript-Filter verbirgt nur nicht passende Namen; ohne JavaScript bleibt die gesamte Auswahl verfügbar. Für Smartphones bleiben Karten, Terminangaben und Buttons touch-freundlich.

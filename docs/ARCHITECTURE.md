@@ -1,4 +1,4 @@
-# MVC-Architektur – 3.0.0-alpha.3
+# MVC-Architektur – 3.0.0-alpha.5
 
 ## Schichten und Abhängigkeiten
 
@@ -58,3 +58,7 @@ Der Installer unter `app/Install/` ist ein eigenständiger Verwaltungsdienst. Er
 Die `.htaccess` im Projektroot schreibt Anfragen intern nach `public/` um, sperrt private Ordner und schützt Konfiguration und Bootstrap. `public/index.php` bleibt der einzige HTTP-Front-Controller; der Router verarbeitet nur explizit definierte Routen. `Request::fromGlobals()` erkennt ein Apache-internes `/verein/public/index.php`, erzeugt aber externe Verweise auf `/verein/?r=...`, sodass Unterordnerinstallationen funktionieren. Der PHP-Entwicklungsserver nutzt weiterhin `public/router.php`.
 
 `bin/migrate-directories.php` führt auf bereits eingerichteten Installationen ausschließlich `CREATE TABLE IF NOT EXISTS` aus. Es ist kein automatischer Migrations- oder Datenlöschprozess über GET-Routen zugänglich.
+
+## alpha.5 – Domänenmodelle, Services, Repository, Middleware
+
+`Controller → Service → Model → Repository (PDO)` ist verbindlich für die neue Veranstaltungs-/Aufgabenplanung. Das EventRepository-Interface bleibt für echte Datenbankzugriffe und ersetzbare Testimplementierungen erhalten. Authentifizierungs-, Rechte- und CSRF-Middleware werden pro Route in `routes/web.php` zusammengesetzt. Einzelheiten: [EVENTS_TASKS.md](EVENTS_TASKS.md).

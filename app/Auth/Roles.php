@@ -36,6 +36,13 @@ final class Roles
         'departments.edit' => 4,
         'departments.assign' => 4,
         'departments.status' => 5,
+        // Veranstaltungen sind für Mitglieder lesbar; Mutationen nur mit separatem Recht.
+        'events.list' => 1,
+        'events.view' => 1,
+        'events.create' => 4,
+        'events.edit' => 4,
+        'events.status' => 5,
+        'events.tasks.manage' => 4,
     ];
 
     public function allows(User $user, string $permission): bool

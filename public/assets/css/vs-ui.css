@@ -234,3 +234,10 @@ a { color: inherit; }
 .vs-directory-card .vs-button { margin-top:auto; }
 .vs-directory-card form { margin-top:8px; }
 @media(min-width:760px){.vs-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
+/* Alpha.5 – Flexible tasks: accessible, scrollable member chooser on mobile and desktop. */
+.vs-member-pick {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr)); gap:.45rem; max-height:18rem; overflow:auto; padding:.5rem; border:1px solid var(--vs-border,#cbd5e1); border-radius:.7rem;}
+.vs-member-pick__item {display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-radius:.5rem;cursor:pointer;background:var(--vs-surface,#f8fafc);min-height:44px;}
+.vs-member-pick__item:has(input:checked) {outline:2px solid var(--vs-accent,#2563eb);outline-offset:-2px;}
+.vs-member-pick__item:focus-within {outline:2px solid currentColor;outline-offset:2px;}
+.vs-member-pick__item[hidden] { display:none; }

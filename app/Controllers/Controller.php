@@ -26,7 +26,8 @@ abstract class Controller
             'accountUrl'=>$request->url('/account'),'dashboardUrl'=>$request->url('/dashboard'),
             'membersUrl'=>$request->url('/members'),'rightsUrl'=>$request->url('/rights'),
             'adminUrl'=>$request->url('/admin/roles'),
-            'placesUrl'=>$request->url('/places'),'departmentsUrl'=>$request->url('/departments'),'logoutUrl'=>$request->url('/logout'),
+            'placesUrl'=>$request->url('/places'),'departmentsUrl'=>$request->url('/departments'),
+            'eventsUrl'=>$request->url('/events'),'logoutUrl'=>$request->url('/logout'),
         ]);
         return new Response($html,$status,['Content-Type'=>'text/html; charset=utf-8','Cache-Control'=>'no-store']);
     }

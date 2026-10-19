@@ -15,6 +15,9 @@ use Vereinssystem\Controllers\MemberController;
 use Vereinssystem\Controllers\PlaceController;
 use Vereinssystem\Controllers\DepartmentController;
 use Vereinssystem\Controllers\InstallController;
+use Vereinssystem\Controllers\EventController;
+use Vereinssystem\Events\{PdoEventRepository,EventRepository};
+use Vereinssystem\Http\Middleware\{Authenticated,Permission,VerifyCsrf};
 use Vereinssystem\Install\InstallationService;
 use Vereinssystem\Places\{PdoPlaceRepository,PlaceRepository};
 use Vereinssystem\Departments\{PdoDepartmentRepository,DepartmentRepository};
@@ -29,7 +32,7 @@ final class Application
     private readonly View $views;
     private readonly bool $installed;
 
-    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride)
+    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride)
     {
         $config=new Config(require $root.'/config/app.php');
         $this->router=new Router();
@@ -61,14 +64,16 @@ final class Application
         $memberController=new MemberController($this->views,$csrf,$auth,$members,$roles,$session,$places);
         $placeController=new PlaceController($this->views,$csrf,$auth,$places,$roles,$session);
         $departmentController=new DepartmentController($this->views,$csrf,$auth,$departments,$roles,$session);
+        $events=$eventOverride ?? ($database ? new PdoEventRepository($database) : null);
+        $eventController=new EventController($this->views,$csrf,$auth,$events,$roles,$session);
         $installer=new InstallController($this->views,$csrf,new InstallationService($root));
         $register=require $root.'/routes/web.php';
-        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer);
+        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$auth,$roles,$csrf);
     }
 
-    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null): self
     {
-        return new self($root,$users,$members,$places,$departments);
+        return new self($root,$users,$members,$places,$departments,$events);
     }
 
     public function handle(Request $request): Response

@@ -31,3 +31,5 @@ Bestehende `config/database.local.php` behalten; im WAMP-Terminal `php bin/migra
 - Der Installer ist nur ohne lokale Datenbankkonfiguration erreichbar und überschreibt nie bereits angelegte Daten.
 - Änderungen an Orten, Abteilungen und Zuordnungen erfolgen über POST mit CSRF-Schutz und den Rollenrechten.
 - Alte Tabellenfelder und vorhandene Mitglieder-IDs werden beibehalten. Es gibt keine Legacy-PHP-Seiten.
+
+> **Ab alpha.5:** Zusätzlich gehört das Veranstaltungsschema `003_events_tasks.sql` zur Erstinstallation; bestehende alpha.4-Datenbanken werden mit `php bin/migrate-events.php` erweitert. Siehe `docs/EVENTS_TASKS.md`.

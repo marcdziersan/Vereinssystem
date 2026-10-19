@@ -65,3 +65,16 @@ document.addEventListener('change', (event) => {
     const field = id ? document.getElementById(id) : null;
     if (field instanceof HTMLInputElement) field.type = trigger.checked ? 'text' : 'password';
 });
+
+/** Alpha.5: Filter the existing member checkboxes without fetching or altering data. */
+document.addEventListener('input', (event) => {
+    const field = event.target;
+    if (!(field instanceof HTMLInputElement) || !field.matches('[data-vs-member-search]')) return;
+    const list = field.closest('fieldset')?.querySelector('[data-vs-member-list]');
+    if (!list) return;
+    const search = field.value.trim().toLocaleLowerCase('de-DE');
+    list.querySelectorAll('[data-vs-member-name]').forEach((row) => {
+        const text = (row.getAttribute('data-vs-member-name') || '').toLocaleLowerCase('de-DE');
+        row.hidden = !text.includes(search);
+    });
+});

@@ -64,3 +64,7 @@ Dieser Meilenstein enthält noch keine komplexe Rechtehistorie oder ein vollwert
 | Orte deaktivieren oder reaktivieren | 5 |
 
 Die Überprüfung geschieht im Controller **vor** jeder Datenbankänderung. CSRF-Schutz wird auf allen POST-Routen erzwungen. Die grafische Navigation ist kein Rechteersatz.
+
+## alpha.5 – Veranstaltungen und frei definierbare Aufgaben
+
+`events.list`/`events.view` ab Stufe 1; `events.create`, `events.edit`, `events.tasks.manage` ab 4; `events.status` ab 5. Direkte GET-/POST-Zugriffe werden durch registrierte Middleware geschützt, die POST-Routen zusätzlich per CSRF. Mitglieder können Aufgaben einsehen, aber keine fremden Mitglieder zuweisen.
