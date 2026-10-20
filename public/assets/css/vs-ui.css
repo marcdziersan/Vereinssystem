@@ -241,3 +241,14 @@ a { color: inherit; }
 .vs-member-pick__item:has(input:checked) {outline:2px solid var(--vs-accent,#2563eb);outline-offset:-2px;}
 .vs-member-pick__item:focus-within {outline:2px solid currentColor;outline-offset:2px;}
 .vs-member-pick__item[hidden] { display:none; }
+
+/* Alpha.6 — Bulletin cards and readable copy on phone or desktop.
+ * Explicit line clamping is presentation only; full content stays in the detail view.
+ */
+.vs-news-grid .vs-card { min-width: 0; }
+.vs-news-preview { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4; overflow:hidden; white-space:pre-wrap; overflow-wrap:anywhere; }
+.vs-news-article { max-width:850px; margin-inline:auto; }
+.vs-news-article h1 { font-size:clamp(1.6rem,5vw,2.5rem);overflow-wrap:anywhere; }
+.vs-news-body { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.85; padding-block:1.3rem; border-top:1px solid var(--vs-border); }
+.vs-news-actions { display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; margin-top:1rem; }
+.vs-news-actions form { margin:0; }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Vereinssystem\Core\{Router,Csrf};
 use Vereinssystem\Auth\{AuthService,Roles};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController};
 
 return static function (
     Router $router,
@@ -17,7 +17,7 @@ return static function (
     PlaceController $places,
     DepartmentController $departments,
     InstallController $install,
-    EventController $events,
+    EventController $events, NewsController $news,
     ?AuthService $authService, Roles $roles, Csrf $csrf,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
@@ -71,6 +71,23 @@ return static function (
         ['POST','/events/tasks/save','saveTask','events.tasks.manage'],
         ['POST','/events/tasks/archive','archiveTask','events.tasks.manage'],
     ];
+    // Alpha.6: explicit news routes with the same composable, server-side middleware.
+    $newsRoutes = [
+        ['GET','/news','index','news.list'],
+        ['GET','/news/view','show','news.view'],
+        ['GET','/news/create','create','news.create'],
+        ['GET','/news/edit','edit','news.edit'],
+        ['POST','/news/store','save','news.create'],
+        ['POST','/news/update','save','news.edit'],
+        ['POST','/news/archive','archive','news.archive'],
+        ['GET','/news/archived','archived','news.archive.list'],
+        ['POST','/news/restore','restore','news.restore'],
+    ];
+    foreach ($newsRoutes as [$method,$path,$methodName,$capability]) {
+        $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];
+        if($method==='POST')$guards[]=new VerifyCsrf($csrf);
+        $router->add($method,$path,Stack::wrap([$news,$methodName],...$guards));
+    }
     foreach ($eventRoutes as [$method,$path,$methodName,$capability]) {
         $guards = [new Authenticated($authService), new Permission($authService,$roles,$capability)];
         if ($method === 'POST') $guards[] = new VerifyCsrf($csrf);

@@ -1,4 +1,4 @@
-# Vereinssystem MVC – 3.0.0-alpha.5
+# Vereinssystem MVC – 3.0.0-alpha.6
 
 **Die eigenständige Neuentwicklung der Vereinsverwaltung mit PHP 8, OOP, MVC, PDO, HTML, CSS und JavaScript.**
 
@@ -17,11 +17,12 @@ Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Alt
 | **Abteilungen** | Neue MVC-Verwaltung mit Umlagen und Mitgliedszugehörigkeiten (aktiv/passiv) |
 | **Installer** | Browsergestützte Ersteinrichtung mit Datenbanktabellen und erstem Administrator |
 | **Veranstaltungen und Aufgaben** | Termine mit frei definierbaren Aufgaben (Datum, Uhrzeit, Ort, Mitgliederauswahl); mehrfache Zuweisung; Konfliktprüfung |
-| **MVC-Schichten** | Neue `Models`, `Services`, `Repositories` und aktiv verwendete `Middleware` für Veranstaltungen und Aufgaben |
+| **Nachrichten und Mitteilungen** | Veröffentlichte Vereinsmeldungen mit Rechtestufen, Suche, Bearbeitung durch Autoren/Administration, Archiv und Wiederherstellung |
+| **MVC-Schichten** | `Models`, `Services`, `Repositories` und aktiv verwendete `Middleware` für Veranstaltungen, Aufgaben und Nachrichten |
 | **WAMP im Unterordner** | Root-`.htaccess` für Start ohne eigenen `public/`-DocumentRoot |
 | Frontend | Eigenes kommentiertes Mobile-First-UI-Kit, lokal bereitgestelltes jQuery optional |
 
-Nachrichten, Beiträge und Kasse folgen in den nächsten MVC-Meilensteinen. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
+Private Direktnachrichten, Beitragsbuchhaltung und Kasse folgen in späteren MVC-Meilensteinen. Alpha.6 ist ein internes **Mitteilungsmodul**, kein persönlicher Chat. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
 
 ## Installation unter WAMP – ohne public als Standardverzeichnis
 
@@ -29,7 +30,7 @@ Nachrichten, Beiträge und Kasse folgen in den nächsten MVC-Meilensteinen. Die 
 2. Apache `mod_rewrite` aktivieren und für diesen Ordner `AllowOverride All` zulassen.
 3. In phpMyAdmin eine **leere MySQL- oder MariaDB-Datenbank** mit einem Datenbanknutzer anlegen.
 4. Im Browser **`http://localhost/verein/`** öffnen. Die Root-`.htaccess` leitet intern in `public/` um.
-5. Den Installationsassistenten ausfüllen. Er richtet sieben Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
+5. Den Installationsassistenten ausfüllen. Er richtet acht Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
 6. Danach über den Login anmelden. Die Datei `config/database.local.php` wird vom Installer automatisch erstellt und bleibt privat.
 
 Die Installerroute lautet `/install`, etwa `http://localhost/verein/?r=%2Finstall`. Eine separate `install.php` im Root ist nicht notwendig – sämtliche HTTP-Aufrufe laufen über den MVC-Front-Controller `public/index.php`.
@@ -41,6 +42,7 @@ Ist `config/database.local.php` bereits vorhanden, bleibt sie unverändert. Die 
 ```sh
 php bin/migrate-directories.php
 php bin/migrate-events.php
+php bin/migrate-news.php
 ```
 
 Die Migration ist wiederholbar und löscht keine vorhandenen Vereins- oder Mitgliederdatensätze. Vor Änderungen an echten Vereinsdaten empfiehlt sich ein Datenbankbackup.
@@ -61,6 +63,9 @@ Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.h
 - `/departments`: Abteilungen ansehen (ab Rechtestufe 1); Bearbeiten und Zuordnen ab Stufe 4.
 - `/rights`, `/admin/roles`: Rechtesystem und Rechtevergabe.
 - `/events`: Veranstaltungen und Aufgaben; anlegen/bearbeiten ab Rechtestufe 4.
+- `/news`: Vereinsnachrichten lesen (ab Rechtestufe 1, einzelne Beiträge nach Mindeststufe).
+- `/news/create`, `/news/edit`: Mitteilungen verfassen und bearbeiten (Vorstand/Administration; fremde Autoren nur Administration).
+- `/news/archived`: Archiv verwalten und Beiträge wiederherstellen (Administration).
 
 Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gültigen CSRF-Token. Deaktivierte Datensätze bleiben erhalten; Vorgänge der Mitgliedszuordnung verwenden transaktionale PDO-Abfragen.
 
@@ -70,10 +75,11 @@ Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gül
 app/
   Auth/             Benutzeridentitäten, Authentifizierung, Rollen
   Controllers/      HTTP-Endpunkte, Darstellung und Service-Aufrufe
-  Models/           Domänenmodelle der alpha.5-Aufgabenplanung
-  Services/         Geschäftslogik und Validierungsregeln
+  Models/           Unveränderliche Domänenobjekte für Events, Aufgaben, Nachrichten
+  Services/         Geschäftslogik und Validierungsregeln (inklusive NewsService)
   Http/Middleware/  Authentifizierung, Rollen, CSRF für Event-Routen
   Events/           Repository-Verträge und native PDO-Persistenz
+  News/             Nachrichten-Repositories und Validierungsfehler
   Core/             MVC-Kernel, Datenbank, Routing, Session, View
   Departments/      Abteilungen, Zuordnungen, Services, Repositories
   Install/          Sicherer Erstinstallationsservice
@@ -96,6 +102,7 @@ Intern bleibt die MySQL-Datenstruktur der früheren Vereinsverwaltung kompatibel
 
 ## Dokumentation
 
+- [Nachrichten, Rollen, Archiv und Migration](docs/NEWS.md)
 - [Veranstaltungen, Aufgaben und MVC-Schichten](docs/EVENTS_TASKS.md)
 - [Erstinstallation, WAMP-Root und Migration](docs/ALPHA4.md)
 - [MVC-Architektur](docs/ARCHITECTURE.md)

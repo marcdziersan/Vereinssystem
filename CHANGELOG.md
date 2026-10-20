@@ -1,5 +1,22 @@
 # Änderungsprotokoll
 
+## 3.0.0-alpha.6 – 20.10.2026
+
+### Neu
+- Nachrichtenverwaltung als eigenständiges MVC-Modul mit `NewsPost`, `NewsService`, `NewsRepository`, `PdoNewsRepository` und `NewsController`.
+- Beiträge mit Veröffentlichungsstufe, Autorenbindung, Datum, Suchfunktion, responsiver Übersicht und Volltextdarstellung.
+- Nachrichten bearbeiten und archivieren; Administratoren erhalten Archivansicht und Wiederherstellung.
+- Serverseitige Freigabe nach Rechtestufe, Autorenrechte, CSRF- und Rollenmiddleware.
+- Alte Nachrichten aus der historischen `news`-Tabelle werden übernommen; Nutzer-HTML wird nie ungefiltert ausgeführt.
+- Additive SQL-Migration `004_news.sql`, CLI-Befehl `bin/migrate-news.php` und Erweiterung des Erstinstallers auf **acht Tabellen**.
+- Dokumentation in `docs/NEWS.md` und separate Fachprüfungen in `tests/news_smoke.php`.
+
+### Geändert
+- Nachrichten-Link im gemeinsamen Mobile-First-Menü, zentrale UI-Stile und Konfiguration auf alpha.6.
+- Domain- und Berechtigungsregeln konsequent in Model, Service, Repository und Middleware getrennt.
+- `master` bleibt auf dem bisherigen PHP-Release; kein Legacy-Routing im MVC-Branch.
+
+
 ## 3.0.0-alpha.5 – 20.10.2026
 
 ### Neu

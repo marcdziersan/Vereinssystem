@@ -56,3 +56,11 @@ Alle Komponenten nutzen die zentralen `--vs-*`-Tokens.
 ## alpha.5 – Aufgabenplanung
 
 Mehrfachauswahl über echte, beschriftete Checkboxen. Ein JavaScript-Filter verbirgt nur nicht passende Namen; ohne JavaScript bleibt die gesamte Auswahl verfügbar. Für Smartphones bleiben Karten, Terminangaben und Buttons touch-freundlich.
+
+## alpha.6 – Nachrichten
+
+`.vs-news-grid` verwendet die vorhandenen Karten- und Rasterkomponenten.
+`.vs-news-preview` begrenzt nur die **Vorschau** visuell. Die vollständige
+Nachricht wird auf der Detailseite ohne HTML-Ausführung über
+`.vs-news-body` mit erhaltenen Zeilenumbrüchen dargestellt.
+Der Editor ist ein zugängliches Textarea-Formular mit nativer Eingabeprüfung.

@@ -1,4 +1,4 @@
-# MVC-Architektur – 3.0.0-alpha.5
+# MVC-Architektur – 3.0.0-alpha.6
 
 ## Schichten und Abhängigkeiten
 
@@ -62,3 +62,28 @@ Die `.htaccess` im Projektroot schreibt Anfragen intern nach `public/` um, sperr
 ## alpha.5 – Domänenmodelle, Services, Repository, Middleware
 
 `Controller → Service → Model → Repository (PDO)` ist verbindlich für die neue Veranstaltungs-/Aufgabenplanung. Das EventRepository-Interface bleibt für echte Datenbankzugriffe und ersetzbare Testimplementierungen erhalten. Authentifizierungs-, Rechte- und CSRF-Middleware werden pro Route in `routes/web.php` zusammengesetzt. Einzelheiten: [EVENTS_TASKS.md](EVENTS_TASKS.md).
+
+## alpha.6 – Veröffentlichte Vereinsnachrichten
+
+`NewsController` übersetzt GET-/POST-Anfragen in reine Domain-Aktionen von `NewsService`.
+Der Service validiert Titel, Klartext, Sichtbarkeitsstufe, Autorenschaft und
+Archivstatus und übergibt unveränderliche `Models/NewsPost` an das
+`NewsRepository`-Interface. `News/PdoNewsRepository` arbeitet mit gebundenen
+PDO-Parametern gegen die vorhandene `news`-Tabelle.
+
+Die Middleware `Authenticated`, `Permission` und `VerifyCsrf` sichert
+Nachrichtenrouten vor dem Controller. Zusätzlich prüfen Service und Controller
+objektbezogene Rechte: Autorenschaft, Mindestfreigabe, Archivzustand.
+
+**Nichtöffentliche Ansichten**: Beiträge werden nur ab ihrer Freigabestufe
+aus der Datenbank gelesen; Detailansichten prüfen dieselbe Regel separat.
+Archivierte Meldungen tauchen im normalen Verzeichnis nicht auf. Im Archiv
+ist die Wiederherstellung ausschließlich Administratoren möglich.
+
+Views escaped dynamische Werte konsequent. Historisch gespeichertes HTML
+wird als Text angezeigt und nicht interpretiert. Es existiert absichtlich
+kein JavaScript-HTML-Editor und keine private Direktnachrichtenfunktion.
+
+Migrationsweg: `database/migrations/004_news.sql` beim Installer oder per
+`php bin/migrate-news.php` bei bestehenden Installationen. Kein DROP, DELETE
+oder UPDATE vorhandener Nachrichten. Details: [NEWS.md](NEWS.md).

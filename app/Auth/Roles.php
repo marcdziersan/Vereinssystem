@@ -43,6 +43,14 @@ final class Roles
         'events.edit' => 4,
         'events.status' => 5,
         'events.tasks.manage' => 4,
+        // Alpha.6: publication requires staff privileges; visibility is post-specific.
+        'news.list' => 1,
+        'news.view' => 1,
+        'news.create' => 4,
+        'news.edit' => 4,
+        'news.archive' => 4,
+        'news.archive.list' => 5,
+        'news.restore' => 5,
     ];
 
     public function allows(User $user, string $permission): bool

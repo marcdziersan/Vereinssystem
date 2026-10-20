@@ -68,3 +68,16 @@ Die Überprüfung geschieht im Controller **vor** jeder Datenbankänderung. CSRF
 ## alpha.5 – Veranstaltungen und frei definierbare Aufgaben
 
 `events.list`/`events.view` ab Stufe 1; `events.create`, `events.edit`, `events.tasks.manage` ab 4; `events.status` ab 5. Direkte GET-/POST-Zugriffe werden durch registrierte Middleware geschützt, die POST-Routen zusätzlich per CSRF. Mitglieder können Aufgaben einsehen, aber keine fremden Mitglieder zuweisen.
+
+## alpha.6 – Mitteilungen
+
+| Fähigkeit | Mindeststufe | Weitere Bedingungen |
+| --- | ---: | --- |
+| `news.list`, `news.view` | 1 | Nur veröffentlichte Nachrichten mit `minright <= Benutzerstufe` |
+| `news.create` | 4 | Freigabestufe nicht höher als die eigene |
+| `news.edit` | 4 | Eigene Beiträge, fremde ausschließlich Stufe 5 |
+| `news.archive` | 4 | Autor oder Administration, nur aktive Beiträge |
+| `news.archive.list`, `news.restore` | 5 | Archivansicht und Wiederherstellung |
+
+Alle POST-Aktionen nutzen CSRF-Middleware, die serverseitige Berechtigungs-
+prüfung und beim Speichern eine zweite, objektbezogene Autoritätskontrolle.
