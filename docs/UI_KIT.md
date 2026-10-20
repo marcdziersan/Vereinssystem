@@ -68,3 +68,7 @@ Der Editor ist ein zugängliches Textarea-Formular mit nativer Eingabeprüfung.
 ## Alpha.7: Mobile Beitragsübersicht
 
 Die Klassen `vs-finance-stats`, `vs-finance-grid`, `vs-finance-entry` und `vs-finance-inline` bilden ein responsives ein-/zweispaltiges Layout und vier Kennzahlenkarten (sehr schmale Displays: eine Spalte). Alle Eingaben haben sichtbare Labels und ausreichend große Touch-Ziele; unbekannte Texte und Datenbankwerte werden vor HTML-Ausgabe escaped.
+
+## alpha.8 – Mobile Kassenoberfläche
+
+`.vs-cash-grid` stellt Konto- und Journal-Karten zunächst einspaltig dar. Ab 720 Pixeln werden maximal zwei Spalten verwendet. Formulare nutzen bestehende `.vs-field`, `.vs-input`, `.vs-select` und `.vs-button`-Bausteine. Es gibt keine externen CDN-, jQuery-Mobile- oder Bootstrap-Abhängigkeiten. Die gesamte Bedienung bleibt ohne JavaScript möglich.

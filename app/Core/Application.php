@@ -18,6 +18,8 @@ use Vereinssystem\Controllers\InstallController;
 use Vereinssystem\Controllers\EventController;
 use Vereinssystem\Controllers\NewsController;
 use Vereinssystem\Controllers\FinanceController;
+use Vereinssystem\Controllers\CashController;
+use Vereinssystem\Cash\{CashRepository,PdoCashRepository};
 use Vereinssystem\Finance\{FinanceRepository,PdoFinanceRepository};
 use Vereinssystem\News\{NewsRepository,PdoNewsRepository};
 use Vereinssystem\Events\{PdoEventRepository,EventRepository};
@@ -36,7 +38,7 @@ final class Application
     private readonly View $views;
     private readonly bool $installed;
 
-    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride,?FinanceRepository $financeOverride)
+    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride,?FinanceRepository $financeOverride,?CashRepository $cashOverride)
     {
         $config=new Config(require $root.'/config/app.php');
         $this->router=new Router();
@@ -74,15 +76,18 @@ final class Application
         $news=$newsOverride ?? ($database ? new PdoNewsRepository($database) : null);
         $newsController=new NewsController($this->views,$csrf,$auth,$news,$roles,$session);
         $finance=$financeOverride ?? ($database ? new PdoFinanceRepository($database) : null);
-        $financeController=new FinanceController($this->views,$csrf,$auth,$finance,$roles,$session);
+        // Cash and contributions share the same PDO factory and InnoDB transaction.
+        $cash=$cashOverride ?? ($database ? new PdoCashRepository($database) : null);
+        $financeController=new FinanceController($this->views,$csrf,$auth,$finance,$roles,$session,$cash);
+        $cashController=new CashController($this->views,$csrf,$auth,$cash,$roles,$session);
         $installer=new InstallController($this->views,$csrf,new InstallationService($root));
         $register=require $root.'/routes/web.php';
-        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$financeController,$auth,$roles,$csrf);
+        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$financeController,$cashController,$auth,$roles,$csrf);
     }
 
-    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null,?FinanceRepository $finance=null): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null,?FinanceRepository $finance=null,?CashRepository $cash=null): self
     {
-        return new self($root,$users,$members,$places,$departments,$events,$news,$finance);
+        return new self($root,$users,$members,$places,$departments,$events,$news,$finance,$cash);
     }
 
     public function handle(Request $request): Response

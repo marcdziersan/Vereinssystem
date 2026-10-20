@@ -57,6 +57,11 @@ final class Roles
         'finance.tariffs' => 5,
         'finance.generate' => 5,
         'finance.void' => 5,
+        // Alpha.8: Vereinsbuchhaltung is visible from board level only.
+        'cash.view' => 4,
+        'cash.manage' => 4,
+        'cash.accounts' => 5,
+        'cash.void' => 5,
     ];
 
     public function allows(User $user, string $permission): bool

@@ -37,8 +37,8 @@ Einmal angelegte Forderungsbeträge werden nicht durch spätere Tarifänderungen
 - Es werden ausschließlich native vorbereitete PDO-Statements verwendet (keine interpolierten Formulareingaben).
 - Stornierte Zahlungen werden nicht mehr als Ist verbucht; ihre Historie bleibt erhalten.
 - Bereits bezahlte Forderungen dürfen nicht storniert werden. Zuerst muss die zugehörige Zahlung storniert werden.
-- Ist eine Zahlung in der alten Tabelle `vs_kassenbuch` verknüpft, verhindert das neue Beitragsmodul ihr Einzelstorno. Die synchrone Kassenstornierung wird erst in der Kassenphase implementiert.
-- Keine Fremdbelege, Bankzugänge, Kontoumbuchungen oder SEPA-Vorgänge werden in alpha.7 erzeugt.
+- Ist eine Zahlung in der alten Tabelle `vs_kassenbuch` verknüpft, verhindert das neue Beitragsmodul ihr Einzelstorno. Die synchrone Kassenstornierung ist seit alpha.8 über `CashService::voidContribution()` implementiert.
+- Alpha.8 führt Kassenkonten, Ein- und Ausgaben und Umbuchungen ein. Belegdateien, Bankimporte und SEPA sind weiterhin getrennte Folgestufen.
 
 ## Rechte und Datenzugriff
 
@@ -63,3 +63,7 @@ Neue Installation über `http://localhost/verein/` (Root-`.htaccess`). Bestehend
 5. Storno der ersten 10-€-Zahlung → Oktober wieder teilweise offen; Stornogrund und Ursprung bleiben erhalten.
 
 Diese Fälle sind in `tests/finance_smoke.php` zusätzlich als auslösbare fachliche Prüfungen hinterlegt.
+
+## Integration seit alpha.8
+
+Neue Zahlungen werden im Beitragsformular zusammen mit einem Kassenkonto erfasst. Zahlung, Verrechnung und Journalbuchung erfolgen in einer InnoDB-Transaktion. Stornos deaktivieren verknüpfte Beiträge und Kasseneinträge in derselben Transaktion. Details: [`CASHBOOK.md`](CASHBOOK.md).

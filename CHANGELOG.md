@@ -1,5 +1,22 @@
 # Änderungsprotokoll
 
+## 3.0.0-alpha.8 – 20.10.2026
+
+### Neue Kassenverwaltung
+- Eigenständige MVC-Kasse mit frei anlegbaren, frei benennbaren Konten (Bargeld/Bank/PayPal/weitere), Anfangsbeständen und Aktivstatus.
+- Native PDO-Buchungen für Einnahmen, Ausgaben, atomare Umbuchungspaare und nachvollziehbare Stornos mit Grund, Zeit und Akteur.
+- Verbindung zur Beitragsbuchhaltung: Zahlung, Forderungszuordnung, Kassenbuchung und Audit werden zusammen transaktional gespeichert oder zurückgerollt; Zahlungen und verknüpfte Kassenbuchungen werden ebenfalls gemeinsam storniert.
+- Drei additive, historisch kompatible Tabellen (`vs_konten`, `vs_kassenbuch`, `vs_audit`) in `006_cash.sql`, CLI `bin/migrate-cash.php` sowie erweiterter Installer mit 15 Tabellen.
+- Echte `CashAccount`-/`CashEntry`-Models, `CashService`, `CashRepository`, `PdoCashRepository`, `CashController`, geschützte Routen und ein responsives Kassenjournal.
+- Rollentrennung: Vorstand kann buchen, Administration verwaltet Konten und Stornos, sonst kein Zugriff.
+- Dokumentation `docs/CASHBOOK.md` und fachliche Prüfungen in `tests/cash_smoke.php`.
+
+### Bereinigt und abgegrenzt
+- Doppelten Navigationspunkt „Beiträge“ entfernt; Kasse erhält einen eigenen Menüpunkt.
+- Belegnummern sind textuell möglich. Beleg-Uploads, Bankimporte, SEPA und Jahres-PDF sind Folgephasen.
+- Der historische `master`-Branch bleibt unverändert.
+
+
 ## 3.0.0-alpha.7 – 20.10.2026
 
 ### Neue Finanzdomäne

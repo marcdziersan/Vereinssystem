@@ -5,11 +5,14 @@ namespace Vereinssystem\Controllers;
 use Vereinssystem\Auth\{AuthService,Roles,User};
 use Vereinssystem\Core\{Csrf,DatabaseUnavailable,Request,Response,Session,View};
 use Vereinssystem\Finance\{FinanceRepository,Money};
+use Vereinssystem\Cash\CashRepository;
+use Vereinssystem\Services\CashService;
 use Vereinssystem\Services\FinanceService;
 final class FinanceController extends Controller
 {
     public function __construct(View $views,Csrf $csrf,private readonly ?AuthService $auth,
-        private readonly ?FinanceRepository $repository,private readonly Roles $roles,private readonly Session $session)
+        private readonly ?FinanceRepository $repository,private readonly Roles $roles,private readonly Session $session,
+        private readonly ?CashRepository $cash=null)
     {parent::__construct($views,$csrf);}
     private function user():User {return $this->auth?->currentUser()??throw new \LogicException('Authentifizierungs-Middleware fehlt.');}
     private function service():FinanceService {return new FinanceService($this->repository??throw new DatabaseUnavailable('Finanzdatenbank nicht verfügbar.'));}
@@ -34,6 +37,7 @@ final class FinanceController extends Controller
         $data=$this->service()->statement($member,$year);
         return $this->page($request,'Beitragskonto','finance/index',[
             'ledger'=>$data,'memberId'=>$member,'year'=>$year,'flash'=>$this->flash(),
+            'cashAccounts'=>$this->cash?(new CashService($this->cash))->accounts(false):[],
             'canManage'=>$this->roles->allows($user,'finance.manage'),
             'canVoid'=>$this->roles->allows($user,'finance.void'),
             'canGenerate'=>$this->roles->allows($user,'finance.generate'),
@@ -61,9 +65,14 @@ final class FinanceController extends Controller
             $service=$this->service();
             switch($path){
                 case '/finance/payment':
-                    $result=$service->payment($member,$request->inputString('amount'),$request->inputString('date'),
-                        $request->inputString('channel'),$request->inputString('reference'),$request->inputString('note'),
-                        $user->id,self::id($request->inputString('claim'))?:null);
+                    $result=$this->cash
+                        ?(new CashService($this->cash))->contribution(self::id($request->inputString('account')),$member,
+                            $request->inputString('amount'),$request->inputString('date'),$request->inputString('channel'),
+                            $request->inputString('reference'),$request->inputString('note'),$user->id,
+                            self::id($request->inputString('claim'))?:null)
+                        :$service->payment($member,$request->inputString('amount'),$request->inputString('date'),
+                            $request->inputString('channel'),$request->inputString('reference'),$request->inputString('note'),
+                            $user->id,self::id($request->inputString('claim'))?:null);
                     $message='Zahlung #'.$result['id'].' erfasst: '.Money::format($result['allocated']).' zugeordnet, '.Money::format($result['credit']).' Guthaben.';break;
                 case '/finance/claim':
                     $claimId=$service->charge($member,$request->inputString('period'),$request->inputString('kind'),
@@ -73,7 +82,8 @@ final class FinanceController extends Controller
                 case '/finance/reconcile':
                     $amount=$service->reconcile($member);$message=Money::format($amount).' Guthaben zugeordnet.';break;
                 case '/finance/void-payment':
-                    $service->voidPayment(self::id($request->inputString('id')),$request->inputString('reason'),$user->id);
+                    if($this->cash)(new CashService($this->cash))->voidContribution(self::id($request->inputString('id')),$request->inputString('reason'),$user->id);
+                    else $service->voidPayment(self::id($request->inputString('id')),$request->inputString('reason'),$user->id);
                     $message='Zahlung storniert.';break;
                 case '/finance/void-claim':
                     $service->voidClaim(self::id($request->inputString('id')),$request->inputString('reason'),$user->id);

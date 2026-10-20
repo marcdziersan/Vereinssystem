@@ -271,3 +271,19 @@ a { color: inherit; }
 .vs-finance-rates{display:grid;gap:.55rem}.vs-finance-rate{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.3rem;border-bottom:1px solid var(--vs-border);padding:.6rem 0}
 @media(min-width:700px){.vs-finance-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.vs-finance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:380px){.vs-finance-stats{grid-template-columns:minmax(0,1fr)}.vs-finance-values{grid-template-columns:minmax(0,1fr)}}
+
+/* Alpha.8 – club cashbook. Single-column cards are the mobile baseline; fluid
+ * account and form grids adapt only when the actual viewport permits it. */
+.vs-cash-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+.vs-cash-grid .vs-card{min-width:0;overflow-wrap:anywhere}
+.vs-cash-total{display:grid;gap:.35rem;margin-block:1rem}
+.vs-cash-total strong{font-size:clamp(1.45rem,5vw,2rem);font-variant-numeric:tabular-nums}
+.vs-cash-account{display:grid;gap:.55rem}
+.vs-cash-account h3,.vs-cash-entry h3{margin:0}
+.vs-cash-account strong,.vs-cash-entry strong{font-size:1.35rem;font-variant-numeric:tabular-nums}
+.vs-cash-minus{color:var(--vs-danger,#b91c1c)}
+.vs-cash-plus{color:var(--vs-success,#15803d)}
+.vs-cash details{margin-top:.6rem;max-width:100%}
+.vs-cash summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:650}
+.vs-cash .vs-form{padding-block:.8rem}
+@media(min-width:720px){.vs-cash-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

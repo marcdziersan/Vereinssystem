@@ -26,7 +26,7 @@ use Vereinssystem\Auth\Roles;
             <a href="<?= View::escape($homeUrl) ?>" class="vs-brand" aria-label="Vereinssystem, Startseite">
                 <img src="<?= View::escape($logoUrl) ?>" alt="Vereinssystem" width="900" height="131">
             </a>
-            <span class="vs-header__tag">MVC alpha.7</span>
+            <span class="vs-header__tag">MVC alpha.8</span>
             <button type="button" class="vs-icon-button" data-vs-theme-toggle aria-label="Farbschema ändern" title="Farbschema ändern">◐</button>
         </div>
     </header>
@@ -40,7 +40,7 @@ use Vereinssystem\Auth\Roles;
             <a href="<?= View::escape($eventsUrl) ?>">Veranstaltungen</a>
             <a href="<?= View::escape($newsUrl) ?>">Nachrichten</a>
             <a href="<?= View::escape($financeUrl) ?>">Beiträge</a>
-            <a href="<?= View::escape($financeUrl) ?>">Beiträge</a>
+            <?php if($user->rights>=4):?><a href="<?= View::escape($cashUrl) ?>">Kasse</a><?php endif;?>
             <a href="<?= View::escape($rightsUrl) ?>">Rechtesystem</a>
             <?php if($user->rights===5): ?><a href="<?= View::escape($adminUrl) ?>">Zugänge verwalten</a><?php endif; ?>
             <form class="vs-nav__logout" method="post" action="<?= View::escape($logoutUrl) ?>">

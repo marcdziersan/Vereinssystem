@@ -91,3 +91,9 @@ oder UPDATE vorhandener Nachrichten. Details: [NEWS.md](NEWS.md).
 ## Alpha.7: Contribution ledger
 
 `FinanceController` ruft `FinanceService` auf; `FinanceRepository` kapselt die Datenspeicherung und `PdoFinanceRepository` hält Beitragsbuchungen per InnoDB-Transaktion konsistent. `Models/Claim.php`, `Payment.php` und `ContributionRate.php` sind reine unveränderliche Datenobjekte. Alle Finanzrouten verwenden `Authenticated`, `Permission` und für POST `VerifyCsrf`. Siehe [`FINANCE.md`](FINANCE.md).
+
+## alpha.8 – Kasse und Beitragsbuchhaltung
+
+Die Kassen-Domäne implementiert `CashController` → `CashService` → `CashRepository`/`PdoCashRepository` → PDO/InnoDB. `CashAccount` und `CashEntry` sind reine Lese-Models. Die Finance- und Cash-Repositories werden in der Composition Root mit **derselben** `Database`-Instanz erzeugt. Für Beitragszahlungen nutzt der Cash-Adapter `PdoFinanceRepository::receivePaymentInsideCurrentTransaction()` als wiederverwendbare Buchungsoperation, statt verschachtelte Transaktionen zu starten.
+
+Berechtigungen und CSRF werden für alle neuen Kassenrouten in der Middleware geprüft. `006_cash.sql` ergänzt drei historisch kompatible Tabellen. Weitere Details stehen in [`CASHBOOK.md`](CASHBOOK.md).

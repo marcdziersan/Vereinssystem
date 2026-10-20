@@ -131,13 +131,25 @@ final class PdoFinanceRepository implements FinanceRepository
     }
     public function receivePayment(int $member,int $cents,string $date,string $channel,string $reference,string $note,int $actor,?int $preferred): array
     {
-        return $this->transaction(function()use($member,$cents,$date,$channel,$reference,$note,$actor,$preferred):array{
-            $person=$this->member($member,true);if((int)$person['status']!==1)throw new \DomainException('Mitglied ist nicht aktiv.');
-            $this->execute('INSERT INTO vs_zahlungen(mitglied_id,betrag_cent,gezahlt_am,zahlungsweg,zahler_name,referenz,bemerkung,erstellt_von) VALUES(?,?,?,?,?,?,?,?)',
-                [$member,$cents,$date,$channel,'',$reference,$note,$actor]);
-            $id=(int)$this->db()->lastInsertId();$allocated=$this->allocate($member,$id,$preferred);
-            return ['id'=>$id,'allocated'=>$allocated,'credit'=>$cents-$allocated];
-        });
+        return $this->transaction(fn():array=>$this->receivePaymentInsideCurrentTransaction(
+            $member,$cents,$date,$channel,$reference,$note,$actor,$preferred));
+    }
+    /**
+     * Shared accounting primitive used by MVC cashbook transactions. Its caller
+     * MUST own the transaction, so the payment, allocations and cash entry are
+     * rolled back as one logical unit if any SQL command fails.
+     * @return array{id:int,allocated:int,credit:int}
+     */
+    public function receivePaymentInsideCurrentTransaction(int $member,int $cents,string $date,string $channel,string $reference,string $note,int $actor,?int $preferred):array
+    {
+        if(!$this->db()->inTransaction())throw new \LogicException('Beitragsbuchung benötigt eine offene Transaktion.');
+        $person=$this->member($member,true);
+        if((int)$person['status']!==1)throw new \DomainException('Mitglied ist nicht aktiv.');
+        $this->execute('INSERT INTO vs_zahlungen(mitglied_id,betrag_cent,gezahlt_am,zahlungsweg,zahler_name,referenz,bemerkung,erstellt_von) VALUES(?,?,?,?,?,?,?,?)',
+            [$member,$cents,$date,$channel,'',$reference,$note,$actor]);
+        $id=(int)$this->db()->lastInsertId();
+        $allocated=$this->allocate($member,$id,$preferred);
+        return ['id'=>$id,'allocated'=>$allocated,'credit'=>$cents-$allocated];
     }
     public function reconcile(int $member): int
     {

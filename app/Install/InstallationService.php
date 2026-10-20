@@ -35,11 +35,11 @@ final class InstallationService
         $config=['host'=>$host,'port'=>$port,'database'=>$database,'username'=>$username,'password'=>$password];
         $pdo=(new Database($config))->connection();
         // Run only known, bundled CREATE TABLE IF NOT EXISTS statements, without accepting SQL from HTTP.
-        foreach(['001_members_auth.sql','002_departments_places.sql','003_events_tasks.sql','004_news.sql','005_finance.sql'] as $file) {
+        foreach(['001_members_auth.sql','002_departments_places.sql','003_events_tasks.sql','004_news.sql','005_finance.sql','006_cash.sql'] as $file) {
             $schema=file_get_contents($this->root.'/database/migrations/'.$file);
             if (!is_string($schema)) throw new \RuntimeException('Schema-Datei nicht gefunden.');
             preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`[^`]+`\s*\(.*?\)\s*ENGINE=InnoDB[^;]*;/si',$schema,$statements);
-            if(count($statements[0])!==match($file){'001_members_auth.sql'=>1,'002_departments_places.sql'=>3,'003_events_tasks.sql'=>3,'004_news.sql'=>1,'005_finance.sql'=>4})throw new \RuntimeException('Installationsschema unvollständig.');
+            if(count($statements[0])!==match($file){'001_members_auth.sql'=>1,'002_departments_places.sql'=>3,'003_events_tasks.sql'=>3,'004_news.sql'=>1,'005_finance.sql'=>4,'006_cash.sql'=>3})throw new \RuntimeException('Installationsschema unvollständig.');
             foreach($statements[0] as $sql)$pdo->exec($sql);
         }
         $count=(int)$pdo->query('SELECT COUNT(*) FROM mitglieder')->fetchColumn();

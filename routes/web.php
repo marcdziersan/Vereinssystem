@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Vereinssystem\Core\{Router,Csrf};
 use Vereinssystem\Auth\{AuthService,Roles};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController};
 
 return static function (
     Router $router,
@@ -17,7 +17,7 @@ return static function (
     PlaceController $places,
     DepartmentController $departments,
     InstallController $install,
-    EventController $events, NewsController $news, FinanceController $finance,
+    EventController $events, NewsController $news, FinanceController $finance, CashController $cash,
     ?AuthService $authService, Roles $roles, Csrf $csrf,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
@@ -95,6 +95,20 @@ return static function (
         ['POST','/finance/generate','action','finance.generate'],
         ['POST','/finance/rate','action','finance.tariffs'],
     ];
+    // Alpha.8: all cash mutations are guarded by role and CSRF middleware.
+    $cashRoutes=[
+        ['GET','/cash','index','cash.view'],
+        ['POST','/cash/account','action','cash.accounts'],
+        ['POST','/cash/account/update','action','cash.accounts'],
+        ['POST','/cash/book','action','cash.manage'],
+        ['POST','/cash/transfer','action','cash.manage'],
+        ['POST','/cash/void','action','cash.void'],
+    ];
+    foreach($cashRoutes as [$method,$path,$methodName,$capability]){
+        $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];
+        if($method==='POST')$guards[]=new VerifyCsrf($csrf);
+        $router->add($method,$path,Stack::wrap([$cash,$methodName],...$guards));
+    }
     foreach($financeRoutes as [$method,$path,$methodName,$capability]){
         $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];
         if($method==='POST')$guards[]=new VerifyCsrf($csrf);
