@@ -252,3 +252,22 @@ a { color: inherit; }
 .vs-news-body { white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.85; padding-block:1.3rem; border-top:1px solid var(--vs-border); }
 .vs-news-actions { display:flex; gap:.65rem; flex-wrap:wrap; align-items:center; margin-top:1rem; }
 .vs-news-actions form { margin:0; }
+
+/* Alpha.7 – Contributions: single-column ledger, fluid statistics and forms.
+ * Money values are text, not generated via CSS; user data never enters selectors. */
+.vs-finance-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem;margin-top:1rem}
+.vs-finance-stat{padding:1rem;display:grid;gap:.2rem;overflow-wrap:anywhere}
+.vs-finance-stat strong{font-size:clamp(1.15rem,3.5vw,1.6rem);font-variant-numeric:tabular-nums}
+.vs-finance-note{margin-top:.9rem!important}
+.vs-finance-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+.vs-finance-entry h3{margin:0;font-size:1.07rem;overflow-wrap:anywhere}
+.vs-finance-entry__head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.vs-finance-entry p{margin:.6rem 0;overflow-wrap:anywhere}
+.vs-finance-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:1rem 0 0}
+.vs-finance-values>div{min-width:0}.vs-finance-values dt{color:var(--vs-muted);font-size:.84rem}
+.vs-finance-values dd{margin:0;font-weight:750;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.vs-finance-inline{display:flex;flex-wrap:wrap;align-items:end;gap:1rem;margin-top:1.2rem}
+.vs-finance-inline .vs-field{flex:1 1 14rem;min-width:0}.vs-finance-inline .vs-button{flex:0 1 auto}
+.vs-finance-rates{display:grid;gap:.55rem}.vs-finance-rate{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.3rem;border-bottom:1px solid var(--vs-border);padding:.6rem 0}
+@media(min-width:700px){.vs-finance-stats{grid-template-columns:repeat(4,minmax(0,1fr))}.vs-finance-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:380px){.vs-finance-stats{grid-template-columns:minmax(0,1fr)}.vs-finance-values{grid-template-columns:minmax(0,1fr)}}

@@ -51,6 +51,12 @@ final class Roles
         'news.archive' => 4,
         'news.archive.list' => 5,
         'news.restore' => 5,
+        // Alpha.7: per-user contribution ledger and restricted financial actions.
+        'finance.view' => 1,
+        'finance.manage' => 4,
+        'finance.tariffs' => 5,
+        'finance.generate' => 5,
+        'finance.void' => 5,
     ];
 
     public function allows(User $user, string $permission): bool

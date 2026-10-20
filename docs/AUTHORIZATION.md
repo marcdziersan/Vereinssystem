@@ -81,3 +81,7 @@ Die Überprüfung geschieht im Controller **vor** jeder Datenbankänderung. CSRF
 
 Alle POST-Aktionen nutzen CSRF-Middleware, die serverseitige Berechtigungs-
 prüfung und beim Speichern eine zweite, objektbezogene Autoritätskontrolle.
+
+## Beitragswesen (alpha.7)
+
+`finance.view` (Stufe 1) gestattet ausschließlich das eigene Beitragskonto; `finance.manage` (Stufe 4) erlaubt Verwaltungsbuchungen und fremde Konten. `finance.tariffs`, `finance.generate`, `finance.void` sind auf Stufe 5 beschränkt. Alle schreibenden Routen verwenden Authentifizierungs-, Rechte- und CSRF-Middleware; die Controller prüfen außerdem den angefragten Mitgliederkontext.

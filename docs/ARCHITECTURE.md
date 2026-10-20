@@ -87,3 +87,7 @@ kein JavaScript-HTML-Editor und keine private Direktnachrichtenfunktion.
 Migrationsweg: `database/migrations/004_news.sql` beim Installer oder per
 `php bin/migrate-news.php` bei bestehenden Installationen. Kein DROP, DELETE
 oder UPDATE vorhandener Nachrichten. Details: [NEWS.md](NEWS.md).
+
+## Alpha.7: Contribution ledger
+
+`FinanceController` ruft `FinanceService` auf; `FinanceRepository` kapselt die Datenspeicherung und `PdoFinanceRepository` hält Beitragsbuchungen per InnoDB-Transaktion konsistent. `Models/Claim.php`, `Payment.php` und `ContributionRate.php` sind reine unveränderliche Datenobjekte. Alle Finanzrouten verwenden `Authenticated`, `Permission` und für POST `VerifyCsrf`. Siehe [`FINANCE.md`](FINANCE.md).

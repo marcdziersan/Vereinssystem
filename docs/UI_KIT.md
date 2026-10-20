@@ -64,3 +64,7 @@ Mehrfachauswahl über echte, beschriftete Checkboxen. Ein JavaScript-Filter verb
 Nachricht wird auf der Detailseite ohne HTML-Ausführung über
 `.vs-news-body` mit erhaltenen Zeilenumbrüchen dargestellt.
 Der Editor ist ein zugängliches Textarea-Formular mit nativer Eingabeprüfung.
+
+## Alpha.7: Mobile Beitragsübersicht
+
+Die Klassen `vs-finance-stats`, `vs-finance-grid`, `vs-finance-entry` und `vs-finance-inline` bilden ein responsives ein-/zweispaltiges Layout und vier Kennzahlenkarten (sehr schmale Displays: eine Spalte). Alle Eingaben haben sichtbare Labels und ausreichend große Touch-Ziele; unbekannte Texte und Datenbankwerte werden vor HTML-Ausgabe escaped.

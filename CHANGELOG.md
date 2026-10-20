@@ -1,5 +1,21 @@
 # Änderungsprotokoll
 
+## 3.0.0-alpha.7 – 20.10.2026
+
+### Neue Finanzdomäne
+- Eigenständige MVC-Beitragsbuchhaltung mit Models `ContributionRate`, `Claim`, `Payment`, `FinanceService`, `FinanceRepository`, `PdoFinanceRepository` und `FinanceController`.
+- Soll-/Ist-Konto pro Mitglied und Jahr, Teilzahlungen, historische Zahlungs-/Forderungslisten, periodenübergreifendes Guthaben und offene Restbeträge.
+- Dokumentierte Monatstarife (Kinder, Erwachsene, Abteilungen), idempotente Monats-Sollstellung und manuelle Forderungen.
+- Zahlungen nach Fälligkeit automatisch zugeordnet; Guthaben später erneut anrechenbar; Storno ohne Datenlöschung und mit Transaktionssperren.
+- Getrennte Finanzberechtigungen, geschützte POST-Routen und CSRF-Middleware.
+- Mobile-First-Karten und Formulare, Administrator-Tarifverwaltung, Navigationslink.
+- Additive Migration `005_finance.sql` mit vier bestehenden `master`-Tabellennamen; CLI `bin/migrate-finance.php`; Browser-Installer erweitert.
+- Dokumentation `docs/FINANCE.md`, neue Finanzprüfungen.
+
+### Abgrenzung
+- Noch keine neue Kassenkontenverwaltung, Belege, Bankimporte oder SEPA-Abwicklung. Bereits mit der alten Kasse verknüpfte Zahlungen können in alpha.7 nicht isoliert storniert werden.
+
+
 ## 3.0.0-alpha.6 – 20.10.2026
 
 ### Neu

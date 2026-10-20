@@ -17,6 +17,8 @@ use Vereinssystem\Controllers\DepartmentController;
 use Vereinssystem\Controllers\InstallController;
 use Vereinssystem\Controllers\EventController;
 use Vereinssystem\Controllers\NewsController;
+use Vereinssystem\Controllers\FinanceController;
+use Vereinssystem\Finance\{FinanceRepository,PdoFinanceRepository};
 use Vereinssystem\News\{NewsRepository,PdoNewsRepository};
 use Vereinssystem\Events\{PdoEventRepository,EventRepository};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,VerifyCsrf};
@@ -34,7 +36,7 @@ final class Application
     private readonly View $views;
     private readonly bool $installed;
 
-    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride)
+    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride,?FinanceRepository $financeOverride)
     {
         $config=new Config(require $root.'/config/app.php');
         $this->router=new Router();
@@ -71,14 +73,16 @@ final class Application
         // Alpha.6: News is a separate, injectable MVC domain, not an old PHP endpoint.
         $news=$newsOverride ?? ($database ? new PdoNewsRepository($database) : null);
         $newsController=new NewsController($this->views,$csrf,$auth,$news,$roles,$session);
+        $finance=$financeOverride ?? ($database ? new PdoFinanceRepository($database) : null);
+        $financeController=new FinanceController($this->views,$csrf,$auth,$finance,$roles,$session);
         $installer=new InstallController($this->views,$csrf,new InstallationService($root));
         $register=require $root.'/routes/web.php';
-        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$auth,$roles,$csrf);
+        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$financeController,$auth,$roles,$csrf);
     }
 
-    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null,?FinanceRepository $finance=null): self
     {
-        return new self($root,$users,$members,$places,$departments,$events,$news);
+        return new self($root,$users,$members,$places,$departments,$events,$news,$finance);
     }
 
     public function handle(Request $request): Response

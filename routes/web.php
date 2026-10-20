@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Vereinssystem\Core\{Router,Csrf};
 use Vereinssystem\Auth\{AuthService,Roles};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController};
 
 return static function (
     Router $router,
@@ -17,7 +17,7 @@ return static function (
     PlaceController $places,
     DepartmentController $departments,
     InstallController $install,
-    EventController $events, NewsController $news,
+    EventController $events, NewsController $news, FinanceController $finance,
     ?AuthService $authService, Roles $roles, Csrf $csrf,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
@@ -83,6 +83,23 @@ return static function (
         ['GET','/news/archived','archived','news.archive.list'],
         ['POST','/news/restore','restore','news.restore'],
     ];
+    // Alpha.7: all finance changes are POST-only and require role + CSRF.
+    $financeRoutes=[
+        ['GET','/finance','index','finance.view'],
+        ['GET','/finance/tariffs','tariffs','finance.tariffs'],
+        ['POST','/finance/payment','action','finance.manage'],
+        ['POST','/finance/claim','action','finance.manage'],
+        ['POST','/finance/reconcile','action','finance.manage'],
+        ['POST','/finance/void-payment','action','finance.void'],
+        ['POST','/finance/void-claim','action','finance.void'],
+        ['POST','/finance/generate','action','finance.generate'],
+        ['POST','/finance/rate','action','finance.tariffs'],
+    ];
+    foreach($financeRoutes as [$method,$path,$methodName,$capability]){
+        $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];
+        if($method==='POST')$guards[]=new VerifyCsrf($csrf);
+        $router->add($method,$path,Stack::wrap([$finance,$methodName],...$guards));
+    }
     foreach ($newsRoutes as [$method,$path,$methodName,$capability]) {
         $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];
         if($method==='POST')$guards[]=new VerifyCsrf($csrf);

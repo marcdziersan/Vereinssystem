@@ -1,4 +1,4 @@
-# Vereinssystem MVC – 3.0.0-alpha.6
+# Vereinssystem MVC – 3.0.0-alpha.7
 
 **Die eigenständige Neuentwicklung der Vereinsverwaltung mit PHP 8, OOP, MVC, PDO, HTML, CSS und JavaScript.**
 
@@ -18,11 +18,12 @@ Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Alt
 | **Installer** | Browsergestützte Ersteinrichtung mit Datenbanktabellen und erstem Administrator |
 | **Veranstaltungen und Aufgaben** | Termine mit frei definierbaren Aufgaben (Datum, Uhrzeit, Ort, Mitgliederauswahl); mehrfache Zuweisung; Konfliktprüfung |
 | **Nachrichten und Mitteilungen** | Veröffentlichte Vereinsmeldungen mit Rechtestufen, Suche, Bearbeitung durch Autoren/Administration, Archiv und Wiederherstellung |
+| **Beiträge und Finanzen** | Historische Beitragssätze, monatliche Sollstellung, Forderungen, Zahlungseingänge, Teilzahlungen, Guthaben, Rückstände und Stornierungen |
 | **MVC-Schichten** | `Models`, `Services`, `Repositories` und aktiv verwendete `Middleware` für Veranstaltungen, Aufgaben und Nachrichten |
 | **WAMP im Unterordner** | Root-`.htaccess` für Start ohne eigenen `public/`-DocumentRoot |
 | Frontend | Eigenes kommentiertes Mobile-First-UI-Kit, lokal bereitgestelltes jQuery optional |
 
-Private Direktnachrichten, Beitragsbuchhaltung und Kasse folgen in späteren MVC-Meilensteinen. Alpha.6 ist ein internes **Mitteilungsmodul**, kein persönlicher Chat. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
+Die Beitragsbuchhaltung ist ab alpha.7 vorhanden. Eine komplette Kassenverwaltung mit eigenen Konten, Belegen und Bankabgleich folgt als separates Modul. Das Nachrichtensystem ist ein interner Vereins-Aushang, kein privater Chat. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
 
 ## Installation unter WAMP – ohne public als Standardverzeichnis
 
@@ -30,7 +31,7 @@ Private Direktnachrichten, Beitragsbuchhaltung und Kasse folgen in späteren MVC
 2. Apache `mod_rewrite` aktivieren und für diesen Ordner `AllowOverride All` zulassen.
 3. In phpMyAdmin eine **leere MySQL- oder MariaDB-Datenbank** mit einem Datenbanknutzer anlegen.
 4. Im Browser **`http://localhost/verein/`** öffnen. Die Root-`.htaccess` leitet intern in `public/` um.
-5. Den Installationsassistenten ausfüllen. Er richtet acht Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
+5. Den Installationsassistenten ausfüllen. Er richtet zwölf Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`, `vs_forderungen`, `vs_zahlungen`, `vs_zuordnungen`, `vs_tarife`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
 6. Danach über den Login anmelden. Die Datei `config/database.local.php` wird vom Installer automatisch erstellt und bleibt privat.
 
 Die Installerroute lautet `/install`, etwa `http://localhost/verein/?r=%2Finstall`. Eine separate `install.php` im Root ist nicht notwendig – sämtliche HTTP-Aufrufe laufen über den MVC-Front-Controller `public/index.php`.
@@ -43,6 +44,7 @@ Ist `config/database.local.php` bereits vorhanden, bleibt sie unverändert. Die 
 php bin/migrate-directories.php
 php bin/migrate-events.php
 php bin/migrate-news.php
+php bin/migrate-finance.php
 ```
 
 Die Migration ist wiederholbar und löscht keine vorhandenen Vereins- oder Mitgliederdatensätze. Vor Änderungen an echten Vereinsdaten empfiehlt sich ein Datenbankbackup.
@@ -66,6 +68,9 @@ Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.h
 - `/news`: Vereinsnachrichten lesen (ab Rechtestufe 1, einzelne Beiträge nach Mindeststufe).
 - `/news/create`, `/news/edit`: Mitteilungen verfassen und bearbeiten (Vorstand/Administration; fremde Autoren nur Administration).
 - `/news/archived`: Archiv verwalten und Beiträge wiederherstellen (Administration).
+- `/finance`: persönliches Beitragskonto; Vorstands- und Administrationsrollen können über eine Mitglieds-ID fremde Konten verwalten.
+- `/finance/tariffs`: historische Monatstarife für Erwachsene, Kinder und Abteilungen (Administration).
+- `/finance`: Zahlungseingänge, manuelle Forderungen, Sollstellung und Guthaben-Zuordnung (je nach Rolle).
 
 Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gültigen CSRF-Token. Deaktivierte Datensätze bleiben erhalten; Vorgänge der Mitgliedszuordnung verwenden transaktionale PDO-Abfragen.
 
@@ -80,6 +85,8 @@ app/
   Http/Middleware/  Authentifizierung, Rollen, CSRF für Event-Routen
   Events/           Repository-Verträge und native PDO-Persistenz
   News/             Nachrichten-Repositories und Validierungsfehler
+  Finance/          Exakte Cent-Beträge und Repository-Schnittstellen
+  Services/FinanceService.php  Finanzielle Geschäftsregeln und Validierung
   Core/             MVC-Kernel, Datenbank, Routing, Session, View
   Departments/      Abteilungen, Zuordnungen, Services, Repositories
   Install/          Sicherer Erstinstallationsservice
@@ -115,3 +122,12 @@ Intern bleibt die MySQL-Datenstruktur der früheren Vereinsverwaltung kompatibel
 ## Herkunft und Nutzungsbedingungen
 
 Das ursprüngliche Vereinssystem wurde 2012/2013 von **Nicolas Jourdan und Sebastian Fuss** entwickelt. Die kostenlose, nichtkommerzielle Nutzung und Erweiterung des ursprünglichen Projekts bleibt maßgeblich. Die eigenen Weiterentwicklungen von **Marcus Dziersan** ab 2026 stehen im Umfang der jeweiligen Rechte unter der **PolyForm Noncommercial License 1.0.0**. Für jQuery und historische Grafiken gelten die jeweiligen Drittanbieterrechte; eine kommerzielle Nutzung ist nicht allgemein freigegeben. Details: [LICENSE.md](LICENSE.md) und [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+
+## Beitragsverwaltung (alpha.7)
+
+- **Monatliche Sollstellung:** Ein Administrator trägt zunächst datierte Tarife ein und erzeugt anschließend pro Monat Forderungen. Bereits gebuchte Monatsforderungen werden nicht dupliziert. Ruhende Mitgliedschaften werden übersprungen. Aktivenumlagen können den Betrag der Abteilung als Ausgangswert verwenden.
+- **Zahlungseingänge:** Vorstand und Administration buchen Zahlungen und Teilzahlungen. Der Finanzservice verteilt diese auf die ältesten offenen Forderungen, oder zuerst auf eine ausgewählte Forderung. Nicht verbrauchte Beträge bleiben als Guthaben erhalten.
+- **Nachvollziehbarkeit:** Forderungen und Zahlungen bleiben bei Storno mit Datum, Grund und Akteur erhalten. Bereits bezahlte Forderungen können nicht einzeln storniert werden. Mit Kasseneinträgen verknüpfte historische Zahlungen bleiben bis zur späteren gemeinsamen Kassenstornierung gesperrt.
+- **Berechtigungen:** Mitglieder sehen ausschließlich ihr eigenes Beitragskonto. Der Vorstand darf buchen, die Administration verwaltet zudem Tarife, monatliche Sollstellung und Stornos.
+
+Details zu Datenmodell, Buchungsfällen und Transaktionen stehen in [`docs/FINANCE.md`](docs/FINANCE.md).
