@@ -8,11 +8,13 @@ use Vereinssystem\Cash\CashRepository;
 use Vereinssystem\Core\{Csrf,DatabaseUnavailable,Request,Response,Session,View};
 use Vereinssystem\Finance\Money;
 use Vereinssystem\Services\CashService;
+use Vereinssystem\Receipts\ReceiptRepository;
 
 final class CashController extends Controller
 {
     public function __construct(View $views,Csrf $csrf,private readonly ?AuthService $auth,
-        private readonly ?CashRepository $repository,private readonly Roles $roles,private readonly Session $session)
+        private readonly ?CashRepository $repository,private readonly Roles $roles,private readonly Session $session,
+        private readonly ?ReceiptRepository $receiptRepository=null)
     {parent::__construct($views,$csrf);}
     private function user():User{return $this->auth?->currentUser()??throw new \LogicException('Middleware fehlt.');}
     private function service():CashService{return new CashService($this->repository??throw new DatabaseUnavailable('Kasse nicht verfügbar.'));}
@@ -26,8 +28,14 @@ final class CashController extends Controller
         $year=is_int($year)&&$year>=2000&&$year<=2099?$year:(int)date('Y');
         $account=self::id($request->queryString('account'))?:null;
         $service=$this->service();
+        $entries=$service->entries($year,$account);
+        $receipts=$this->receiptRepository?->forEntries(array_map(static fn($r):int=>$r->id,$entries))??[];
         return $this->page($request,'Vereinskasse','cash/index',[
-            'accounts'=>$service->accounts(),'entries'=>$service->entries($year,$account),
+            'accounts'=>$service->accounts(),'entries'=>$entries,
+            'receiptsByEntry'=>$receipts,'canUploadReceipts'=>$this->roles->allows($user,'cash.receipts.upload'),
+            'uploadReceiptUrl'=>$request->url('/cash/receipts/upload'),
+            'downloadReceiptUrl'=>$request->url('/cash/receipts/download'),
+            'reportUrl'=>$request->url('/cash/reports'),
             'year'=>$year,'accountFilter'=>$account,'flash'=>$this->flash(),'csrfToken'=>$this->csrf->token(),
             'canManage'=>$this->roles->allows($user,'cash.manage'),'canAccounts'=>$this->roles->allows($user,'cash.accounts'),
             'canVoid'=>$this->roles->allows($user,'cash.void'),'baseUrl'=>$request->url('/cash'),

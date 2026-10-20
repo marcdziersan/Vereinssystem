@@ -62,6 +62,11 @@ final class Roles
         'cash.manage' => 4,
         'cash.accounts' => 5,
         'cash.void' => 5,
+        // Alpha.9: no public exports or downloads; receipt upload requires staff.
+        'cash.reports' => 4,
+        'cash.export' => 4,
+        'cash.receipts.view' => 4,
+        'cash.receipts.upload' => 4,
     ];
 
     public function allows(User $user, string $permission): bool

@@ -11,6 +11,7 @@ $total=array_sum(array_map(static fn($a)=>$a->balanceCents,$accounts));
     <p class="vs-muted">Frei definierbare Konten, centgenaue Buchungen und nachvollziehbare Historie.</p></div></div>
   <?php if($flash!==''):?><div class="vs-alert" role="status"><?= V::escape($flash) ?></div><?php endif;?>
   <div class="vs-card vs-cash-total"><span>Gesamtbestand über alle Konten</span><strong><?= V::escape(Money::format($total)) ?></strong><small class="vs-muted">Umbuchungen verändern den Gesamtbestand nicht.</small></div>
+  <p><a class="vs-button vs-button--primary" href="<?= V::escape($reportUrl) ?>">Jahresberichte · CSV · PDF</a></p>
   <section class="vs-section" aria-labelledby="cash-accounts"><h2 id="cash-accounts">Konten</h2>
     <div class="vs-cash-grid">
       <?php foreach($accounts as $a):?>
@@ -81,6 +82,20 @@ $total=array_sum(array_map(static fn($a)=>$a->balanceCents,$accounts));
       <?php if($entry->category!==''):?><p class="vs-muted"><?= V::escape($entry->category) ?></p><?php endif;?>
       <?php if($entry->receiptNumber!==''):?><p class="vs-muted">Belegnr.: <?= V::escape($entry->receiptNumber) ?></p><?php endif;?>
       <?php if($entry->paymentId!==null):?><p class="vs-muted">Beitragszahlung #<?= $entry->paymentId ?> · Storno nur über Beitragskonto</p><?php endif;?>
+      <?php foreach($receiptsByEntry[$entry->id]??[] as $receipt):?>
+        <p><a href="<?= V::escape($downloadReceiptUrl.'&id='.$receipt->id) ?>">Beleg #<?= $receipt->id ?>: <?= V::escape($receipt->originalName) ?></a></p>
+      <?php endforeach; ?>
+      <?php if($canUploadReceipts&&!$entry->void):?>
+        <details><summary>Beleg hinzufügen</summary>
+          <form class="vs-form" action="<?= V::escape($uploadReceiptUrl) ?>" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf" value="<?= V::escape($csrfToken) ?>">
+            <input type="hidden" name="entry" value="<?= $entry->id ?>">
+            <label class="vs-field"><span class="vs-label">PDF oder Bild (max. 5 MiB)</span>
+              <input class="vs-input" type="file" name="receipt" accept="application/pdf,image/jpeg,image/png,image/webp" required></label>
+            <button class="vs-button" type="submit">Beleg sicher speichern</button>
+          </form>
+        </details>
+      <?php endif; ?>
       <?php if($canVoid&&!$entry->void&&$entry->paymentId===null):?><details><summary>Stornieren</summary>
         <form class="vs-form" method="post" action="<?= V::escape($voidUrl) ?>"><input type="hidden" name="_csrf" value="<?= V::escape($csrfToken) ?>"><input type="hidden" name="id" value="<?= $entry->id ?>">
           <label class="vs-field"><span class="vs-label">Stornogrund</span><input class="vs-input" name="reason" required minlength="5" maxlength="250"></label>

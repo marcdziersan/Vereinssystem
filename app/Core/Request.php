@@ -7,7 +7,8 @@ final class Request
     /** @param array<string,mixed> $query @param array<string,mixed> $body */
     public function __construct(public readonly string $method,public readonly string $path,
         private readonly array $query=[],private readonly array $body=[],
-        public readonly string $scriptName='/index.php',public readonly string $remoteIp='127.0.0.1') {}
+        public readonly string $scriptName='/index.php',public readonly string $remoteIp='127.0.0.1',
+        private readonly array $files=[]) {}
 
     public static function fromGlobals(): self
     {
@@ -26,7 +27,7 @@ final class Request
             if($path==='/index.php')$path='/';
         }
         return new self($method,self::normalizePath($path),$_GET,$_POST,$script,
-            (string)($_SERVER['REMOTE_ADDR']??'127.0.0.1'));
+            (string)($_SERVER['REMOTE_ADDR']??'127.0.0.1'),$_FILES);
     }
 
     public static function normalizePath(string $path): string
@@ -43,6 +44,13 @@ final class Request
      * Invalid nested values remain visible to the domain validator and are rejected there.
      * @return array<mixed>
      */
+    /** @return array<string,mixed> PHP upload metadata, never a client-provided filesystem path. */
+    public function uploadedFile(string $key): array
+    {
+        $file=$this->files[$key]??null;
+        return is_array($file)?$file:[];
+    }
+
     public function inputList(string $key): array
     {
         $input = $this->body[$key] ?? [];

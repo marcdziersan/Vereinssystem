@@ -1,4 +1,4 @@
-# Vereinssystem MVC – 3.0.0-alpha.8
+# Vereinssystem MVC – 3.0.0-alpha.9
 
 **Die eigenständige Neuentwicklung der Vereinsverwaltung mit PHP 8, OOP, MVC, PDO, HTML, CSS und JavaScript.**
 
@@ -19,12 +19,13 @@ Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Alt
 | **Veranstaltungen und Aufgaben** | Termine mit frei definierbaren Aufgaben (Datum, Uhrzeit, Ort, Mitgliederauswahl); mehrfache Zuweisung; Konfliktprüfung |
 | **Nachrichten und Mitteilungen** | Veröffentlichte Vereinsmeldungen mit Rechtestufen, Suche, Bearbeitung durch Autoren/Administration, Archiv und Wiederherstellung |
 | **Kassenverwaltung** | Frei konfigurierbare Konten, Einnahmen, Ausgaben, Umbuchungen, Stornos, gemeinsame Beitragsbuchungen und mobile Kassenübersicht |
+| **Belege und Berichte** | Private PDF-/Bildbelege zu Kassenbuchungen, Jahresabschlüsse, Monats-/Kategorieauswertungen, CSV- und PDF-Export |
 | **Beiträge und Finanzen** | Historische Beitragssätze, monatliche Sollstellung, Forderungen, Zahlungseingänge, Teilzahlungen, Guthaben, Rückstände und Stornierungen |
 | **MVC-Schichten** | `Models`, `Services`, `Repositories` und aktiv verwendete `Middleware` für Veranstaltungen, Aufgaben und Nachrichten |
 | **WAMP im Unterordner** | Root-`.htaccess` für Start ohne eigenen `public/`-DocumentRoot |
 | Frontend | Eigenes kommentiertes Mobile-First-UI-Kit, lokal bereitgestelltes jQuery optional |
 
-Die Beitrags- und Kassenbuchhaltung sind inzwischen miteinander verknüpft. Private Belegdateien und der automatische Bankabgleich folgen separat. Das Nachrichtensystem ist ein interner Vereins-Aushang, kein privater Chat. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
+Die Beitrags- und Kassenbuchhaltung sind inzwischen miteinander verknüpft. Private Belegdateien werden ab alpha.9 geschützt gespeichert; automatischer Bankabgleich und SEPA folgen separat. Das Nachrichtensystem ist ein interner Vereins-Aushang, kein privater Chat. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
 
 ## Installation unter WAMP – ohne public als Standardverzeichnis
 
@@ -32,7 +33,7 @@ Die Beitrags- und Kassenbuchhaltung sind inzwischen miteinander verknüpft. Priv
 2. Apache `mod_rewrite` aktivieren und für diesen Ordner `AllowOverride All` zulassen.
 3. In phpMyAdmin eine **leere MySQL- oder MariaDB-Datenbank** mit einem Datenbanknutzer anlegen.
 4. Im Browser **`http://localhost/verein/`** öffnen. Die Root-`.htaccess` leitet intern in `public/` um.
-5. Den Installationsassistenten ausfüllen. Er richtet 15 Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`, `vs_forderungen`, `vs_zahlungen`, `vs_zuordnungen`, `vs_tarife`, `vs_konten`, `vs_kassenbuch`, `vs_audit`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
+5. Den Installationsassistenten ausfüllen. Er richtet 16 Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`, `vs_forderungen`, `vs_zahlungen`, `vs_zuordnungen`, `vs_tarife`, `vs_konten`, `vs_kassenbuch`, `vs_audit`, `vs_kassenbelege`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
 6. Danach über den Login anmelden. Die Datei `config/database.local.php` wird vom Installer automatisch erstellt und bleibt privat.
 
 Die Installerroute lautet `/install`, etwa `http://localhost/verein/?r=%2Finstall`. Eine separate `install.php` im Root ist nicht notwendig – sämtliche HTTP-Aufrufe laufen über den MVC-Front-Controller `public/index.php`.
@@ -47,6 +48,7 @@ php bin/migrate-events.php
 php bin/migrate-news.php
 php bin/migrate-finance.php
 php bin/migrate-cash.php
+php bin/migrate-receipts.php
 ```
 
 Die Migration ist wiederholbar und löscht keine vorhandenen Vereins- oder Mitgliederdatensätze. Vor Änderungen an echten Vereinsdaten empfiehlt sich ein Datenbankbackup.
@@ -73,6 +75,8 @@ Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.h
 - `/finance`: persönliches Beitragskonto; Vorstands- und Administrationsrollen können über eine Mitglieds-ID fremde Konten verwalten.
 - `/finance/tariffs`: historische Monatstarife für Erwachsene, Kinder und Abteilungen (Administration).
 - `/cash`: Kassenkonten, Journal, Ein-/Ausgaben und Umbuchungen (Vorstand/Administration); Konten und Stornos nur Administration.
+- `/cash/reports`: Jahresabschluss, Kontenauswahl, Monats- und Kategorieauswertung. CSV und PDF über eigene geschützte Downloadrouten.
+- `/cash`: Beleg-Upload pro Buchung (PDF/JPEG/PNG/WebP bis 5 MiB); private Downloads nur nach Rollenprüfung. In WAMP muss PHP `fileinfo` sowie `file_uploads` unterstützen.
 - `/finance`: Zahlungseingänge mit Kassenkonto, manuelle Forderungen, Sollstellung und Guthaben-Zuordnung (je nach Rolle).
 
 Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gültigen CSRF-Token. Deaktivierte Datensätze bleiben erhalten; Vorgänge der Mitgliedszuordnung verwenden transaktionale PDO-Abfragen.
@@ -90,6 +94,8 @@ app/
   News/             Nachrichten-Repositories und Validierungsfehler
   Finance/          Exakte Cent-Beträge und Repository-Schnittstellen
   Cash/             Kassen-Repository-Vertrag und InnoDB-Persistenz
+  Reports/          Jahresabschluss, CSV-/PDF-Ausgabe und Berichtsdatenbankzugriffe
+  Receipts/         Private Belegspeicherung und Metadaten-Repositories
   Services/FinanceService.php  Beitragsregeln und Validierung
   Services/CashService.php     Kassenregeln und Validierung
   Core/             MVC-Kernel, Datenbank, Routing, Session, View

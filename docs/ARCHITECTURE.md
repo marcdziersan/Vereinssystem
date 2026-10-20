@@ -97,3 +97,12 @@ oder UPDATE vorhandener Nachrichten. Details: [NEWS.md](NEWS.md).
 Die Kassen-Domäne implementiert `CashController` → `CashService` → `CashRepository`/`PdoCashRepository` → PDO/InnoDB. `CashAccount` und `CashEntry` sind reine Lese-Models. Die Finance- und Cash-Repositories werden in der Composition Root mit **derselben** `Database`-Instanz erzeugt. Für Beitragszahlungen nutzt der Cash-Adapter `PdoFinanceRepository::receivePaymentInsideCurrentTransaction()` als wiederverwendbare Buchungsoperation, statt verschachtelte Transaktionen zu starten.
 
 Berechtigungen und CSRF werden für alle neuen Kassenrouten in der Middleware geprüft. `006_cash.sql` ergänzt drei historisch kompatible Tabellen. Weitere Details stehen in [`CASHBOOK.md`](CASHBOOK.md).
+
+## alpha.9 – Berichte und private Belege
+
+- `Reports/PdoCashReportRepository`: konsistenter InnoDB-Lese-Snapshot für alle Jahresbuchungen einschließlich Stornos, ohne 300er-Limit.
+- `Services/CashReportService`: Jahresanfangssaldo, Konteneröffnungen, echte Einnahmen/Ausgaben, Umbuchungen, Monats- und Kategorieauswertungen.
+- `Reports/CsvExporter` und `PdfExporter`: eigenständige, dependency-freie Ausgaben; PDF ist ein einfacher Ausdruck ohne digitale Signatur.
+- `Receipts/ReceiptStorage`: strikt private 5-MiB-Dateien, MIME-Prüfung, SHA-256 und zufällige Namen.
+- `Receipts/PdoReceiptRepository` und `Services/ReceiptService`: Transaktions-/Auditlogik für Anhänge.
+- `Controllers/CashDocumentsController`: HTTP-Adapter; die Router-Middleware kontrolliert jede Route vor dem Lesen bzw. Schreiben.

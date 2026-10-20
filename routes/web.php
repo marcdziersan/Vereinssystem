@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Vereinssystem\Core\{Router,Csrf};
 use Vereinssystem\Auth\{AuthService,Roles};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController, CashDocumentsController};
 
 return static function (
     Router $router,
@@ -18,6 +18,7 @@ return static function (
     DepartmentController $departments,
     InstallController $install,
     EventController $events, NewsController $news, FinanceController $finance, CashController $cash,
+    CashDocumentsController $documents,
     ?AuthService $authService, Roles $roles, Csrf $csrf,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
@@ -104,6 +105,19 @@ return static function (
         ['POST','/cash/transfer','action','cash.manage'],
         ['POST','/cash/void','action','cash.void'],
     ];
+    // Alpha.9: reporting and private attachment routes; each protected by middleware.
+    $documentRoutes=[
+        ['GET','/cash/reports','reports','cash.reports'],
+        ['GET','/cash/export/csv','export','cash.export'],
+        ['GET','/cash/export/pdf','export','cash.export'],
+        ['POST','/cash/receipts/upload','upload','cash.receipts.upload'],
+        ['GET','/cash/receipts/download','download','cash.receipts.view'],
+    ];
+    foreach($documentRoutes as [$method,$path,$action,$permission]){
+        $guards=[new Authenticated($authService),new Permission($authService,$roles,$permission)];
+        if($method==='POST')$guards[]=new VerifyCsrf($csrf);
+        $router->add($method,$path,Stack::wrap([$documents,$action],...$guards));
+    }
     foreach($cashRoutes as [$method,$path,$methodName,$capability]){
         $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];
         if($method==='POST')$guards[]=new VerifyCsrf($csrf);

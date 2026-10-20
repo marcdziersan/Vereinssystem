@@ -96,3 +96,11 @@ prüfung und beim Speichern eine zweite, objektbezogene Autoritätskontrolle.
 | Buchungen/Umbuchungen stornieren (`cash.void`) | 5 |
 
 Die Rechteprüfung erfolgt in `routes/web.php` durch `Permission`-Middleware **vor** jedem Controlleraufruf. Mutationen sind nur mit HTTP POST und zusätzlichem CSRF-Schutz möglich. Beitragszahlungen verwenden dieselben Finanzrechte wie zuvor, aber bei einer vorhandenen Kasseninstallation ein verpflichtend zugeordnetes Kassenkonto.
+
+## alpha.9 – Private Belege und Exportrechte
+
+- `cash.reports` und `cash.export`: Vorstand (Stufe 4) und Administration (5).
+- `cash.receipts.view`: ausschließlich Vorstand/Administration, auch bei direkter GET-Anfrage.
+- `cash.receipts.upload`: Vorstand/Administration; POST und `VerifyCsrf` verpflichtend.
+- Originaldateien haben keine öffentliche URL. `storage/.htaccess` blockiert den Zugriff auf Apache-Ebene; die einzige Auslieferungsroute ist `/cash/receipts/download`.
+- Belegdateien sind unveränderliche Anhänge; Stornierungen behalten die zugehörigen Nachweise.
