@@ -5,16 +5,16 @@ namespace Vereinssystem\Controllers;
 
 use Vereinssystem\Auth\{AuthService,Roles,User};
 use Vereinssystem\Cash\CashRepository;
+use Vereinssystem\Receipts\ReceiptRepository;
 use Vereinssystem\Core\{Csrf,DatabaseUnavailable,Request,Response,Session,View};
 use Vereinssystem\Finance\Money;
 use Vereinssystem\Services\CashService;
-use Vereinssystem\Receipts\ReceiptRepository;
 
 final class CashController extends Controller
 {
     public function __construct(View $views,Csrf $csrf,private readonly ?AuthService $auth,
         private readonly ?CashRepository $repository,private readonly Roles $roles,private readonly Session $session,
-        private readonly ?ReceiptRepository $receiptRepository=null)
+        private readonly ?ReceiptRepository $receipts=null)
     {parent::__construct($views,$csrf);}
     private function user():User{return $this->auth?->currentUser()??throw new \LogicException('Middleware fehlt.');}
     private function service():CashService{return new CashService($this->repository??throw new DatabaseUnavailable('Kasse nicht verfügbar.'));}
@@ -29,13 +29,13 @@ final class CashController extends Controller
         $account=self::id($request->queryString('account'))?:null;
         $service=$this->service();
         $entries=$service->entries($year,$account);
-        $receipts=$this->receiptRepository?->forEntries(array_map(static fn($r):int=>$r->id,$entries))??[];
+        $receipts=$this->receipts ? $this->receipts->forEntries(array_map(static fn($e)=>$e->id,$entries)) : [];
         return $this->page($request,'Vereinskasse','cash/index',[
             'accounts'=>$service->accounts(),'entries'=>$entries,
-            'receiptsByEntry'=>$receipts,'canUploadReceipts'=>$this->roles->allows($user,'cash.receipts.upload'),
-            'uploadReceiptUrl'=>$request->url('/cash/receipts/upload'),
-            'downloadReceiptUrl'=>$request->url('/cash/receipts/download'),
-            'reportUrl'=>$request->url('/cash/reports'),
+            'receipts'=>$receipts,'canReceipts'=>$this->roles->allows($user,'cash.receipts.add'),
+            'receiptUploadUrl'=>$request->url('/cash/receipt/upload'),
+            'receiptDownloadUrl'=>$request->url('/cash/receipt/download'),
+            'reportUrl'=>$request->url('/cash/report'),
             'year'=>$year,'accountFilter'=>$account,'flash'=>$this->flash(),'csrfToken'=>$this->csrf->token(),
             'canManage'=>$this->roles->allows($user,'cash.manage'),'canAccounts'=>$this->roles->allows($user,'cash.accounts'),
             'canVoid'=>$this->roles->allows($user,'cash.void'),'baseUrl'=>$request->url('/cash'),

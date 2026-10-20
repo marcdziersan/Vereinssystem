@@ -1,50 +1,50 @@
 <?php
-/**
- * Receipt metadata and audit persistence. All association checks happen inside
- * a transaction with a cash row lock; a voided booking cannot gain new receipts.
- */
+/** PDO receipt metadata adapter, using the original vs_belege schema from master. */
 declare(strict_types=1);
 namespace Vereinssystem\Receipts;
 use PDO;
 use Vereinssystem\Core\Database;
-use Vereinssystem\Models\CashReceipt;
+use Vereinssystem\Models\Receipt;
+
 final class PdoReceiptRepository implements ReceiptRepository
 {
-    public function __construct(private readonly Database $database) {}
-    private static function map(array $r):CashReceipt
+    public function __construct(private readonly Database $db) {}
+    private static function receipt(array $row):Receipt
     {
-        return new CashReceipt((int)$r['id'],(int)$r['buchung_id'],(string)$r['originalname'],
-            (string)$r['mime'],(int)$r['size_bytes'],(string)$r['sha256'],(string)$r['dateiname']);
+        return new Receipt((int)$row['id'],(int)$row['buchung_id'],(string)$row['dateiname'],
+            (string)$row['speichername'],(string)$row['mime'],(int)$row['groesse'],
+            (string)$row['sha256'],(int)$row['hochgeladen_von'],(string)$row['erstellt_am']);
+    }
+    public function byId(int $id):?Receipt
+    {
+        $st=$this->db->connection()->prepare('SELECT * FROM vs_belege WHERE id=?');
+        $st->execute([$id]);$row=$st->fetch(PDO::FETCH_ASSOC);
+        return is_array($row)?self::receipt($row):null;
     }
     public function forEntries(array $entryIds):array
     {
-        $ids=array_values(array_unique(array_filter(array_map('intval',$entryIds),static fn(int $v):bool=>$v>0)));
+        $ids=array_values(array_unique(array_filter($entryIds,static fn($n)=>is_int($n)&&$n>0)));
         if(!$ids)return [];
-        // The journal UI is limited to 300 entries; bound each ID (never interpolate).
-        $sql='SELECT * FROM vs_kassenbelege WHERE buchung_id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY id';
-        $q=$this->database->connection()->prepare($sql);$q->execute($ids);
-        $found=[];
-        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r)$found[(int)$r['buchung_id']][]=self::map($r);
-        return $found;
+        // Placeholders are generated from the array length, never from request text.
+        $sql='SELECT * FROM vs_belege WHERE buchung_id IN ('.implode(',',array_fill(0,count($ids),'?')).') ORDER BY id';
+        $st=$this->db->connection()->prepare($sql);$st->execute($ids);
+        $result=[];
+        foreach($st->fetchAll(PDO::FETCH_ASSOC) as $row){$r=self::receipt($row);$result[$r->entryId][]=$r;}
+        return $result;
     }
-    public function find(int $id):?CashReceipt
+    public function add(int $entryId,string $original,string $stored,string $mime,int $size,string $checksum,int $actor):int
     {
-        $q=$this->database->connection()->prepare('SELECT * FROM vs_kassenbelege WHERE id=?');
-        $q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);
-        return $row?self::map($row):null;
-    }
-    public function attach(int $entryId,string $original,string $mime,int $size,string $sha,string $stored,int $actor):int
-    {
-        $pdo=$this->database->connection();$pdo->beginTransaction();
+        $pdo=$this->db->connection();
+        $pdo->beginTransaction();
         try{
-            $q=$pdo->prepare('SELECT id,storniert_am FROM vs_kassenbuch WHERE id=? FOR UPDATE');
-            $q->execute([$entryId]);$entry=$q->fetch(PDO::FETCH_ASSOC);
-            if(!$entry||$entry['storniert_am']!==null)throw new \DomainException('Buchung fehlt oder ist storniert.');
-            $q=$pdo->prepare('INSERT INTO vs_kassenbelege (buchung_id,originalname,mime,size_bytes,sha256,dateiname,erstellt_von) VALUES (?,?,?,?,?,?,?)');
-            $q->execute([$entryId,$original,$mime,$size,$sha,$stored,$actor]);
+            $exists=$pdo->prepare('SELECT id FROM vs_kassenbuch WHERE id=? FOR UPDATE');
+            $exists->execute([$entryId]);
+            if(!$exists->fetchColumn())throw new \DomainException('Kassenbuchung nicht vorhanden.');
+            $insert=$pdo->prepare('INSERT INTO vs_belege (buchung_id,dateiname,speichername,mime,groesse,sha256,hochgeladen_von) VALUES (?,?,?,?,?,?,?)');
+            $insert->execute([$entryId,$original,$stored,$mime,$size,$checksum,$actor]);
             $id=(int)$pdo->lastInsertId();
-            $q=$pdo->prepare('INSERT INTO vs_audit(akteur,aktion,objekt,objekt_id,details) VALUES (?,?,?,?,?)');
-            $q->execute([$actor,'kasse.beleg.hochgeladen','beleg',$id,json_encode(['buchung'=>$entryId,'sha256'=>$sha],JSON_THROW_ON_ERROR)]);
+            $audit=$pdo->prepare('INSERT INTO vs_audit (akteur,aktion,objekt,objekt_id,details) VALUES (?,?,?,?,?)');
+            $audit->execute([$actor,'beleg.hochgeladen','beleg',$id,json_encode(['buchung_id'=>$entryId],JSON_THROW_ON_ERROR)]);
             $pdo->commit();return $id;
         }catch(\Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
     }

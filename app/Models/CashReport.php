@@ -1,14 +1,18 @@
 <?php
-/** Immutable financial-year projection, amounts always stored in integer cents. */
+/**
+ * Immutable annual cash-report projection.
+ *
+ * The repository supplies per-account reconciled integer-cent totals. This
+ * model carries the report to HTML, CSV and PDF without repeating SQL.
+ */
 declare(strict_types=1);
 namespace Vereinssystem\Models;
-final class CashAnnualReport
+
+final class CashReport
 {
     /**
      * @param list<array<string,mixed>> $accounts
      * @param list<array<string,mixed>> $entries
-     * @param list<array<string,int>> $monthly
-     * @param list<array{category:string,income:int,expense:int}> $categories
      * @param array<string,int> $totals
      */
     public function __construct(
@@ -16,8 +20,6 @@ final class CashAnnualReport
         public readonly ?int $accountId,
         public readonly array $accounts,
         public readonly array $entries,
-        public readonly array $monthly,
-        public readonly array $categories,
         public readonly array $totals,
     ) {}
 }

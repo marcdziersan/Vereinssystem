@@ -97,10 +97,13 @@ prüfung und beim Speichern eine zweite, objektbezogene Autoritätskontrolle.
 
 Die Rechteprüfung erfolgt in `routes/web.php` durch `Permission`-Middleware **vor** jedem Controlleraufruf. Mutationen sind nur mit HTTP POST und zusätzlichem CSRF-Schutz möglich. Beitragszahlungen verwenden dieselben Finanzrechte wie zuvor, aber bei einer vorhandenen Kasseninstallation ein verpflichtend zugeordnetes Kassenkonto.
 
-## alpha.9 – Private Belege und Exportrechte
 
-- `cash.reports` und `cash.export`: Vorstand (Stufe 4) und Administration (5).
-- `cash.receipts.view`: ausschließlich Vorstand/Administration, auch bei direkter GET-Anfrage.
-- `cash.receipts.upload`: Vorstand/Administration; POST und `VerifyCsrf` verpflichtend.
-- Originaldateien haben keine öffentliche URL. `storage/.htaccess` blockiert den Zugriff auf Apache-Ebene; die einzige Auslieferungsroute ist `/cash/receipts/download`.
-- Belegdateien sind unveränderliche Anhänge; Stornierungen behalten die zugehörigen Nachweise.
+## alpha.9 – Kassenberichte und Belege
+
+| Berechtigung | Mindeststufe | URL/Verwendung |
+| --- | --- | --- |
+| `cash.report` | 4 Vorstand | `/cash/report`, CSV und PDF (GET) |
+| `cash.receipts.view` | 4 Vorstand | `/cash/receipt/download` (GET) |
+| `cash.receipts.add` | 4 Vorstand | `/cash/receipt/upload` (POST + CSRF) |
+
+Dateipfade dürfen nicht über HTTP-Parameter vorgegeben werden. Es wird lediglich eine Beleg-ID entgegengenommen, der Server lädt nach der Rollenprüfung die gespeicherten Metadaten und verifiziert den Dateihash.

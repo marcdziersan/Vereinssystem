@@ -44,7 +44,11 @@ final class FakeBulletins implements NewsRepository
 }
 final class FakeBulletinUsers implements UserRepository
 {
-    public function byId(int $id):?User {return match($id){1,2,3,4=>new User($id,'user'.$id,'M-'.$id,'Erika','Beispiel',password_hash('a_secret_12345678',PASSWORD_DEFAULT),match($id){1=>5,2=>4,3=>4,4=>1},1),default=>null};}
+    public function byId(int $id):?User {
+        // The same fixture password needs hashing only once; repeated bcrypt rounds slow down HTTP checks.
+        static $hash=null; $hash??=password_hash('a_secret_12345678',PASSWORD_DEFAULT);
+        return match($id){1,2,3,4=>new User($id,'user'.$id,'M-'.$id,'Erika','Beispiel',$hash,match($id){1=>5,2=>4,3=>4,4=>1},1),default=>null};
+    }
     public function byIdentifier(string $identifier):?User{return $this->byId(1);}
     public function accessList(int $limit=100):array{return [$this->byId(1)];}
     public function setRights(int $id,int $level):bool{return false;}

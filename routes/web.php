@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Vereinssystem\Core\{Router,Csrf};
 use Vereinssystem\Auth\{AuthService,Roles};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController, CashDocumentsController};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController, CashReportController, ReceiptController};
 
 return static function (
     Router $router,
@@ -18,8 +18,8 @@ return static function (
     DepartmentController $departments,
     InstallController $install,
     EventController $events, NewsController $news, FinanceController $finance, CashController $cash,
-    CashDocumentsController $documents,
     ?AuthService $authService, Roles $roles, Csrf $csrf,
+    CashReportController $reports, ReceiptController $receipts,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
     $router->add('GET', '/install', [$install, 'form']);
@@ -105,18 +105,25 @@ return static function (
         ['POST','/cash/transfer','action','cash.manage'],
         ['POST','/cash/void','action','cash.void'],
     ];
-    // Alpha.9: reporting and private attachment routes; each protected by middleware.
-    $documentRoutes=[
-        ['GET','/cash/reports','reports','cash.reports'],
-        ['GET','/cash/export/csv','export','cash.export'],
-        ['GET','/cash/export/pdf','export','cash.export'],
-        ['POST','/cash/receipts/upload','upload','cash.receipts.upload'],
-        ['GET','/cash/receipts/download','download','cash.receipts.view'],
+    // Alpha.9: all exports/downloads are authenticated, even though they use GET.
+    // Mutating the receipt vault requires both permission AND CSRF middleware.
+    $reportRoutes=[
+        ['GET','/cash/report','index','cash.report'],
+        ['GET','/cash/report/csv','export','cash.report'],
+        ['GET','/cash/report/pdf','export','cash.report'],
     ];
-    foreach($documentRoutes as [$method,$path,$action,$permission]){
-        $guards=[new Authenticated($authService),new Permission($authService,$roles,$permission)];
+    $receiptRoutes=[
+        ['POST','/cash/receipt/upload','upload','cash.receipts.add'],
+        ['GET','/cash/receipt/download','download','cash.receipts.view'],
+    ];
+    foreach($reportRoutes as [$method,$path,$methodName,$capability]){
+        $router->add($method,$path,Stack::wrap([$reports,$methodName],
+            new Authenticated($authService),new Permission($authService,$roles,$capability)));
+    }
+    foreach($receiptRoutes as [$method,$path,$methodName,$capability]){
+        $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];
         if($method==='POST')$guards[]=new VerifyCsrf($csrf);
-        $router->add($method,$path,Stack::wrap([$documents,$action],...$guards));
+        $router->add($method,$path,Stack::wrap([$receipts,$methodName],...$guards));
     }
     foreach($cashRoutes as [$method,$path,$methodName,$capability]){
         $guards=[new Authenticated($authService),new Permission($authService,$roles,$capability)];

@@ -98,11 +98,7 @@ Die Kassen-Domäne implementiert `CashController` → `CashService` → `CashRep
 
 Berechtigungen und CSRF werden für alle neuen Kassenrouten in der Middleware geprüft. `006_cash.sql` ergänzt drei historisch kompatible Tabellen. Weitere Details stehen in [`CASHBOOK.md`](CASHBOOK.md).
 
-## alpha.9 – Berichte und private Belege
 
-- `Reports/PdoCashReportRepository`: konsistenter InnoDB-Lese-Snapshot für alle Jahresbuchungen einschließlich Stornos, ohne 300er-Limit.
-- `Services/CashReportService`: Jahresanfangssaldo, Konteneröffnungen, echte Einnahmen/Ausgaben, Umbuchungen, Monats- und Kategorieauswertungen.
-- `Reports/CsvExporter` und `PdfExporter`: eigenständige, dependency-freie Ausgaben; PDF ist ein einfacher Ausdruck ohne digitale Signatur.
-- `Receipts/ReceiptStorage`: strikt private 5-MiB-Dateien, MIME-Prüfung, SHA-256 und zufällige Namen.
-- `Receipts/PdoReceiptRepository` und `Services/ReceiptService`: Transaktions-/Auditlogik für Anhänge.
-- `Controllers/CashDocumentsController`: HTTP-Adapter; die Router-Middleware kontrolliert jede Route vor dem Lesen bzw. Schreiben.
+## alpha.9 – Reports und sichere Belegdateien
+
+Getrennte MVC-Schichten in `app/Models/CashReport.php`, `app/Reports/*`, `app/Services/ReportService.php`, `app/Controllers/CashReportController.php` sowie `app/Models/Receipt.php`, `app/Receipts/*`, `app/Services/ReceiptService.php` und `app/Controllers/ReceiptController.php`. Alle Controller sind an Rollen-Middleware gebunden, Uploads zusätzlich an CSRF. Der PDF-Generator `PdfWriter` ist von PDO unabhängig. Der Cache für das 300-zeilige Kassenjournal spielt für Jahresberichte keine Rolle. Ein Beleg besteht aus einer Datenbank-Metazeile und einer Datei unter `storage/receipts/`; Datenbank und Dateispeicher müssen gemeinsam gesichert werden.

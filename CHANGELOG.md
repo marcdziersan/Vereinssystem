@@ -1,5 +1,18 @@
 # Änderungsprotokoll
 
+## 3.0.0-alpha.9 – 20.10.2026
+
+### Jahresberichte, Belege und Exporte
+- Unbegrenzte Jahresauswertungen mit nach Kalenderjahren abgegrenztem Anfangs-/Endbestand, auch für unterjährig eröffnete und inaktive Kassenkonten. Stornos bleiben im Journal, aber nicht in Salden.
+- CSV-Export (UTF-8, Semikolon, Excel-Formelschutz) und mehrseitiger PDF-Kassenbericht ohne externe Bibliotheken.
+- Private Belegverwaltung: PDF/JPEG/PNG/WebP bis 8 MiB, zufällige interne Dateinamen, SHA-256-Integritätsprüfung, rollen- und CSRF-geschützter Upload.
+- Metadaten in der historischen `vs_belege`-Tabelle, unveränderte `vs_kassenbuch`-Buchungsregeln.
+- Installer um Migration `007_cash_receipts.sql` auf 16 Tabellen erweitert; `bin/migrate-receipts.php` ergänzt.
+- Neue Reports-/Receipts-Models, Interfaces, PDO-Repositories, Services, Controller und mobile Ansichten.
+- Neue Dokumentation `docs/REPORTS_RECEIPTS.md` und eigenständige Fachprüfungen.
+- `master` wird nicht verändert.
+
+
 ## 3.0.0-alpha.8 – 20.10.2026
 
 ### Neue Kassenverwaltung

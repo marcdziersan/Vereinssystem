@@ -44,17 +44,17 @@ final class Request
      * Invalid nested values remain visible to the domain validator and are rejected there.
      * @return array<mixed>
      */
-    /** @return array<string,mixed> PHP upload metadata, never a client-provided filesystem path. */
-    public function uploadedFile(string $key): array
-    {
-        $file=$this->files[$key]??null;
-        return is_array($file)?$file:[];
-    }
-
     public function inputList(string $key): array
     {
         $input = $this->body[$key] ?? [];
         return is_array($input) ? array_values($input) : [];
+    }
+
+    /** @return array<string,mixed>|null Only a single uploaded file is accepted. */
+    public function file(string $key):?array
+    {
+        $candidate=$this->files[$key]??null;
+        return is_array($candidate)&&!is_array($candidate['name']??null)?$candidate:null;
     }
 
     public function url(string $route='/'): string

@@ -19,10 +19,10 @@ use Vereinssystem\Controllers\EventController;
 use Vereinssystem\Controllers\NewsController;
 use Vereinssystem\Controllers\FinanceController;
 use Vereinssystem\Controllers\CashController;
-use Vereinssystem\Controllers\CashDocumentsController;
-use Vereinssystem\Reports\{CashReportRepository,PdoCashReportRepository};
-use Vereinssystem\Receipts\{ReceiptRepository,PdoReceiptRepository,ReceiptStorage};
 use Vereinssystem\Cash\{CashRepository,PdoCashRepository};
+use Vereinssystem\Receipts\{ReceiptRepository,PdoReceiptRepository};
+use Vereinssystem\Reports\{ReportRepository,PdoReportRepository};
+use Vereinssystem\Controllers\{CashReportController,ReceiptController};
 use Vereinssystem\Finance\{FinanceRepository,PdoFinanceRepository};
 use Vereinssystem\News\{NewsRepository,PdoNewsRepository};
 use Vereinssystem\Events\{PdoEventRepository,EventRepository};
@@ -41,7 +41,7 @@ final class Application
     private readonly View $views;
     private readonly bool $installed;
 
-    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride,?FinanceRepository $financeOverride,?CashRepository $cashOverride,?CashReportRepository $reportOverride,?ReceiptRepository $receiptOverride)
+    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride,?FinanceRepository $financeOverride,?CashRepository $cashOverride)
     {
         $config=new Config(require $root.'/config/app.php');
         $this->router=new Router();
@@ -82,19 +82,20 @@ final class Application
         // Cash and contributions share the same PDO factory and InnoDB transaction.
         $cash=$cashOverride ?? ($database ? new PdoCashRepository($database) : null);
         $financeController=new FinanceController($this->views,$csrf,$auth,$finance,$roles,$session,$cash);
-        $receiptRepo=$receiptOverride ?? ($database ? new PdoReceiptRepository($database) : null);
-        $reports=$reportOverride ?? ($database ? new PdoCashReportRepository($database) : null);
-        $receiptStorage=new ReceiptStorage($root.'/storage/receipts');
-        $cashController=new CashController($this->views,$csrf,$auth,$cash,$roles,$session,$receiptRepo);
-        $documents=new CashDocumentsController($this->views,$csrf,$auth,$reports,$receiptRepo,$receiptStorage,$roles,$session);
+        // Alpha.9 reuses the cash PDO factory and keeps private files in storage/.
+        $receiptRepository=$database ? new PdoReceiptRepository($database) : null;
+        $reportRepository=$database ? new PdoReportRepository($database) : null;
+        $cashController=new CashController($this->views,$csrf,$auth,$cash,$roles,$session,$receiptRepository);
+        $reportController=new CashReportController($this->views,$csrf,$auth,$reportRepository);
+        $receiptController=new ReceiptController($this->views,$csrf,$auth,$receiptRepository,$session,$root.'/storage/receipts');
         $installer=new InstallController($this->views,$csrf,new InstallationService($root));
         $register=require $root.'/routes/web.php';
-        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$financeController,$cashController,$documents,$auth,$roles,$csrf);
+        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$financeController,$cashController,$auth,$roles,$csrf,$reportController,$receiptController);
     }
 
-    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null,?FinanceRepository $finance=null,?CashRepository $cash=null,?CashReportRepository $reports=null,?ReceiptRepository $receipts=null): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null,?FinanceRepository $finance=null,?CashRepository $cash=null): self
     {
-        return new self($root,$users,$members,$places,$departments,$events,$news,$finance,$cash,$reports,$receipts);
+        return new self($root,$users,$members,$places,$departments,$events,$news,$finance,$cash);
     }
 
     public function handle(Request $request): Response

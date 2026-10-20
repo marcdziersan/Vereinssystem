@@ -73,8 +73,7 @@ Die Klassen `vs-finance-stats`, `vs-finance-grid`, `vs-finance-entry` und `vs-fi
 
 `.vs-cash-grid` stellt Konto- und Journal-Karten zunächst einspaltig dar. Ab 720 Pixeln werden maximal zwei Spalten verwendet. Formulare nutzen bestehende `.vs-field`, `.vs-input`, `.vs-select` und `.vs-button`-Bausteine. Es gibt keine externen CDN-, jQuery-Mobile- oder Bootstrap-Abhängigkeiten. Die gesamte Bedienung bleibt ohne JavaScript möglich.
 
-## alpha.9 – Mobile Jahresberichte und Belegauswahl
 
-- `resources/views/cash/reports.php` zeigt schmale, umbrechende Kennzahlenkarten für Jahresabschluss, Konto-, Monats- und Kategorieauswertung.
-- `resources/views/cash/index.php` bietet je Buchung ein einklappbares, tastaturzugängliches Dateiupload-Formular (`multipart/form-data`) und private Downloadlinks.
-- Berichte lassen sich als PDF oder CSV in separaten, rollenbeschränkten Endpunkten herunterladen. Es gibt keine externe CSS-/JS-Abhängigkeit.
+## alpha.9 – Berichte und Beleg-Uploads
+
+`reports/cash.php` verwendet bestehende `vs-card`-/`vs-cash-grid`-Komponenten, mobile Summenkarten und ein responsives Jahr-/Kontofilterformular. Die Kassenkarten besitzen pro Buchung eine aufklappbare Datei-Eingabe (`multipart/form-data`), dazu sichere Downloadlinks auf die ID-basierte, geschützte MVC-Route. Es werden weder externe CSS-Frameworks noch jQuery-Mobile-Bibliotheken eingebunden.

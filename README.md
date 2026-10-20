@@ -19,13 +19,13 @@ Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Alt
 | **Veranstaltungen und Aufgaben** | Termine mit frei definierbaren Aufgaben (Datum, Uhrzeit, Ort, Mitgliederauswahl); mehrfache Zuweisung; Konfliktprüfung |
 | **Nachrichten und Mitteilungen** | Veröffentlichte Vereinsmeldungen mit Rechtestufen, Suche, Bearbeitung durch Autoren/Administration, Archiv und Wiederherstellung |
 | **Kassenverwaltung** | Frei konfigurierbare Konten, Einnahmen, Ausgaben, Umbuchungen, Stornos, gemeinsame Beitragsbuchungen und mobile Kassenübersicht |
-| **Belege und Berichte** | Private PDF-/Bildbelege zu Kassenbuchungen, Jahresabschlüsse, Monats-/Kategorieauswertungen, CSV- und PDF-Export |
+| **Jahresbericht und Belege** | Konten- und Jahresauswertungen, vollständiger CSV-/PDF-Export und geschützter Datei-Anhang je Buchung |
 | **Beiträge und Finanzen** | Historische Beitragssätze, monatliche Sollstellung, Forderungen, Zahlungseingänge, Teilzahlungen, Guthaben, Rückstände und Stornierungen |
 | **MVC-Schichten** | `Models`, `Services`, `Repositories` und aktiv verwendete `Middleware` für Veranstaltungen, Aufgaben und Nachrichten |
 | **WAMP im Unterordner** | Root-`.htaccess` für Start ohne eigenen `public/`-DocumentRoot |
 | Frontend | Eigenes kommentiertes Mobile-First-UI-Kit, lokal bereitgestelltes jQuery optional |
 
-Die Beitrags- und Kassenbuchhaltung sind inzwischen miteinander verknüpft. Private Belegdateien werden ab alpha.9 geschützt gespeichert; automatischer Bankabgleich und SEPA folgen separat. Das Nachrichtensystem ist ein interner Vereins-Aushang, kein privater Chat. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
+Die Beitrags- und Kassenbuchhaltung sind inzwischen miteinander verknüpft. Private Belegdateien sind ab alpha.9 verfügbar; automatischer Bankabgleich folgt separat. Das Nachrichtensystem ist ein interner Vereins-Aushang, kein privater Chat. Die bisherigen Module bleiben ausschließlich auf `master` als Vorlage erhalten.
 
 ## Installation unter WAMP – ohne public als Standardverzeichnis
 
@@ -33,7 +33,7 @@ Die Beitrags- und Kassenbuchhaltung sind inzwischen miteinander verknüpft. Priv
 2. Apache `mod_rewrite` aktivieren und für diesen Ordner `AllowOverride All` zulassen.
 3. In phpMyAdmin eine **leere MySQL- oder MariaDB-Datenbank** mit einem Datenbanknutzer anlegen.
 4. Im Browser **`http://localhost/verein/`** öffnen. Die Root-`.htaccess` leitet intern in `public/` um.
-5. Den Installationsassistenten ausfüllen. Er richtet 16 Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`, `vs_forderungen`, `vs_zahlungen`, `vs_zuordnungen`, `vs_tarife`, `vs_konten`, `vs_kassenbuch`, `vs_audit`, `vs_kassenbelege`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
+5. Den Installationsassistenten ausfüllen. Er richtet 16 Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`, `vs_forderungen`, `vs_zahlungen`, `vs_zuordnungen`, `vs_tarife`, `vs_konten`, `vs_kassenbuch`, `vs_audit`, `vs_belege`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
 6. Danach über den Login anmelden. Die Datei `config/database.local.php` wird vom Installer automatisch erstellt und bleibt privat.
 
 Die Installerroute lautet `/install`, etwa `http://localhost/verein/?r=%2Finstall`. Eine separate `install.php` im Root ist nicht notwendig – sämtliche HTTP-Aufrufe laufen über den MVC-Front-Controller `public/index.php`.
@@ -74,9 +74,8 @@ Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.h
 - `/news/archived`: Archiv verwalten und Beiträge wiederherstellen (Administration).
 - `/finance`: persönliches Beitragskonto; Vorstands- und Administrationsrollen können über eine Mitglieds-ID fremde Konten verwalten.
 - `/finance/tariffs`: historische Monatstarife für Erwachsene, Kinder und Abteilungen (Administration).
-- `/cash`: Kassenkonten, Journal, Ein-/Ausgaben und Umbuchungen (Vorstand/Administration); Konten und Stornos nur Administration.
-- `/cash/reports`: Jahresabschluss, Kontenauswahl, Monats- und Kategorieauswertung. CSV und PDF über eigene geschützte Downloadrouten.
-- `/cash`: Beleg-Upload pro Buchung (PDF/JPEG/PNG/WebP bis 5 MiB); private Downloads nur nach Rollenprüfung. In WAMP muss PHP `fileinfo` sowie `file_uploads` unterstützen.
+- `/cash`: Kassenkonten, Journal, Ein-/Ausgaben, Umbuchungen und private Beleganhänge (Vorstand/Administration); Konten und Stornos nur Administration.
+- `/cash/report`: Jahresbericht mit Kontenfiltern und CSV-/PDF-Download (Vorstand/Administration).
 - `/finance`: Zahlungseingänge mit Kassenkonto, manuelle Forderungen, Sollstellung und Guthaben-Zuordnung (je nach Rolle).
 
 Alle Bearbeitungsaktionen sind serverseitig berechtigt und benötigen einen gültigen CSRF-Token. Deaktivierte Datensätze bleiben erhalten; Vorgänge der Mitgliedszuordnung verwenden transaktionale PDO-Abfragen.
@@ -94,8 +93,8 @@ app/
   News/             Nachrichten-Repositories und Validierungsfehler
   Finance/          Exakte Cent-Beträge und Repository-Schnittstellen
   Cash/             Kassen-Repository-Vertrag und InnoDB-Persistenz
-  Reports/          Jahresabschluss, CSV-/PDF-Ausgabe und Berichtsdatenbankzugriffe
-  Receipts/         Private Belegspeicherung und Metadaten-Repositories
+  Reports/          Jahresbericht-Repository und eigener PDF-Writer
+  Receipts/         Private Beleg-Metadaten via PDO
   Services/FinanceService.php  Beitragsregeln und Validierung
   Services/CashService.php     Kassenregeln und Validierung
   Core/             MVC-Kernel, Datenbank, Routing, Session, View
@@ -120,6 +119,7 @@ Intern bleibt die MySQL-Datenstruktur der früheren Vereinsverwaltung kompatibel
 
 ## Dokumentation
 
+- [Jahresberichte, PDF/CSV, private Belege und Sicherheit](docs/REPORTS_RECEIPTS.md)
 - [Kassenbuch: Konten, Buchungen, Umbuchungen und Beitragsverknüpfung](docs/CASHBOOK.md)
 - [Beitragsbuchhaltung](docs/FINANCE.md)
 - [Nachrichten, Rollen, Archiv und Migration](docs/NEWS.md)
@@ -154,3 +154,12 @@ Details zu Datenmodell, Buchungsfällen und Transaktionen stehen in [`docs/FINAN
 - **Rechte:** Ab Vorstand ist die Kasse einseh- und bebuchbar; Kontenverwaltung und Stornos sind der Administration vorbehalten.
 
 Details: [`docs/CASHBOOK.md`](docs/CASHBOOK.md).
+
+## Kassenberichte und Belege (alpha.9)
+
+- **Berichte:** Jährliche Ein-/Ausgaben, Anfangs-/Endbestände und Umbuchungen je Konto; auch inaktive Konten und stornierte Datensätze in der Historie.
+- **Exporte:** Vollständige CSV- und PDF-Kassenberichte (alle Buchungen des Jahres, ohne die 300-Zeilen-Grenze des Journals).
+- **Belege:** PDF, JPEG, PNG und WebP bis 8 MiB an vorhandene Buchungen anhängen; private Ablage in `storage/receipts/`, Downloads nur mit Anmeldung und Kassenrecht.
+- **Upgrade:** Nach einem Backup auf vorhandenen alpha.8-Datenbanken einmal `php bin/migrate-receipts.php` ausführen. Der Browser-Installer richtet bei Neuinstallationen jetzt 16 Tabellen ein.
+
+Details zu Berechnungen, Sicherheit, Backup und Routen: [`docs/REPORTS_RECEIPTS.md`](docs/REPORTS_RECEIPTS.md).

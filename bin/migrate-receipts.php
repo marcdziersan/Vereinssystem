@@ -1,17 +1,22 @@
 <?php
-/** Repeatable additive alpha.9 migration. Run once after deploying the new files. */
+/**
+ * CLI-only additive receipt metadata migration. Existing master 2.x rows are preserved.
+ * Each bundled CREATE TABLE IF NOT EXISTS statement is executed exactly once.
+ */
 declare(strict_types=1);
-if(PHP_SAPI!=='cli'){http_response_code(403);exit;}
+if(PHP_SAPI!=='cli'){http_response_code(403);exit('Nur CLI.');}
 require dirname(__DIR__).'/bootstrap.php';
 $root=dirname(__DIR__);
 try{
-    if(!is_file($root.'/config/database.local.php'))throw new \RuntimeException('Datenbankkonfiguration fehlt.');
-    $settings=require $root.'/config/database.local.php';
-    if(!is_array($settings))throw new \RuntimeException('Ungültige Konfiguration.');
-    $pdo=(new \Vereinssystem\Core\Database($settings))->connection();
-    $sql=file_get_contents($root.'/database/migrations/007_receipts.sql');
-    if(!is_string($sql)||!preg_match('/CREATE TABLE IF NOT EXISTS.*?ENGINE=InnoDB[^;]*;/si',$sql,$matches))
-        throw new \RuntimeException('Belegschema fehlt.');
-    $pdo->exec($matches[0]);
-    echo "Belegverwaltung aktiviert. Bestehende Kassenbuchungen unverändert.\n";
-}catch(\Throwable $e){error_log('[MVC/receipt migration] '.$e->getMessage());fwrite(STDERR,"Belegmigration fehlgeschlagen. Fehlerlog prüfen.\n");exit(1);}
+    $file=$root.'/config/database.local.php';
+    if(!is_file($file))throw new RuntimeException('Datenbankkonfiguration fehlt.');
+    $settings=require $file;
+    if(!is_array($settings))throw new RuntimeException('Ungültige Datenbankkonfiguration.');
+    $pdo=(new Vereinssystem\Core\Database($settings))->connection();
+    $schema=file_get_contents($root.'/database/migrations/007_cash_receipts.sql');
+    if(!is_string($schema))throw new RuntimeException('Belegschema fehlt.');
+    preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`[^`]+`\s*\(.*?\)\s*ENGINE=InnoDB[^;]*;/si',$schema,$m);
+    if(count($m[0])!==1)throw new RuntimeException('Eine Belegtabelle erwartet.');
+    foreach($m[0] as $statement)$pdo->exec($statement);
+    echo "Belegverwaltung bereit; vorhandene Buchungen und Belege bleiben erhalten.\n";
+}catch(Throwable $e){error_log('[MVC/receipt migration] '.$e->getMessage());fwrite(STDERR,"Belegmigration fehlgeschlagen. Fehlerlog prüfen.\n");exit(1);}

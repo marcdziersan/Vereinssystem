@@ -1,4 +1,4 @@
-# Kassenverwaltung – MVC 3.0.0-alpha.9
+# Kassenverwaltung – MVC 3.0.0-alpha.8
 
 ## Ziel und Architektur
 
@@ -54,9 +54,9 @@ Alle Änderungen erfolgen ausschließlich mit `POST` und gültigem CSRF-Token. D
 | `vs_kassenbuch` | Journal mit Beitragslink, Umbuchungsschlüssel und Stornofeldern |
 | `vs_audit` | unveränderliches Aktionsprotokoll durch INSERTs |
 
-Die Spalten und Indizes entsprechen dem Stand von `master` 2.4.0, sodass die Migration vorhandene Konten und Buchungen **nicht überschreibt**. Ab alpha.9 werden private Kassenbelege in der zusätzlichen Tabelle `vs_kassenbelege` geführt, die Binärdateien liegen ausschließlich unter `storage/receipts`. Details: `docs/RECEIPTS_REPORTS.md`. Banking-/CSV-Import und SEPA bleiben eigenständige künftige Module. Es kann bereits eine Belegnummer als Text erfasst werden.
+Die Spalten und Indizes entsprechen dem Stand von `master` 2.4.0, sodass die Migration vorhandene Konten und Buchungen **nicht überschreibt**. `vs_belege` und CSV-/PDF-Kassenberichte sind **seit alpha.9** in separaten MVC-Modulen verfügbar; Banking-Import und SEPA bleiben offen. Es kann bereits eine Belegnummer als Text erfasst werden.
 
-Eine neue Installation unter `http://localhost/verein/` richtet seit alpha.9 **16 Tabellen** ein. Bei bestehenden alpha.7-Installationen: Dateien einspielen, Datenbank sichern, danach im WAMP-PHP-Terminal ausführen:
+Eine neue Installation unter `http://localhost/verein/` richtet 15 Tabellen ein. Bei bestehenden alpha.7-Installationen: Dateien einspielen, Datenbank sichern, danach im WAMP-PHP-Terminal ausführen:
 
 ```sh
 php bin/migrate-cash.php
