@@ -65,8 +65,9 @@ final class FakeAccounts implements UserRepository
     public function byId(int $id): ?User
     {
         $m=$this->members->byId($id);
+        static $hash=null;$hash??=password_hash('password-password-123',PASSWORD_DEFAULT);
         return $m?new User($m->id,$m->username,$m->number,$m->firstName,$m->lastName,
-            password_hash('password-password-123',PASSWORD_DEFAULT),$m->rights,$m->status):null;
+            $hash,$m->rights,$m->status):null;
     }
     public function byIdentifier(string $identifier):?User
     {foreach($this->members->items as $m)if($m->username===$identifier)return $this->byId($m->id);return null;}

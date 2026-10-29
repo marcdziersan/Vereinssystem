@@ -31,7 +31,7 @@ final class TestDepartmentStore implements DepartmentRepository
 }
 final class TestAuthUsers4 implements UserRepository
 {
-    public function byId(int $id):?User{return $id===1?new User(1,'admin','A1','Admin','Person',password_hash('sample-password',PASSWORD_DEFAULT),5,1):null;}
+    public function byId(int $id):?User{static $hash=null;$hash??=password_hash('sample-password',PASSWORD_DEFAULT);return $id===1?new User(1,'admin','A1','Admin','Person',$hash,5,1):null;}
     public function byIdentifier(string $identifier):?User{return $identifier==='admin'?$this->byId(1):null;}
     public function accessList(int $limit=100):array{return [$this->byId(1)];}
     public function setRights(int $id,int $level):bool{return false;}

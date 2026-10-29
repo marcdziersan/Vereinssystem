@@ -15,7 +15,7 @@ Dies ist das **erste Fachpaket aus dem Alpha-10-Plan**. Die übrigen geplanten P
 ## Abgrenzungen
 
 - E-Mail-Adresse ist Kontaktinformation, kein neu eingeführter Login-Kanal; Login über Benutzernamen/Mitgliedsnummer bleibt unverändert.
-- Andere aktive Sitzungen werden noch nicht serverweit invalidiert; dafür wäre ein zusätzlicher Sitzungs-/Passwortversionierungsmechanismus nötig.
+- Andere aktive Sitzungen, deren Passwort-Fingerprint bereits gespeichert wurde, verlieren nach Passwortwechsel bei der nächsten Anfrage den Zugriff. Bereits vor Einführung der Fingerprint-Prüfung bestehende, noch nicht überprüfte Sitzungen können damit nicht rückwirkend sicher widerrufen werden; dafür wäre ein zusätzliches serverseitiges Sitzungs-/Passwortversionsmodell nötig.
 - Keine E-Mail-Verifikation, Zwei-Faktor-Authentifizierung oder automatische Benachrichtigung in diesem Paket.
 - Für produktive Abnahme sind weiterhin die Stabilisierungsschritte 9.1–9.8 aus `docs/CONSISTENCY_AND_PACKAGE_PLAN.md` und reale WAMP-/MySQL-Tests erforderlich.
 

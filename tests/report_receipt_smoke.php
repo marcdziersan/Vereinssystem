@@ -68,7 +68,7 @@ final class FakeReceiptRepo9 implements ReceiptRepository
     public function byId(int $id):?Receipt{return $id===1?$this->one:null;}
     public function add(int $entryId,string $name,string $stored,string $mime,int $size,string $hash,int $actor):int{return 1;}
 }
-$rRepo=new FakeReceiptRepo9();$dir=sys_get_temp_dir().'/vs_receipt_test_'.bin2hex(random_bytes(5));mkdir($dir,0700);
+$rRepo=new FakeReceiptRepo9();$dir=dirname(__DIR__).'/storage/receipts/vs_receipt_test_'.bin2hex(random_bytes(5));mkdir($dir,0700);
 $rSvc=new ReceiptService($rRepo,$dir);
 yes9(ReceiptService::safeFilename('C:\\users\\Beleg.pdf')==='Beleg.pdf','No client paths used');
 yes9(fails9(fn()=>ReceiptService::safeFilename('../')),'Empty/relative name rejected');

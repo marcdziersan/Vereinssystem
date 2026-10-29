@@ -121,7 +121,8 @@ final class SampleUsers implements UserRepository
     public function byId(int $id): ?User
     {
         if(!in_array($id,[1,2],true))return null;
-        return new User($id,'test'.$id,'T-'.$id,'Test','Konto',password_hash('testpassword123456',PASSWORD_DEFAULT),$id===1?5:1,1);
+        static $hash=null;$hash??=password_hash('testpassword123456',PASSWORD_DEFAULT);
+        return new User($id,'test'.$id,'T-'.$id,'Test','Konto',$hash,$id===1?5:1,1);
     }
     public function byIdentifier(string $identifier): ?User {return $this->byId(1);}
     public function accessList(int $limit=100): array {return [$this->byId(1),$this->byId(2)];}

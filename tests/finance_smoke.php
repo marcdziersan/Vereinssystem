@@ -71,7 +71,7 @@ final class FakeLedger implements FinanceRepository
 }
 final class FakeAccounts implements UserRepository
 {
-    public function byId(int $id):?User{return match($id){1,2,3=>new User($id,'user'.$id,'M'.$id,'Max','Testmann',password_hash('secret123456789',PASSWORD_DEFAULT),match($id){1=>5,2=>4,3=>1},1),default=>null};}
+    public function byId(int $id):?User{static $hash=null;$hash??=password_hash('secret123456789',PASSWORD_DEFAULT);return match($id){1,2,3=>new User($id,'user'.$id,'M'.$id,'Max','Testmann',$hash,match($id){1=>5,2=>4,3=>1},1),default=>null};}
     public function byIdentifier(string $value):?User{return $this->byId(1);}
     public function accessList(int $limit=100):array{return [$this->byId(1)];}
     public function setRights(int $id,int $level):bool{return false;}

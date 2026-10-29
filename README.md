@@ -68,7 +68,7 @@ Das nachträgliche Paket enthält Schema-Vorprüfung, erweiterte Route-Middlewar
 
 ## Alpha 10 – geplanter Ausbau
 
-**In diesem Entwicklungsstand ist ausschließlich Paket 10.1 umgesetzt.** Die restlichen Pakete 10.2–10.6 und die technische Abnahme der Alpha 9 stehen noch aus. Änderungen liegen auf einem eigenen Entwicklungsbranch, `master` bleibt unangetastet. Details: [`docs/ALPHA10_ACCOUNT.md`](docs/ALPHA10_ACCOUNT.md).
+**In diesem Entwicklungsstand ist ausschließlich Paket 10.1 umgesetzt.** Die restlichen Pakete 10.2–10.6 und die technische Abnahme der Alpha 9 stehen noch aus. Die Entwicklung liegt ausschließlich auf `refactor/mvc-architecture`; `master` bleibt unangetastet. Details: [`docs/ALPHA10_ACCOUNT.md`](docs/ALPHA10_ACCOUNT.md).
 
 ## Bedienung
 
