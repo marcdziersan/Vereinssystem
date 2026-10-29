@@ -1,4 +1,4 @@
-# MVC-Architektur – 3.0.0-alpha.6
+# MVC-Architektur – 3.0.0-alpha.10.1 (Nachhärtung von alpha.9)
 
 ## Schichten und Abhängigkeiten
 
@@ -16,7 +16,7 @@ Die Verträge erlauben es, für die Entwicklungschecks ein Fake-Repository einzu
 
 `config/app.php` enthält keine Geheimnisse. `config/database.local.php` ist die private lokale Konfiguration und wird nicht versioniert. Die PDO-Verbindung entsteht erst beim ersten Datenbankzugriff (lazy connection) mit Fehlerausnahmen, `utf8mb4` und nativen Prepared Statements.
 
-Der Webroot ist ausschließlich `public/`. Sessions und Login-Versuchsdateien liegen geschützt auf dem Server. Formulare erfordern CSRF-Prüfung. Zugriffsschutz wird im Controller geprüft, nicht allein durch verborgene Navigation.
+Der Webroot ist ausschließlich `public/`. Sessions und Login-Versuchsdateien liegen geschützt auf dem Server. Formulare erfordern CSRF-Prüfung. Zugriffsschutz erfolgt in Route-Middleware (Authentifizierung, Rechte, CSRF) und ergänzend in Controllern bei objektbezogenen Freigaben.
 
 ## Datenmodell
 
@@ -26,7 +26,7 @@ Alpha.3 verwendet für Anmeldung und Mitgliederverwaltung jeweils sorgfältig au
 
 CSS-Komponenten mit `vs-`-Prefix, zentrales Token-System, progressive Verbesserungen durch Vanilla-JavaScript. Das ursprüngliche Vereinslogo bleibt enthalten. jQuery ist optional verfügbar, jQuery Mobile und Bootstrap sind nicht nötig.
 
-## Nächster Meilenstein
+## Historischer Meilenstein
 
 Abteilungen und Orts-/Adressverwaltung als eigenständige MVC-Fachmodule. Die abgeschlossenen Dashboard- und Mitgliederfunktionen bleiben dabei unverändert integriert.
 
@@ -102,3 +102,13 @@ Berechtigungen und CSRF werden für alle neuen Kassenrouten in der Middleware ge
 ## alpha.9 – Reports und sichere Belegdateien
 
 Getrennte MVC-Schichten in `app/Models/CashReport.php`, `app/Reports/*`, `app/Services/ReportService.php`, `app/Controllers/CashReportController.php` sowie `app/Models/Receipt.php`, `app/Receipts/*`, `app/Services/ReceiptService.php` und `app/Controllers/ReceiptController.php`. Alle Controller sind an Rollen-Middleware gebunden, Uploads zusätzlich an CSRF. Der PDF-Generator `PdfWriter` ist von PDO unabhängig. Der Cache für das 300-zeilige Kassenjournal spielt für Jahresberichte keine Rolle. Ein Beleg besteht aus einer Datenbank-Metazeile und einer Datei unter `storage/receipts/`; Datenbank und Dateispeicher müssen gemeinsam gesichert werden.
+
+## Alpha-9-Härtung / Alpha 10.1
+
+Die Altrouten aus Alpha 2–4 verwenden nun dieselbe Auth-/Rechte-/CSRF-Middleware wie neuere Module. Die selbst sichtbare Mitgliederprofilroute verwendet das niedrigere Routenrecht `members.self`; die eigentliche Eigentums- und Mitarbeitendenprüfung verbleibt im Controller.
+
+`Install/SchemaInspector.php` vergleicht bestehende Tabellen mit den sieben SQL-Migrationsdateien und verweigert bei Abweichungen eine unbemerkte Einrichtung. `bin/schema-check.php` verändert selbst keine Daten.
+
+`Receipts/StoragePolicy.php` erzwingt einen realen Speicherort unter `storage/` (nicht im Webroot, keine Symlinks). Weitere Freigabebedingungen: [ALPHA9_HARDENING.md](ALPHA9_HARDENING.md).
+
+Die Kontopflege aus Alpha 10.1 arbeitet unabhängig von der Mitgliederdomäne in `app/Accounts`. Sie überprüft das bisherige Passwort bei jeder Änderung und erneuert nach Passwortwechsel die Sitzung. Die Authentifizierung bindet Sessions an den beobachteten Passwort-Hash, um ältere angemeldete Sitzungen nach Passwortwechsel zu widerrufen.

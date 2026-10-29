@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+### Nachhärtung Alpha 9 auf dem MVC-Branch
+
+- SchemaInspector (Spalten, Datentypen, Indizes, InnoDB), vor und nach der Neuinstallation; CLI-Schemaabgleich ohne Datenänderung.
+- Middleware-Abdeckung der älteren MVC-GET/POST-Routen vereinheitlicht, objektbezogene Prüfungen verbleiben im Controller.
+- Privaten Belegspeicher gegen Symlink- und Webroot-Verwechslungen abgesichert.
+- Passwortwechsel widerruft andere bereits gebundene Login-Sitzungen.
+- Offline-Lint-/Dateihash-Prüfung und ausführliche Restabnahmematrix ergänzt. Produktive WAMP-/MySQL-Prüfungen bleiben ausstehend.
+
+
 ## 3.0.0-alpha.10.1 – Kontopflege (Entwicklungsphase)
 
 - Neuer separater MVC-Account-Service mit PDO-Repository, Validierung, Profilpflege und Passwortwechsel.

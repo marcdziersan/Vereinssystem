@@ -68,6 +68,8 @@ final class SelfServiceController extends Controller
             // Invalidate the old session ID and CSRF secret after credential rotation.
             $this->session->regenerate();
             $this->session->forget('_vs_csrf');
+            // The current session will register the new password fingerprint.
+            $this->session->forget('mvc_auth_fingerprints');
             $this->notify('success', 'Passwort wurde geändert.');
         } catch (DomainException $exception) {
             $this->notify('error', $exception->getMessage());

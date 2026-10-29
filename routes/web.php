@@ -24,13 +24,13 @@ return static function (
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
     $router->add('GET', '/install', [$install, 'form']);
-    $router->add('POST', '/install', [$install, 'submit']);
+    $router->add('POST', '/install', Stack::wrap([$install, 'submit'], new VerifyCsrf($csrf)));
     $router->add('GET', '/status', [$kernel, 'status']);
     $router->add('GET', '/login', [$auth, 'form']);
-    $router->add('POST', '/login', [$auth, 'authenticate']);
-    $router->add('POST', '/logout', [$auth, 'logout']);
-    $router->add('GET', '/dashboard', [$dashboard, 'index']);
-    $router->add('GET', '/account', [$access, 'account']);
+    $router->add('POST', '/login', Stack::wrap([$auth, 'authenticate'], new VerifyCsrf($csrf)));
+    $router->add('POST', '/logout', Stack::wrap([$auth, 'logout'], new VerifyCsrf($csrf)));
+    $router->add('GET', '/dashboard', Stack::wrap([$dashboard, 'index'], new Authenticated($authService), new Permission($authService, $roles, 'dashboard.view')));
+    $router->add('GET', '/account', Stack::wrap([$access, 'account'], new Authenticated($authService), new Permission($authService, $roles, 'account.view')));
     // Alpha 10.1: self-service only, with explicit auth/permission/CSRF guards.
     $router->add('GET', '/account/settings', Stack::wrap([$selfService, 'form'],
         new Authenticated($authService), new Permission($authService, $roles, 'account.profile')));
@@ -40,33 +40,33 @@ return static function (
     $router->add('POST', '/account/settings/password', Stack::wrap([$selfService, 'password'],
         new Authenticated($authService), new Permission($authService, $roles, 'account.password'),
         new VerifyCsrf($csrf)));
-    $router->add('GET', '/rights', [$access, 'matrix']);
-    $router->add('GET', '/admin/roles', [$access, 'manage']);
+    $router->add('GET', '/rights', Stack::wrap([$access, 'matrix'], new Authenticated($authService), new Permission($authService, $roles, 'rights.view')));
+    $router->add('GET', '/admin/roles', Stack::wrap([$access, 'manage'], new Authenticated($authService), new Permission($authService, $roles, 'rights.assign')));
     $router->add('POST', '/admin/roles', [$access, 'change']);
-    $router->add('GET', '/members', [$members, 'index']);
-    $router->add('GET', '/members/view', [$members, 'show']);
-    $router->add('GET', '/members/create', [$members, 'create']);
-    $router->add('POST', '/members/store', [$members, 'store']);
-    $router->add('GET', '/members/edit', [$members, 'edit']);
-    $router->add('POST', '/members/update', [$members, 'update']);
-    $router->add('POST', '/members/status', [$members, 'status']);
+    $router->add('GET', '/members', Stack::wrap([$members, 'index'], new Authenticated($authService), new Permission($authService, $roles, 'members.list')));
+    $router->add('GET', '/members/view', Stack::wrap([$members, 'show'], new Authenticated($authService), new Permission($authService, $roles, 'members.self')));
+    $router->add('GET', '/members/create', Stack::wrap([$members, 'create'], new Authenticated($authService), new Permission($authService, $roles, 'members.create')));
+    $router->add('POST', '/members/store', Stack::wrap([$members, 'store'], new Authenticated($authService), new Permission($authService, $roles, 'members.create'), new VerifyCsrf($csrf)));
+    $router->add('GET', '/members/edit', Stack::wrap([$members, 'edit'], new Authenticated($authService), new Permission($authService, $roles, 'members.edit')));
+    $router->add('POST', '/members/update', Stack::wrap([$members, 'update'], new Authenticated($authService), new Permission($authService, $roles, 'members.edit'), new VerifyCsrf($csrf)));
+    $router->add('POST', '/members/status', Stack::wrap([$members, 'status'], new Authenticated($authService), new Permission($authService, $roles, 'members.status'), new VerifyCsrf($csrf)));
     // Addresses / event venues (MVC alpha.4)
-    $router->add('GET', '/places', [$places,'index']);
-    $router->add('GET', '/places/create', [$places,'create']);
-    $router->add('GET', '/places/edit', [$places,'edit']);
-    $router->add('POST', '/places/store', [$places,'save']);
-    $router->add('POST', '/places/update', [$places,'save']);
-    $router->add('POST', '/places/status', [$places,'status']);
+    $router->add('GET', '/places', Stack::wrap([$places, 'index'], new Authenticated($authService), new Permission($authService, $roles, 'places.list')));
+    $router->add('GET', '/places/create', Stack::wrap([$places, 'create'], new Authenticated($authService), new Permission($authService, $roles, 'places.create')));
+    $router->add('GET', '/places/edit', Stack::wrap([$places, 'edit'], new Authenticated($authService), new Permission($authService, $roles, 'places.edit')));
+    $router->add('POST', '/places/store', Stack::wrap([$places, 'save'], new Authenticated($authService), new Permission($authService, $roles, 'places.create'), new VerifyCsrf($csrf)));
+    $router->add('POST', '/places/update', Stack::wrap([$places, 'save'], new Authenticated($authService), new Permission($authService, $roles, 'places.edit'), new VerifyCsrf($csrf)));
+    $router->add('POST', '/places/status', Stack::wrap([$places, 'status'], new Authenticated($authService), new Permission($authService, $roles, 'places.status'), new VerifyCsrf($csrf)));
     // Departments and membership relationships (MVC alpha.4)
-    $router->add('GET', '/departments', [$departments,'index']);
-    $router->add('GET', '/departments/view', [$departments,'show']);
-    $router->add('GET', '/departments/create', [$departments,'create']);
-    $router->add('GET', '/departments/edit', [$departments,'edit']);
-    $router->add('POST', '/departments/store', [$departments,'save']);
-    $router->add('POST', '/departments/update', [$departments,'save']);
-    $router->add('POST', '/departments/assign', [$departments,'assign']);
-    $router->add('POST', '/departments/remove', [$departments,'remove']);
-    $router->add('POST', '/departments/status', [$departments,'status']);
+    $router->add('GET', '/departments', Stack::wrap([$departments, 'index'], new Authenticated($authService), new Permission($authService, $roles, 'departments.list')));
+    $router->add('GET', '/departments/view', Stack::wrap([$departments, 'show'], new Authenticated($authService), new Permission($authService, $roles, 'departments.view')));
+    $router->add('GET', '/departments/create', Stack::wrap([$departments, 'create'], new Authenticated($authService), new Permission($authService, $roles, 'departments.create')));
+    $router->add('GET', '/departments/edit', Stack::wrap([$departments, 'edit'], new Authenticated($authService), new Permission($authService, $roles, 'departments.edit')));
+    $router->add('POST', '/departments/store', Stack::wrap([$departments, 'save'], new Authenticated($authService), new Permission($authService, $roles, 'departments.create'), new VerifyCsrf($csrf)));
+    $router->add('POST', '/departments/update', Stack::wrap([$departments, 'save'], new Authenticated($authService), new Permission($authService, $roles, 'departments.edit'), new VerifyCsrf($csrf)));
+    $router->add('POST', '/departments/assign', Stack::wrap([$departments, 'assign'], new Authenticated($authService), new Permission($authService, $roles, 'departments.assign'), new VerifyCsrf($csrf)));
+    $router->add('POST', '/departments/remove', Stack::wrap([$departments, 'remove'], new Authenticated($authService), new Permission($authService, $roles, 'departments.assign'), new VerifyCsrf($csrf)));
+    $router->add('POST', '/departments/status', Stack::wrap([$departments, 'status'], new Authenticated($authService), new Permission($authService, $roles, 'departments.status'), new VerifyCsrf($csrf)));
     // Alpha.5: Events/tasks are registered with explicit composable middleware.
     // Authenticated -> permission -> CSRF for each POST. No legacy endpoints.
     $eventRoutes = [

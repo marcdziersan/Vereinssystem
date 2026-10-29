@@ -62,6 +62,10 @@ php -S 127.0.0.1:8080 -t public public/router.php
 
 Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.htaccess`.
 
+## Alpha 9 – Nachhärtung
+
+Das nachträgliche Paket enthält Schema-Vorprüfung, erweiterte Route-Middleware, privaten Belegspeicherschutz sowie CLI-Prüfprogramme. Technische Nachweise und **noch offene Abnahmen auf echtem WAMP/MySQL**: [`docs/ALPHA9_HARDENING.md`](docs/ALPHA9_HARDENING.md). Eine automatische Migration abweichender Legacy-Tabellen findet nicht statt.
+
 ## Alpha 10 – geplanter Ausbau
 
 **In diesem Entwicklungsstand ist ausschließlich Paket 10.1 umgesetzt.** Die restlichen Pakete 10.2–10.6 und die technische Abnahme der Alpha 9 stehen noch aus. Änderungen liegen auf einem eigenen Entwicklungsbranch, `master` bleibt unangetastet. Details: [`docs/ALPHA10_ACCOUNT.md`](docs/ALPHA10_ACCOUNT.md).

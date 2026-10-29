@@ -34,6 +34,10 @@ final class InstallationService
 
         $config=['host'=>$host,'port'=>$port,'database'=>$database,'username'=>$username,'password'=>$password];
         $pdo=(new Database($config))->connection();
+        $inspector=new SchemaInspector($this->root);
+        // Verify every existing table BEFORE creating more schema objects.
+        $preflight=$inspector->inspect($pdo,false);
+        if($preflight['errors'])throw new \DomainException('Vorhandenes Datenbankschema weicht ab: '.SchemaInspector::summary($preflight['errors']));
         // Run only known, bundled CREATE TABLE IF NOT EXISTS statements, without accepting SQL from HTTP.
         foreach(['001_members_auth.sql','002_departments_places.sql','003_events_tasks.sql','004_news.sql','005_finance.sql','006_cash.sql','007_cash_receipts.sql'] as $file) {
             $schema=file_get_contents($this->root.'/database/migrations/'.$file);
@@ -42,7 +46,14 @@ final class InstallationService
             if(count($statements[0])!==match($file){'001_members_auth.sql'=>1,'002_departments_places.sql'=>3,'003_events_tasks.sql'=>3,'004_news.sql'=>1,'005_finance.sql'=>4,'006_cash.sql'=>3,'007_cash_receipts.sql'=>1})throw new \RuntimeException('Installationsschema unvollständig.');
             foreach($statements[0] as $sql)$pdo->exec($sql);
         }
+        // DDL cannot be rolled back reliably in MySQL. Fail closed before saving credentials.
+        $postflight=$inspector->inspect($pdo,true);
+        if($postflight['errors'])throw new \DomainException('Installationsschema unvollständig: '.SchemaInspector::summary($postflight['errors']));
         $count=(int)$pdo->query('SELECT COUNT(*) FROM mitglieder')->fetchColumn();
+        if($count>0){
+            $admins=(int)$pdo->query('SELECT COUNT(*) FROM mitglieder WHERE rights=5 AND status=1')->fetchColumn();
+            if($admins<1)throw new \DomainException('Bestehende Mitgliederdaten ohne aktiven Administrator; Zugang manuell prüfen, keine Konfiguration geschrieben.');
+        }
         if($count===0){
             // No second administrator is created on existing VereinsSystem data.
             $record=[

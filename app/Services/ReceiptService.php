@@ -11,7 +11,7 @@ declare(strict_types=1);
 namespace Vereinssystem\Services;
 
 use Vereinssystem\Models\Receipt;
-use Vereinssystem\Receipts\ReceiptRepository;
+use Vereinssystem\Receipts\{ReceiptRepository,StoragePolicy};
 
 final class ReceiptService
 {
@@ -52,8 +52,7 @@ final class ReceiptService
         $r=$this->repository->byId($id);
         if(!$r)throw new \DomainException('Beleg nicht gefunden.');
         if(!preg_match('/^[a-f0-9]{64}$/D',$r->storageName))throw new \RuntimeException('Ungültige Belegreferenz.');
-        $root=realpath($this->directory);
-        if(!$root||!is_dir($root))throw new \RuntimeException('Belegverzeichnis fehlt.');
+        $root=StoragePolicy::verify($this->directory);
         $candidate=$root.'/'.$r->storageName;
         $file=realpath($candidate);
         if($file===false||dirname($file)!==$root||!is_file($file)||is_link($candidate))
@@ -91,8 +90,7 @@ final class ReceiptService
         if(!is_dir($this->directory)&&!mkdir($this->directory,0700,true)&&!is_dir($this->directory))
             throw new \RuntimeException('Belegverzeichnis nicht beschreibbar.');
         // Root .htaccess already protects /storage; enforce protection inside too.
-        $root=realpath($this->directory);
-        if($root===false||!is_writable($root))throw new \RuntimeException('Belegverzeichnis nicht beschreibbar.');
+        $root=StoragePolicy::verify($this->directory);
         if(!is_file($root.'/.htaccess')){
             $ok=@file_put_contents($root.'/.htaccess',"Options -Indexes\nRequire all denied\n",LOCK_EX);
             if($ok===false)throw new \RuntimeException('Belegschutz nicht verfügbar.');

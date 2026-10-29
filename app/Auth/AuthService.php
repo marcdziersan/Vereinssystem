@@ -24,6 +24,19 @@ final class AuthService
             $this->session->forget('mvc_uid');
             return null;
         }
+        // Existing sessions are bound to the password hash observed at their first
+        // authenticated request. A password change invalidates OTHER active sessions.
+        $fingerprints=$this->session->get('mvc_auth_fingerprints',[]);
+        if(!is_array($fingerprints))$fingerprints=[];
+        $expected=hash('sha256',$user->passwordHash);
+        if(isset($fingerprints[$user->id]) && (!is_string($fingerprints[$user->id]) || !hash_equals($fingerprints[$user->id],$expected))){
+            $this->session->forget('mvc_uid');
+            return null;
+        }
+        if(!isset($fingerprints[$user->id])){
+            $fingerprints[$user->id]=$expected;
+            $this->session->set('mvc_auth_fingerprints',$fingerprints);
+        }
         return $user;
     }
 
@@ -52,6 +65,9 @@ final class AuthService
         $this->session->regenerate();
         $this->session->forget('_vs_csrf');
         $this->session->set('mvc_uid', $user->id);
+        // Refresh the stamp after a successful MD5-to-password_hash migration.
+        $fresh=$this->users->byId($user->id);
+        $this->session->set('mvc_auth_fingerprints',[$user->id=>hash('sha256',($fresh??$user)->passwordHash)]);
         $this->users->recordLogin($user->id, $ip);
         $this->limiter->success($ip);
         return true;
