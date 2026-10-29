@@ -42,7 +42,7 @@ return static function (
         new VerifyCsrf($csrf)));
     $router->add('GET', '/rights', Stack::wrap([$access, 'matrix'], new Authenticated($authService), new Permission($authService, $roles, 'rights.view')));
     $router->add('GET', '/admin/roles', Stack::wrap([$access, 'manage'], new Authenticated($authService), new Permission($authService, $roles, 'rights.assign')));
-    $router->add('POST', '/admin/roles', [$access, 'change']);
+    $router->add('POST', '/admin/roles', Stack::wrap([$access, 'change'], new Authenticated($authService), new Permission($authService, $roles, 'rights.assign'), new VerifyCsrf($csrf)));
     $router->add('GET', '/members', Stack::wrap([$members, 'index'], new Authenticated($authService), new Permission($authService, $roles, 'members.list')));
     $router->add('GET', '/members/view', Stack::wrap([$members, 'show'], new Authenticated($authService), new Permission($authService, $roles, 'members.self')));
     $router->add('GET', '/members/create', Stack::wrap([$members, 'create'], new Authenticated($authService), new Permission($authService, $roles, 'members.create')));
