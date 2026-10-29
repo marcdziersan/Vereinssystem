@@ -16,3 +16,4 @@ Thumbs.db
 .vscode/
 /vendor/
 /node_modules/
+/release-manifest.json

@@ -34,7 +34,7 @@ php tests/account_smoke.php
 php bin/schema-check.php
 ```
 
-`release-manifest.json` enthält bewusst keine lokalen Geheimnisse oder privaten Belege; das Manifest sollte **nicht** zum Projekt veröffentlicht werden, wenn es lokal erzeugt wird. Vor jeder Änderung an einer bestehenden Datenbank zuerst SQL-Dump und `storage/receipts/` gemeinsam sichern. Das Prüfskript `schema-check.php` ist ausschließlich lesend. Ist das Schema nicht kompatibel, bricht der Installer kontrolliert ab. Es wird keine automatische 2.4.0-Datenmigration behauptet.
+`release-manifest.json` enthält bewusst keine lokalen Geheimnisse oder privaten Belege; das Manifest sollte **nicht** zum Projekt veröffentlicht werden, wenn es lokal erzeugt wird. Vor jeder Änderung an einer bestehenden Datenbank zuerst SQL-Dump und `storage/receipts/` gemeinsam sichern. Das Prüfskript `schema-check.php` ist ausschließlich lesend. Die sechs fachlichen CLI-Migrationen prüfen bestehende Tabellen vor und nach additiven CREATEs und brechen bei Abweichungen ab. Ist das Schema nicht kompatibel, bricht der Installer kontrolliert ab. Es wird keine automatische 2.4.0-Datenmigration behauptet.
 
 ## Offene Abnahmearbeiten (nicht als bestanden deklariert)
 
