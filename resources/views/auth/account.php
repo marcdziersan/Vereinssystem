@@ -13,4 +13,4 @@ use Vereinssystem\Core\View;
         <article class="vs-card"><p class="vs-mini-title">Rolle</p><h2><?= View::escape($role) ?></h2><p>Rechtestufe <?= (int)$user->rights ?> von 5</p></article>
     </div>
 </section>
-<section class="vs-section vs-roadmap"><div><h2>Nächster Modulschritt</h2><p>Dashboard und Mitgliederverwaltung werden später separat in Controller, Services, Repositories und Views entwickelt.</p></div></section>
+<section class="vs-section"><a class="vs-button vs-button--primary" href="<?= View::escape($settingsUrl) ?>">Zugangsdaten und Passwort verwalten</a></section>

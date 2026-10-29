@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 3.0.0-alpha.10.1 – Kontopflege (Entwicklungsphase)
+
+- Neuer separater MVC-Account-Service mit PDO-Repository, Validierung, Profilpflege und Passwortwechsel.
+- Eigene, geschützte Routen und Mobile-First-Formulare unter `/account/settings`.
+- Das alte Passwort ist für jede Änderung erforderlich; Passwortwechsel erneuert die Sitzung und den CSRF-Token.
+- Keine SQL-Migration und keine Änderung der Beitrags-, Kassen- oder Rollenverwaltung.
+- Eigenständige Domain-Prüfungen (`tests/account_smoke.php`) und `docs/ALPHA10_ACCOUNT.md`.
+- Dies ist **nur Fachpaket 10.1**; die Pakete 10.2–10.6 und die Alpha-9-Stabilitätsabnahme bleiben ausstehend.
+
+
 ## 3.0.0-alpha.9 – 20.10.2026
 
 ### Jahresberichte, Belege und Exporte

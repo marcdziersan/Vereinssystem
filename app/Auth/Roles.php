@@ -17,6 +17,8 @@ final class Roles
     /** @var array<string, int> Minimal level for currently implemented routes. */
     private const ACCESS = [
         'account.view' => 1,
+        'account.profile' => 1,
+        'account.password' => 1,
         'rights.view' => 1,
         'rights.assign' => 5,
         'dashboard.view' => 1,

@@ -1,4 +1,4 @@
-# Vereinssystem MVC – 3.0.0-alpha.9
+# Vereinssystem MVC – 3.0.0-alpha.10.1
 
 **Die eigenständige Neuentwicklung der Vereinsverwaltung mit PHP 8, OOP, MVC, PDO, HTML, CSS und JavaScript.**
 
@@ -10,6 +10,7 @@ Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Alt
 | --- | --- |
 | Kernel | Klassen-Autoloader, Router, Request/Response, Views, Fehlerseiten, PDO-Fabrik |
 | Login und Logout | Geschützte Sitzungen, Passwort-Hashes und Übernahme historischer MD5-Konten |
+| **Alpha 10.1: Kontopflege** | Eigenen Benutzernamen, E-Mail, Mobilnummer und Passwort ändern, geschützt durch aktuelle Passwortprüfung und CSRF |
 | Rechtesystem | Zentrale Rollenmatrix; Administrationsmaske für die Rechtevergabe |
 | Dashboard | Persönliche Startseite, Vereinskennzahlen für berechtigte Rollen |
 | Mitglieder | Suche, Stammdaten, Detailansichten, Anlage, Bearbeitung und Statusverwaltung |
@@ -61,9 +62,14 @@ php -S 127.0.0.1:8080 -t public public/router.php
 
 Hier lautet der Einstieg `http://127.0.0.1:8080/` und benötigt keine Apache-`.htaccess`.
 
+## Alpha 10 – geplanter Ausbau
+
+**In diesem Entwicklungsstand ist ausschließlich Paket 10.1 umgesetzt.** Die restlichen Pakete 10.2–10.6 und die technische Abnahme der Alpha 9 stehen noch aus. Änderungen liegen auf einem eigenen Entwicklungsbranch, `master` bleibt unangetastet. Details: [`docs/ALPHA10_ACCOUNT.md`](docs/ALPHA10_ACCOUNT.md).
+
 ## Bedienung
 
 - `/dashboard`: Persönliche Startseite.
+- `/account/settings`: Eigene Zugangsdaten, E-Mail, Mobilnummer und Passwort pflegen (Alpha 10.1).
 - `/members`: Mitgliederübersicht für Vorstand und Administration; im Mitgliederformular kann eine hinterlegte Anschrift ausgewählt werden.
 - `/places`: Orte/Anschriften (Verwaltung ab Rechtestufe 4).
 - `/departments`: Abteilungen ansehen (ab Rechtestufe 1); Bearbeiten und Zuordnen ab Stufe 4.

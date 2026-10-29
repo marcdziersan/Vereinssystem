@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Vereinssystem\Core\{Router,Csrf};
 use Vereinssystem\Auth\{AuthService,Roles};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController, CashReportController, ReceiptController};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController, CashReportController, ReceiptController, SelfServiceController};
 
 return static function (
     Router $router,
@@ -20,6 +20,7 @@ return static function (
     EventController $events, NewsController $news, FinanceController $finance, CashController $cash,
     ?AuthService $authService, Roles $roles, Csrf $csrf,
     CashReportController $reports, ReceiptController $receipts,
+    SelfServiceController $selfService,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
     $router->add('GET', '/install', [$install, 'form']);
@@ -30,6 +31,15 @@ return static function (
     $router->add('POST', '/logout', [$auth, 'logout']);
     $router->add('GET', '/dashboard', [$dashboard, 'index']);
     $router->add('GET', '/account', [$access, 'account']);
+    // Alpha 10.1: self-service only, with explicit auth/permission/CSRF guards.
+    $router->add('GET', '/account/settings', Stack::wrap([$selfService, 'form'],
+        new Authenticated($authService), new Permission($authService, $roles, 'account.profile')));
+    $router->add('POST', '/account/settings/profile', Stack::wrap([$selfService, 'profile'],
+        new Authenticated($authService), new Permission($authService, $roles, 'account.profile'),
+        new VerifyCsrf($csrf)));
+    $router->add('POST', '/account/settings/password', Stack::wrap([$selfService, 'password'],
+        new Authenticated($authService), new Permission($authService, $roles, 'account.password'),
+        new VerifyCsrf($csrf)));
     $router->add('GET', '/rights', [$access, 'matrix']);
     $router->add('GET', '/admin/roles', [$access, 'manage']);
     $router->add('POST', '/admin/roles', [$access, 'change']);

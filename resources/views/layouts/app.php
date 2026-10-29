@@ -26,7 +26,7 @@ use Vereinssystem\Auth\Roles;
             <a href="<?= View::escape($homeUrl) ?>" class="vs-brand" aria-label="Vereinssystem, Startseite">
                 <img src="<?= View::escape($logoUrl) ?>" alt="Vereinssystem" width="900" height="131">
             </a>
-            <span class="vs-header__tag">MVC alpha.9</span>
+            <span class="vs-header__tag">MVC alpha.10.1</span>
             <button type="button" class="vs-icon-button" data-vs-theme-toggle aria-label="Farbschema ändern" title="Farbschema ändern">◐</button>
         </div>
     </header>

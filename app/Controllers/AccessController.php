@@ -27,6 +27,7 @@ final class AccessController extends Controller
         if ($user === null) return Response::redirect($request->url('/login'));
         return $this->page($request,'Mein Zugang','auth/account',[
             'user'=>$user,'role'=>Roles::label($user->rights),
+            'settingsUrl'=>$request->url('/account/settings'),
         ],$user);
     }
 
