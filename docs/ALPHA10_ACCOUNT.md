@@ -1,6 +1,6 @@
 # MVC Alpha 10.1 – Kontopflege
 
-Dies ist das **erste Fachpaket aus dem Alpha-10-Plan**. Die übrigen geplanten Pakete 10.2–10.6 (Systemeinstellungen, Bank-/CSV-Import, Zeitaufgaben, Backup/Recovery, Jahresabschluss) sind **nicht umgesetzt**.
+Dies ist das **erste Fachpaket aus dem Alpha-10-Plan**. Alpha 10.2 (Systemeinstellungen) wurde anschließend umgesetzt; Pakete 10.3–10.6 (Bank-/CSV-Import, Zeitaufgaben, Backup/Recovery, Jahresabschluss) sind **nicht umgesetzt**.
 
 ## Umsetzung
 

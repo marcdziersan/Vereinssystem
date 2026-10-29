@@ -39,11 +39,11 @@ final class InstallationService
         $preflight=$inspector->inspect($pdo,false);
         if($preflight['errors'])throw new \DomainException('Vorhandenes Datenbankschema weicht ab: '.SchemaInspector::summary($preflight['errors']));
         // Run only known, bundled CREATE TABLE IF NOT EXISTS statements, without accepting SQL from HTTP.
-        foreach(['001_members_auth.sql','002_departments_places.sql','003_events_tasks.sql','004_news.sql','005_finance.sql','006_cash.sql','007_cash_receipts.sql'] as $file) {
+        foreach(['001_members_auth.sql','002_departments_places.sql','003_events_tasks.sql','004_news.sql','005_finance.sql','006_cash.sql','007_cash_receipts.sql','008_system_settings.sql'] as $file) {
             $schema=file_get_contents($this->root.'/database/migrations/'.$file);
             if (!is_string($schema)) throw new \RuntimeException('Schema-Datei nicht gefunden.');
             preg_match_all('/CREATE TABLE IF NOT EXISTS\s+`[^`]+`\s*\(.*?\)\s*ENGINE=InnoDB[^;]*;/si',$schema,$statements);
-            if(count($statements[0])!==match($file){'001_members_auth.sql'=>1,'002_departments_places.sql'=>3,'003_events_tasks.sql'=>3,'004_news.sql'=>1,'005_finance.sql'=>4,'006_cash.sql'=>3,'007_cash_receipts.sql'=>1})throw new \RuntimeException('Installationsschema unvollständig.');
+            if(count($statements[0])!==match($file){'001_members_auth.sql'=>1,'002_departments_places.sql'=>3,'003_events_tasks.sql'=>3,'004_news.sql'=>1,'005_finance.sql'=>4,'006_cash.sql'=>3,'007_cash_receipts.sql'=>1,'008_system_settings.sql'=>2})throw new \RuntimeException('Installationsschema unvollständig.');
             foreach($statements[0] as $sql)$pdo->exec($sql);
         }
         // DDL cannot be rolled back reliably in MySQL. Fail closed before saving credentials.

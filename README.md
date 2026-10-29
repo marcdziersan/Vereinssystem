@@ -1,4 +1,4 @@
-# Vereinssystem MVC – 3.0.0-alpha.10.1
+# Vereinssystem MVC – 3.0.0-alpha.10.2
 
 **Die eigenständige Neuentwicklung der Vereinsverwaltung mit PHP 8, OOP, MVC, PDO, HTML, CSS und JavaScript.**
 
@@ -11,6 +11,7 @@ Dieser Branch wird Schritt für Schritt neu aufgebaut, ohne die PHP-5-/PHP-8-Alt
 | Kernel | Klassen-Autoloader, Router, Request/Response, Views, Fehlerseiten, PDO-Fabrik |
 | Login und Logout | Geschützte Sitzungen, Passwort-Hashes und Übernahme historischer MD5-Konten |
 | **Alpha 10.1: Kontopflege** | Eigenen Benutzernamen, E-Mail, Mobilnummer und Passwort ändern, geschützt durch aktuelle Passwortprüfung und CSRF |
+| **Alpha 10.2: Systemeinstellungen** | Vereinsangaben, E-Mail-/SMTP-Konfiguration für spätere Versandjobs und revisionsgeschütztes Änderungsprotokoll (nur Administration) |
 | Rechtesystem | Zentrale Rollenmatrix; Administrationsmaske für die Rechtevergabe |
 | Dashboard | Persönliche Startseite, Vereinskennzahlen für berechtigte Rollen |
 | Mitglieder | Suche, Stammdaten, Detailansichten, Anlage, Bearbeitung und Statusverwaltung |
@@ -34,7 +35,7 @@ Die Beitrags- und Kassenbuchhaltung sind inzwischen miteinander verknüpft. Priv
 2. Apache `mod_rewrite` aktivieren und für diesen Ordner `AllowOverride All` zulassen.
 3. In phpMyAdmin eine **leere MySQL- oder MariaDB-Datenbank** mit einem Datenbanknutzer anlegen.
 4. Im Browser **`http://localhost/verein/`** öffnen. Die Root-`.htaccess` leitet intern in `public/` um.
-5. Den Installationsassistenten ausfüllen. Er richtet 16 Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`, `vs_forderungen`, `vs_zahlungen`, `vs_zuordnungen`, `vs_tarife`, `vs_konten`, `vs_kassenbuch`, `vs_audit`, `vs_belege`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
+5. Den Installationsassistenten ausfüllen. Er richtet 18 Tabellen ein (`mitglieder`, `orte`, `abteilungen`, `abteilungszugehoerigkeit`, `veranstaltungen`, `vs_event_aufgaben`, `vs_event_aufgaben_mitglieder`, `news`, `vs_forderungen`, `vs_zahlungen`, `vs_zuordnungen`, `vs_tarife`, `vs_konten`, `vs_kassenbuch`, `vs_audit`, `vs_belege`, `vs_system_settings`, `vs_system_audit`) und legt bei einer leeren Mitgliedertabelle einen Administrator an.
 6. Danach über den Login anmelden. Die Datei `config/database.local.php` wird vom Installer automatisch erstellt und bleibt privat.
 
 Die Installerroute lautet `/install`, etwa `http://localhost/verein/?r=%2Finstall`. Eine separate `install.php` im Root ist nicht notwendig – sämtliche HTTP-Aufrufe laufen über den MVC-Front-Controller `public/index.php`.
@@ -50,6 +51,7 @@ php bin/migrate-news.php
 php bin/migrate-finance.php
 php bin/migrate-cash.php
 php bin/migrate-receipts.php
+php bin/migrate-settings.php
 ```
 
 Die Migration ist wiederholbar und löscht keine vorhandenen Vereins- oder Mitgliederdatensätze. Vor Änderungen an echten Vereinsdaten empfiehlt sich ein Datenbankbackup.
@@ -68,12 +70,13 @@ Das nachträgliche Paket enthält Schema-Vorprüfung, erweiterte Route-Middlewar
 
 ## Alpha 10 – geplanter Ausbau
 
-**In diesem Entwicklungsstand ist ausschließlich Paket 10.1 umgesetzt.** Die restlichen Pakete 10.2–10.6 und die technische Abnahme der Alpha 9 stehen noch aus. Die Entwicklung liegt ausschließlich auf `refactor/mvc-architecture`; `master` bleibt unangetastet. Details: [`docs/ALPHA10_ACCOUNT.md`](docs/ALPHA10_ACCOUNT.md).
+**Pakete 10.1 und 10.2 sind umgesetzt.** Die Pakete 10.3–10.6 und die produktive Abnahme der Alpha 9 stehen noch aus. Die Entwicklung liegt ausschließlich auf `refactor/mvc-architecture`; `master` bleibt unangetastet. Details: [`docs/ALPHA10_ACCOUNT.md`](docs/ALPHA10_ACCOUNT.md) und [`docs/ALPHA10_SETTINGS.md`](docs/ALPHA10_SETTINGS.md).
 
 ## Bedienung
 
 - `/dashboard`: Persönliche Startseite.
 - `/account/settings`: Eigene Zugangsdaten, E-Mail, Mobilnummer und Passwort pflegen (Alpha 10.1).
+- `/admin/settings`: Vereins-/E-Mail-/Benachrichtigungseinstellungen (nur Administration); `/admin/settings/logs`: Änderungsverlauf (Alpha 10.2).
 - `/members`: Mitgliederübersicht für Vorstand und Administration; im Mitgliederformular kann eine hinterlegte Anschrift ausgewählt werden.
 - `/places`: Orte/Anschriften (Verwaltung ab Rechtestufe 4).
 - `/departments`: Abteilungen ansehen (ab Rechtestufe 1); Bearbeiten und Zuordnen ab Stufe 4.
@@ -129,6 +132,7 @@ Intern bleibt die MySQL-Datenstruktur der früheren Vereinsverwaltung kompatibel
 
 ## Dokumentation
 
+- [Systemeinstellungen, Protokoll, Migration und Sicherheitsgrenzen (Alpha 10.2)](docs/ALPHA10_SETTINGS.md)
 - [Jahresberichte, PDF/CSV, private Belege und Sicherheit](docs/REPORTS_RECEIPTS.md)
 - [Kassenbuch: Konten, Buchungen, Umbuchungen und Beitragsverknüpfung](docs/CASHBOOK.md)
 - [Beitragsbuchhaltung](docs/FINANCE.md)
@@ -170,6 +174,6 @@ Details: [`docs/CASHBOOK.md`](docs/CASHBOOK.md).
 - **Berichte:** Jährliche Ein-/Ausgaben, Anfangs-/Endbestände und Umbuchungen je Konto; auch inaktive Konten und stornierte Datensätze in der Historie.
 - **Exporte:** Vollständige CSV- und PDF-Kassenberichte (alle Buchungen des Jahres, ohne die 300-Zeilen-Grenze des Journals).
 - **Belege:** PDF, JPEG, PNG und WebP bis 8 MiB an vorhandene Buchungen anhängen; private Ablage in `storage/receipts/`, Downloads nur mit Anmeldung und Kassenrecht.
-- **Upgrade:** Nach einem Backup auf vorhandenen alpha.8-Datenbanken einmal `php bin/migrate-receipts.php` ausführen. Der Browser-Installer richtet bei Neuinstallationen jetzt 16 Tabellen ein.
+- **Upgrade:** Nach einem Backup auf vorhandenen alpha.8-Datenbanken einmal `php bin/migrate-receipts.php` ausführen. Ab Alpha 10.2 richtet der Browser-Installer bei Neuinstallationen 18 Tabellen ein.
 
 Details zu Berechnungen, Sicherheit, Backup und Routen: [`docs/REPORTS_RECEIPTS.md`](docs/REPORTS_RECEIPTS.md).

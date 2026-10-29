@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 3.0.0-alpha.10.2 – Systemeinstellungen
+
+- Administrationsansichten für Vereinsangaben, Absender-/SMTP-Konfiguration und Benachrichtigungswünsche.
+- Nur Konfiguration: kein Mailversand und keine vertraulichen SMTP-Passwörter in der Datenbank.
+- PDO-Repository und Service mit Feld-Whitelist, Validierung, Versionsschutz gegen konkurrierende Änderungen sowie Transaktions-Audit.
+- Neue explizite Rollen-/CSRF-Middleware-Routen und mobile Ansichten.
+- Zwei additive Tabellen (`vs_system_settings`, `vs_system_audit`), Neuinstallation mit 18 Tabellen, CLI-Migration `bin/migrate-settings.php`.
+- Dokumentation und lokale Fach-/HTTP-Prüfungen. WAMP-/MySQL-Transaktionen sind weiterhin praktisch abzunehmen.
+
+
 ### Nachhärtung Alpha 9 auf dem MVC-Branch
 
 - SchemaInspector (Spalten, Datentypen, Indizes, InnoDB), vor und nach der Neuinstallation; CLI-Schemaabgleich ohne Datenänderung.

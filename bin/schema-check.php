@@ -13,7 +13,7 @@ try {
     if(!is_array($settings))throw new RuntimeException('Datenbankkonfiguration ungültig.');
     $inspector=new SchemaInspector($root);
     $report=$inspector->inspect((new Database($settings))->connection(),true);
-    echo 'Geprüfte Tabellen: '.$report['checked'].'/16'.PHP_EOL;
+    echo 'Geprüfte Tabellen: '.$report['checked'].'/18'.PHP_EOL;
     foreach($report['errors'] as $message)echo '[ABWEICHUNG] '.$message.PHP_EOL;
     if($report['errors']){fwrite(STDERR,"Schemavergleich fehlgeschlagen; keine automatische Änderung.\n");exit(1);}
     echo "Schemakonsistenz erfolgreich geprüft.\n";

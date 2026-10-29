@@ -7,6 +7,8 @@ use Throwable;
 use Vereinssystem\Auth\AuthService;
 use Vereinssystem\Accounts\{AccountRepository,PdoAccountRepository,AccountService};
 use Vereinssystem\Controllers\SelfServiceController;
+use Vereinssystem\Controllers\SystemSettingsController;
+use Vereinssystem\Settings\{SettingsRepository,PdoSettingsRepository,SettingsService};
 use Vereinssystem\Auth\LoginLimiter;
 use Vereinssystem\Auth\Roles;
 use Vereinssystem\Controllers\AccessController;
@@ -43,7 +45,7 @@ final class Application
     private readonly View $views;
     private readonly bool $installed;
 
-    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride,?FinanceRepository $financeOverride,?CashRepository $cashOverride,?AccountRepository $accountOverride)
+    private function __construct(string $root,?UserRepository $override,?MemberRepository $memberOverride,?PlaceRepository $placeOverride,?DepartmentRepository $departmentOverride,?EventRepository $eventOverride,?NewsRepository $newsOverride,?FinanceRepository $financeOverride,?CashRepository $cashOverride,?AccountRepository $accountOverride,?SettingsRepository $settingsOverride)
     {
         $config=new Config(require $root.'/config/app.php');
         $this->router=new Router();
@@ -67,6 +69,9 @@ final class Application
         $auth=$users ? new AuthService($users,$session,new LoginLimiter($root.'/storage/rate_limits')) : null;
         $accountRepository=$accountOverride ?? ($database ? new PdoAccountRepository($database) : null);
         $selfServiceController=new SelfServiceController($this->views,$csrf,$auth,$accountRepository ? new AccountService($accountRepository) : null,$session);
+        $settingsRepository=$settingsOverride ?? ($database ? new PdoSettingsRepository($database) : null);
+        $settingsController=new SystemSettingsController($this->views,$csrf,$auth,
+            $settingsRepository ? new SettingsService($settingsRepository) : null,$session);
         $kernel=new KernelController($this->views,$config);
         $authController=new AuthController($this->views,$csrf,$auth);
         $roles=new Roles();
@@ -94,12 +99,12 @@ final class Application
         $receiptController=new ReceiptController($this->views,$csrf,$auth,$receiptRepository,$session,$root.'/storage/receipts');
         $installer=new InstallController($this->views,$csrf,new InstallationService($root));
         $register=require $root.'/routes/web.php';
-        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$financeController,$cashController,$auth,$roles,$csrf,$reportController,$receiptController,$selfServiceController);
+        $register($this->router,$kernel,$authController,$accessController,$dashboard,$memberController,$placeController,$departmentController,$installer,$eventController,$newsController,$financeController,$cashController,$auth,$roles,$csrf,$reportController,$receiptController,$selfServiceController,$settingsController);
     }
 
-    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null,?FinanceRepository $finance=null,?CashRepository $cash=null,?AccountRepository $accounts=null): self
+    public static function fromProjectRoot(string $root,?UserRepository $users=null,?MemberRepository $members=null,?PlaceRepository $places=null,?DepartmentRepository $departments=null,?EventRepository $events=null,?NewsRepository $news=null,?FinanceRepository $finance=null,?CashRepository $cash=null,?AccountRepository $accounts=null,?SettingsRepository $settings=null): self
     {
-        return new self($root,$users,$members,$places,$departments,$events,$news,$finance,$cash,$accounts);
+        return new self($root,$users,$members,$places,$departments,$events,$news,$finance,$cash,$accounts,$settings);
     }
 
     public function handle(Request $request): Response

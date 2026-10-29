@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Vereinssystem\Core\{Router,Csrf};
 use Vereinssystem\Auth\{AuthService,Roles};
 use Vereinssystem\Http\Middleware\{Authenticated,Permission,Stack,VerifyCsrf};
-use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController, CashReportController, ReceiptController, SelfServiceController};
+use Vereinssystem\Controllers\{KernelController, AuthController, AccessController, DashboardController, MemberController, PlaceController, DepartmentController, InstallController, EventController, NewsController, FinanceController, CashController, CashReportController, ReceiptController, SelfServiceController, SystemSettingsController};
 
 return static function (
     Router $router,
@@ -21,6 +21,7 @@ return static function (
     ?AuthService $authService, Roles $roles, Csrf $csrf,
     CashReportController $reports, ReceiptController $receipts,
     SelfServiceController $selfService,
+    SystemSettingsController $settings,
 ): void {
     $router->add('GET', '/', [$auth, 'home']);
     $router->add('GET', '/install', [$install, 'form']);
@@ -40,6 +41,13 @@ return static function (
     $router->add('POST', '/account/settings/password', Stack::wrap([$selfService, 'password'],
         new Authenticated($authService), new Permission($authService, $roles, 'account.password'),
         new VerifyCsrf($csrf)));
+    // Alpha 10.2: settings and audit are administration-only; writes require CSRF.
+    $router->add('GET', '/admin/settings', Stack::wrap([$settings, 'index'],
+        new Authenticated($authService),new Permission($authService,$roles,'settings.view')));
+    $router->add('POST', '/admin/settings/save', Stack::wrap([$settings, 'save'],
+        new Authenticated($authService),new Permission($authService,$roles,'settings.edit'),new VerifyCsrf($csrf)));
+    $router->add('GET', '/admin/settings/logs', Stack::wrap([$settings, 'logs'],
+        new Authenticated($authService),new Permission($authService,$roles,'settings.history')));
     $router->add('GET', '/rights', Stack::wrap([$access, 'matrix'], new Authenticated($authService), new Permission($authService, $roles, 'rights.view')));
     $router->add('GET', '/admin/roles', Stack::wrap([$access, 'manage'], new Authenticated($authService), new Permission($authService, $roles, 'rights.assign')));
     $router->add('POST', '/admin/roles', Stack::wrap([$access, 'change'], new Authenticated($authService), new Permission($authService, $roles, 'rights.assign'), new VerifyCsrf($csrf)));

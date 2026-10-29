@@ -16,7 +16,7 @@ final class SchemaInspector
         '001_members_auth.sql'=>1, '002_departments_places.sql'=>3,
         '003_events_tasks.sql'=>3, '004_news.sql'=>1,
         '005_finance.sql'=>4, '006_cash.sql'=>3,
-        '007_cash_receipts.sql'=>1,
+        '007_cash_receipts.sql'=>1, '008_system_settings.sql'=>2,
     ];
     public function __construct(private readonly string $root) {}
 
@@ -46,7 +46,7 @@ final class SchemaInspector
                 $result[$name]=['columns'=>$columns,'indexes'=>$indexes];
             }
         }
-        if(count($result)!==16)throw new RuntimeException('16 erwartete Tabellen nicht gefunden.');
+        if(count($result)!==18)throw new RuntimeException('18 erwartete Tabellen nicht gefunden.');
         return $result;
     }
 

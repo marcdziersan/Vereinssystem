@@ -26,6 +26,7 @@ abstract class Controller
             'accountUrl'=>$request->url('/account'),'dashboardUrl'=>$request->url('/dashboard'),
             'membersUrl'=>$request->url('/members'),'rightsUrl'=>$request->url('/rights'),
             'adminUrl'=>$request->url('/admin/roles'),
+            'systemSettingsUrl'=>$request->url('/admin/settings'),
             'placesUrl'=>$request->url('/places'),'departmentsUrl'=>$request->url('/departments'),
             'eventsUrl'=>$request->url('/events'),'financeUrl'=>$request->url('/finance'),
             'cashUrl'=>$request->url('/cash'),'newsUrl'=>$request->url('/news'),'logoutUrl'=>$request->url('/logout'),

@@ -1,4 +1,4 @@
-# MVC-Architektur – 3.0.0-alpha.10.1 (Nachhärtung von alpha.9)
+# MVC-Architektur – 3.0.0-alpha.10.2 (Nachhärtung von alpha.9)
 
 ## Schichten und Abhängigkeiten
 
@@ -112,3 +112,11 @@ Die Altrouten aus Alpha 2–4 verwenden nun dieselbe Auth-/Rechte-/CSRF-Middlewa
 `Receipts/StoragePolicy.php` erzwingt einen realen Speicherort unter `storage/` (nicht im Webroot, keine Symlinks). Weitere Freigabebedingungen: [ALPHA9_HARDENING.md](ALPHA9_HARDENING.md).
 
 Die Kontopflege aus Alpha 10.1 arbeitet unabhängig von der Mitgliederdomäne in `app/Accounts`. Sie überprüft das bisherige Passwort bei jeder Änderung und erneuert nach Passwortwechsel die Sitzung. Die Authentifizierung bindet Sessions an den beobachteten Passwort-Hash, um ältere angemeldete Sitzungen nach Passwortwechsel zu widerrufen.
+
+## Alpha 10.2 – Konfiguration und Audit
+
+`SystemSettingsController` → `SettingsService` (Feld-Whitelist/Validierung) →
+`SettingsRepository`/`PdoSettingsRepository` (InnoDB, CAS-Revision und
+transaktionales, nur anhängbares Änderungsjournal). Anonyme und nichtadministrative
+Aufrufe werden durch Route-Middleware abgewehrt, POST benötigt einen CSRF-Token.
+Keine SMTP-Passwörter im Settings-Speicher, kein Mailversand. Neue Migration `008_system_settings.sql`.
